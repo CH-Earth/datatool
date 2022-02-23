@@ -95,13 +95,18 @@ do
   esac
 done
 
+
 # an example of using CONUSI data on a monthly time-scale:
 if [ "${forcingData,,}" = "conusi" ] || [ "${forcingData,,}" = "conus1" ]
   then
 
+    # WORKS ON COMPUTECANADA (CC) GRAHAM ONLY
+    module load cdo/2.0.4
+    module load nco/5.0.6
+
     # display info 
-    echo "$0: chosen dataset: $forcingData"
-    echo "$0: processing $forcingData using CDO..."
+    echo
+    echo "$0: processing $forcingData..."
     
     # display job submission info placeholder, WILL BE ADDED LATER
     if [[ -n "$jubSubmission" ]]
@@ -111,23 +116,25 @@ if [ "${forcingData,,}" = "conusi" ] || [ "${forcingData,,}" = "conus1" ]
 
     # hard-coded for now, can be passed as an argument of "-d" in future 
     # versions, if needed
-    datasetAddress="~/projects/rpp-kshook/Model_Output/WRF/CONUS/CTRL/"
+    #datasetAddress="/project/6008034/Model_Output/WRF/CONUS/CTRL/"
+    datasetAddress="/home/kasra545/scratch/wrftest/"
 
     ## since data is structured into folders (by year)
     ## we need to iterate in each year and produce files accordingly
-    startYear=$(date --date=startDate "+%Y") # start year (first folder)
-    endYear=$(date --date=endDate "+%Y") # end year (last folder)
-    yearsRange=$(seq startYear endYear) # inclusive start and end values
+    startYear=$(date --date="$startDate" "+%Y") # start year (first folder)
+    endYear=$(date --date="$endDate" "+%Y") # end year (last folder)
+    yearsRange=$(seq $startYear $endYear)
 
     ## extract the start and end months, days, and hours as well
-    startMonth=$(date --date=startDate "+%m")
-    endMonth=$(date --date=endDate "+%m")
-    monthsRange=$(seq startMonth endMonth)
+    startMonth=$(date --date="$startDate" "+%m")
+    endMonth=$(date --date="$endDate" "+%m")
+    monthsRange=$(seq -f %02g $startMonth $endMonth)
 
-    startDay=$(date --date=startDate "+%d")
-    endDay=$(date --date=endDate "+%d")
-    startHour=$(date --date=startDate "+%H")
-    endHour=$(date --date=endDate "+%H")
+    startDay=$(date --date="$startDate" "+%d")
+    endDay=$(date --date="$endDate" "+%d")
+
+    startHour=$(date --date="$startDate" "+%H")
+    endHour=$(date --date="$endDate" "+%H")
 
     ## GOING WITH MONTHLY TIMESCALE JUST TO TRY
     ## for each year (folder) do the following calculations and print
@@ -137,24 +144,28 @@ if [ "${forcingData,,}" = "conusi" ] || [ "${forcingData,,}" = "conus1" ]
         # understanding what the file naming convention is
 	# based on knowledge that the delimiter is '_' and
 	# first two pieces are common in all files
-	fileStruct=$(ls | head -n 1 | cut -d '_' -f 1,2)
+	datasetFiles=($datasetAddress/$yr/*)
+	IFS='/' read -ra fileNameArr <<< "${datasetFiles[0]}"
+	fileStruct=$(echo "${fileNameArr[-1]}" | rev | cut -d '_' -f 3- | rev)
+	
 	for mn in $monthsRange; do
-	  mkdir -p "${outputDir}" # create output directory
-	    subFiles=("${datasetAddress}/${fileStruct}_${yr}-${mn}*")
-	    for f in $(subFiles); do # hourly files
-	      hourlyOutputFile="h2d_$(echo "$f" | rev | cut -d/ -f 1 | cut -d '_' -f 1- | rev).nc"
-	      ncks -v T2,Q2,PSFC,U,V,GLW,LH,SWDOWN,QFX,HFX "$f" "${outputDir}/${hourlyOutputFile}" # selecting variables
-	    done
-	    # concatenating hourly files to monthly
-	    ncrcat "${outputDir}/h2d_${yr}-${mn}*.nc" "${outputDir}/h2d_${yr}_${mn}.nc"
-	    cdo -f nc4c -z zip_1 -r settaxis,"${yr}-${mn}-01",00:00:00,1hour "${outputDir}/h2d_${yr}_${mn}.nc" "${outputDir}/wrf_${yr}_${mn}.nc"
-	    ncrename -a .description,long_name "${outputDir}/wrf_${yr}_${mn}.nc"
-	    ncatted -O -a coordinates,PREC,c,c,lon lat "${outputDir}/wrf_${yr}_${mn}.nc"
-	    cdo sellonlatbox,"${lonBox},${latBox}" "${outputDir}/wrf_${yr}_${mn}.nc" "${outputDir}/wrf_${yr}_${mn}_boxed.nc"
+	  mkdir -p "$outputDir" # create output directory
+	  subFiles=("${datasetAddress}/${yr}/${fileStruct}_${yr}-${mn}*")
+	  for f in $subFiles; do # hourly files
+	    IFS='/' read -ra outputFileArr <<< "$f" # splitting path strings by foreslash character
+	    outputFile="h2d_${outputFileArr[-1]}.nc" # removing hours from the file name
+	    # Dr. Zhenhua Li's contribution
+	    ncks -v T2,Q2,PSFC,U,V,GLW,LH,SWDOWN,QFX,HFX "$f" "${outputDir}/${outputFile}" # selecting variables of interest - hard-coded
+	  done
+	  # concatenating hourly files to monthly
+	  monthlyFiles="${outputDir}/h2d_${fileStruct}_${yr}-${mn}*.nc"
+	  ncrcat $monthlyFiles "${outputDir}/h2d_${fileStruct}_${yr}_${mn}.nc"
+	  cdo -f nc4c -z zip_1 -r settaxis,"${yr}-${mn}-01",00:00:00,1hour "${outputDir}/h2d_${fileStruct}_${yr}_${mn}.nc" "${outputDir}/wrf2d_${yr}_${mn}.nc"
+	  ncrename -a .description,long_name "${outputDir}/wrf2d_${yr}_${mn}.nc"
+	  #ncatted -O -a coordinates,PREC,c,c,lon lat "${outputDir}/wrf2d_${yr}_${mn}.nc"
+	  cdo sellonlatbox,${lonBox},${latBox} "${outputDir}/wrf2d_${yr}_${mn}.nc" "${outputDir}/wrf2d_${yr}_${mn}_boxed.nc"
 	done
       # Dr. Zhenhua Li's contribution
       done
     fi
 fi
-
-# there could be bugs -  will review & prepare for final assessment
