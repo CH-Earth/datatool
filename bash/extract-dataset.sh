@@ -21,14 +21,19 @@
 # ======
 # 1. Parts of the code are taken from https://www.shellscript.sh/tips/getopt/index.html
 # 2. Dr. Zhenhua Li provided scripts to extract and process CONUS I & II datasets
+# 3. Parts of the code are taken from https://stackoverflow.com/a/17557904/5188208
 
 
-# GENERAL COMMENTS
-# ================
+# GENERAL COMMENTS:
 # * All variables are camelCased;
 
-# help string
-usage() {
+
+# ==============
+# Help functions
+# ==============
+
+#help string
+usage () {
   echo "Global Water Futures (GWF) Meteorological Forcing Data Processing Script
 
    Usage: 
@@ -58,6 +63,10 @@ short_usage() {
 }
 
 
+# =======================
+# Parsing input arguments
+# =======================
+
 # argument parsing using getopt - WORKS ONLY ON LINUX BY DEFAULT
 parsedArguments=$(getopt -a -n extract-dataset -o jhd:o:s:e:t:l:n: --long submit-job,help,dataset:,output-dir:,start-date:,end-date:,time-scale:,lat-box:,lon-box:, -- "$@")
 validArguments=$?
@@ -79,6 +88,7 @@ do
   case "$1" in
     -h | --help)          usage                ; shift   ;; # optional
     -j | --submit-job)    jobSubmission=true   ; shift   ;; # optional
+    -i | --dataset-dir)   datasetDir="$2"      ; shift 2 ;; # required
     -d | --dataset)       forcingData="$2"     ; shift 2 ;; # required
     -o | --output-dir)    outputDir="$2"       ; shift 2 ;; # required
     -s | --start-date)    startDate="$2"       ; shift 2 ;; # required
@@ -95,77 +105,56 @@ do
   esac
 done
 
+# put necessary arguments in an array
+declare -A funcArgs=([jobSubmission]="$jobSubmission" \
+		     [datasetDir]="$datasetDir" \
+                     [forcingData]="$forcingData" \
+		     [outputDir]="$outputDir" \
+		     [startDate]="$startDate" \
+		     [endDate]="$endDate" \
+		     [timeScale]="$timeScale" \
+		     [latBox]="$latBox" \
+		     [lonBox]="$lonBox" \
+		    );
 
-# an example of using CONUSI data on a monthly time-scale:
-if [ "${forcingData,,}" = "conusi" ] || [ "${forcingData,,}" = "conus1" ]
-  then
 
-    # WORKS ON COMPUTECANADA (CC) GRAHAM ONLY
-    module load cdo/2.0.4
-    module load nco/5.0.6
+# =================================
+# Template data processing function
+# =================================
 
-    # display info 
-    echo
-    echo "$0: processing $forcingData..."
-    
-    # display job submission info placeholder, WILL BE ADDED LATER
-    if [[ -n "$jubSubmission" ]]
-      then
-        echo "$0: SLRUM job submitted with ID: $jobID"
+# all processing script files follow same input argument standard
+call_processing_func() {
+
+  # contents of $args are passed as the first argument
+  eval "declare -A args="{1#*=}
+
+  # script name is passed as the second argument
+  script="$2"
+  
+  # evaluate the script file using the arguments provided
+  if [[ "${jobSubmission}" == true ]]; then
+    echo "not implemented yet"
+  else
+    # decompose array values
+    bash "./${script}" -i "${funcArgs[datasetDir]}" \
+    		       -o "${funcArgs[outputDir]}" \
+		       -s "${funcArgs[startDate]}" \
+      		       -e "${funcArgs[endDate]}" \
+   		       -t "${funcArgs[timeScale]}" \
+   		       -l "${funcArgs[latBox]}" \
+   		       -n "${funcArgs[lonBox]}" \
+  fi
+}
+
+
+# ======================
+# Checking input dataset
+# ======================
+case "${forcingData,,}" in
+  conus1 | conusi | conus_1 | conus_i)
+    if [[ "${jobSubmission}" == true ]]; then
+      call_processing_func "$(declare -p sio)" ./conus_i.sh;
     fi
-
-    # hard-coded for now, can be passed as an argument of "-d" in future 
-    # versions, if needed
-    #datasetAddress="/project/6008034/Model_Output/WRF/CONUS/CTRL/"
-    datasetAddress="/home/kasra545/scratch/wrftest/"
-
-    ## since data is structured into folders (by year)
-    ## we need to iterate in each year and produce files accordingly
-    startYear=$(date --date="$startDate" "+%Y") # start year (first folder)
-    endYear=$(date --date="$endDate" "+%Y") # end year (last folder)
-    yearsRange=$(seq $startYear $endYear)
-
-    ## extract the start and end months, days, and hours as well
-    startMonth=$(date --date="$startDate" "+%m")
-    endMonth=$(date --date="$endDate" "+%m")
-    monthsRange=$(seq -f %02g $startMonth $endMonth)
-
-    startDay=$(date --date="$startDate" "+%d")
-    endDay=$(date --date="$endDate" "+%d")
-
-    startHour=$(date --date="$startDate" "+%H")
-    endHour=$(date --date="$endDate" "+%H")
-
-    ## GOING WITH MONTHLY TIMESCALE JUST TO TRY
-    ## for each year (folder) do the following calculations and print
-    ## the outputs to $outputDir depending on the $timeScale value
-    if [ "${timeScale,,}" = "m" ]; then
-      for yr in $yearsRange; do
-        # understanding what the file naming convention is
-	# based on knowledge that the delimiter is '_' and
-	# first two pieces are common in all files
-	datasetFiles=($datasetAddress/$yr/*)
-	IFS='/' read -ra fileNameArr <<< "${datasetFiles[0]}"
-	fileStruct=$(echo "${fileNameArr[-1]}" | rev | cut -d '_' -f 3- | rev)
-	
-	for mn in $monthsRange; do
-	  mkdir -p "$outputDir" # create output directory
-	  subFiles=("${datasetAddress}/${yr}/${fileStruct}_${yr}-${mn}*")
-	  for f in $subFiles; do # hourly files
-	    IFS='/' read -ra outputFileArr <<< "$f" # splitting path strings by foreslash character
-	    outputFile="h2d_${outputFileArr[-1]}.nc" # removing hours from the file name
-	    # Dr. Zhenhua Li's contribution
-	    ncks -v T2,Q2,PSFC,U,V,GLW,LH,SWDOWN,QFX,HFX "$f" "${outputDir}/${outputFile}" # selecting variables of interest - hard-coded
-	  done
-	  # concatenating hourly files to monthly
-	  monthlyFiles="${outputDir}/h2d_${fileStruct}_${yr}-${mn}*.nc"
-	  ncrcat $monthlyFiles "${outputDir}/h2d_${fileStruct}_${yr}_${mn}.nc"
-	  cdo -f nc4c -z zip_1 -r settaxis,"${yr}-${mn}-01",00:00:00,1hour "${outputDir}/h2d_${fileStruct}_${yr}_${mn}.nc" "${outputDir}/wrf2d_${yr}_${mn}.nc"
-	  ncrename -a .description,long_name "${outputDir}/wrf2d_${yr}_${mn}.nc"
-	  #ncatted -O -a coordinates,PREC,c,c,lon lat "${outputDir}/wrf2d_${yr}_${mn}.nc"
-	  cdo sellonlatbox,${lonBox},${latBox} "${outputDir}/wrf2d_${yr}_${mn}.nc" "${outputDir}/wrf2d_${yr}_${mn}_boxed.nc"
-	done
-      # Dr. Zhenhua Li's contribution
-      done
-    fi
-fi
+    ;;
+  conus2 | conusii | conus_2 | conus_ii)
+    ;;
