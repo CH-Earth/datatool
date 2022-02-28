@@ -55,11 +55,11 @@ usage () {
 Email bug reports, questions, discussions to <kasra.keshavarz AT usask DOT ca>
 and/or open an issue at https://github.com/kasra-keshavarz/gwf-forcing-data/issues"
   
-  exit 1
+  exit 1;
 }
 
 short_usage() {
-  echo "usage: $0 [-jh] [-d DATASET] [-o DIR] [-se DATESTRING] [-ln NUM,NUM]"
+  echo "usage: $0 [-jh] [-d DATASET] [-o DIR] [-se DATESTRING] [-ln NUM,NUM]";
 }
 
 
@@ -68,17 +68,17 @@ short_usage() {
 # =======================
 
 # argument parsing using getopt - WORKS ONLY ON LINUX BY DEFAULT
-parsedArguments=$(getopt -a -n extract-dataset -o jhd:o:s:e:t:l:n: --long submit-job,help,dataset:,output-dir:,start-date:,end-date:,time-scale:,lat-box:,lon-box:, -- "$@")
+parsedArguments=$(getopt -a -n extract-dataset -o jhi:d:o:s:e:t:l:n: --long submit-job,help,dataset-dir:,dataset:,output-dir:,start-date:,end-date:,time-scale:,lat-box:,lon-box:, -- "$@")
 validArguments=$?
 if [ "$validArguments" != "0" ]; then
   short_usage;
-  exit 2;
+  exit 1;
 fi
 
 # check if no options were passed
 if [ $# -eq 0 ]; then
-  short_usage
-  exit 1
+  short_usage;
+  exit 1;
 fi
 
 # check long and short options passed
@@ -101,7 +101,7 @@ do
     --) shift; break ;;
 
     # in case of invalid option
-    *) short_usage ;;
+    *) echo "$0: invalid option '$1'"; short_usage ; exit 1;;
   esac
 done
 
@@ -122,27 +122,26 @@ declare -A funcArgs=([jobSubmission]="$jobSubmission" \
 # Template data processing function
 # =================================
 
-# all processing script files follow same input argument standard
-call_processing_func() {
-
+# all processing script files must follow same input argument standard
+call_processing_func () {
   # contents of $args are passed as the first argument
-  eval "declare -A args="{1#*=}
+  eval "declare -A args="{1#*=};
 
   # script name is passed as the second argument
   script="$2"
   
   # evaluate the script file using the arguments provided
   if [[ "${jobSubmission}" == true ]]; then
-    echo "not implemented yet"
+    echo "not implemented yet" # placeholder
   else
-    # decompose array values
-    bash "./${script}" -i "${funcArgs[datasetDir]}" \
-    		       -o "${funcArgs[outputDir]}" \
-		       -s "${funcArgs[startDate]}" \
-      		       -e "${funcArgs[endDate]}" \
-   		       -t "${funcArgs[timeScale]}" \
-   		       -l "${funcArgs[latBox]}" \
-   		       -n "${funcArgs[lonBox]}" \
+    # decompose array values and run the $script
+    bash "${script}" -i "${funcArgs[datasetDir]}" \
+    		     -o "${funcArgs[outputDir]}" \
+		     -s "${funcArgs[startDate]}" \
+      		     -e "${funcArgs[endDate]}" \
+   		     -t "${funcArgs[timeScale]}" \
+   		     -l "${funcArgs[latBox]}" \
+   		     -n "${funcArgs[lonBox]}";
   fi
 }
 
@@ -150,11 +149,21 @@ call_processing_func() {
 # ======================
 # Checking input dataset
 # ======================
+
 case "${forcingData,,}" in
-  conus1 | conusi | conus_1 | conus_i)
-    if [[ "${jobSubmission}" == true ]]; then
-      call_processing_func "$(declare -p sio)" ./conus_i.sh;
-    fi
-    ;;
-  conus2 | conusii | conus_2 | conus_ii)
-    ;;
+  # NCAR-GWF CONUSI
+  conus1 | conusi | conus_1 | conus_i | "conus 1" | "conus i" | "conus-1" | "conus-ii")
+    call_processing_func "$(declare -p funcArgs)" "./conus_i.sh";;
+  
+  # NCAR-GWF CONUSII
+  conus2 | conusii | conus_2 | conus_ii | "conus 2" | "conus ii" | "conus-2" | "conus-ii")
+    call_processing_func "$(declare -p funcArgs)" "./conus_ii.sh";;
+
+  # ECMWF ERA5
+  era_5 | era5)
+    call_processing_func "$(declare -p funcArgs)" "./era_5.sh";;
+
+  *)
+    echo "$0: unknown dataset";
+    exit 1;;
+esac
