@@ -36,13 +36,14 @@
 usage () {
   echo "Global Water Futures (GWF) Meteorological Forcing Data Processing Script
 
-   Usage: 
+   Usage:
        $0 [options...]
 
    Script options:
        -d, --dataset               Meteorological forcing dataset of interest
        				   currently available options are:
 				   'CONUSI'; 'CONUSII';
+       -i, --dataset-dir=DIR       The source path of the dataset file(s)
        -o, --output-dir=DIR        Writes processed files to DIR
        -s, --start-date=STRING     The start date of the forcing data
        -e, --end-date=STRING       The end date of the forcing data
@@ -50,16 +51,15 @@ usage () {
        -l, --lat-box=NUM,NUM       Latitude's upper and lower bounds
        -n, --lon-box=NUM,NUM       Longitude's upper and lower bounds
        -j, --submit-job            Submit the data extraction process as a job on the SLURM system
-       -h, --help                  Print this message 
+       -h, --help                  Print this message
 
 Email bug reports, questions, discussions to <kasra.keshavarz AT usask DOT ca>
-and/or open an issue at https://github.com/kasra-keshavarz/gwf-forcing-data/issues"
-  
-  exit 1;
+and/or open an issue at https://github.com/kasra-keshavarz/gwf-forcing-data/issues" >&1;
+
 }
 
 short_usage() {
-  echo "usage: $0 [-jh] [-d DATASET] [-o DIR] [-se DATESTRING] [-ln NUM,NUM]";
+  echo "usage: $0 [-jh] [-i DIR] [-d DATASET] [-o DIR] [-se DATE] [-ln NUM,NUM]" >&1;
 }
 
 
@@ -70,6 +70,7 @@ short_usage() {
 # argument parsing using getopt - WORKS ONLY ON LINUX BY DEFAULT
 parsedArguments=$(getopt -a -n extract-dataset -o jhi:d:o:s:e:t:l:n: --long submit-job,help,dataset-dir:,dataset:,output-dir:,start-date:,end-date:,time-scale:,lat-box:,lon-box:, -- "$@")
 validArguments=$?
+# check if there is no valid options
 if [ "$validArguments" != "0" ]; then
   short_usage;
   exit 1;
@@ -101,11 +102,14 @@ do
     --) shift; break ;;
 
     # in case of invalid option
-    *) echo "$0: invalid option '$1'"; short_usage ; exit 1;;
+    *) echo "$0: invalid option '$1'" >$2;
+       short_usage;
+       exit 1;;
   esac
 done
 
-# put necessary arguments in an array
+# put necessary arguments in an array - just to make things more legible
+# these variables are global anyways...
 declare -A funcArgs=([jobSubmission]="$jobSubmission" \
 		     [datasetDir]="$datasetDir" \
                      [forcingData]="$forcingData" \
@@ -117,31 +121,40 @@ declare -A funcArgs=([jobSubmission]="$jobSubmission" \
 		     [lonBox]="$lonBox" \
 		    );
 
-
 # =================================
 # Template data processing function
 # =================================
 
-# all processing script files must follow same input argument standard
 call_processing_func () {
-  # contents of $args are passed as the first argument
-  eval "declare -A args="{1#*=};
 
-  # script name is passed as the second argument
-  script="$2"
-  
+  # extract the script name
+  local script="$1"
+
+  # prepare a script running string
+  # all processing script files must follow same input argument standard
+  local scriptRun
+  read -rd '' scriptRun <<- EOF
+	bash ./${script} -i ${funcArgs[datasetDir]} -o ${funcArgs[outputDir]} -s ${funcArgs[startDate]} -e ${funcArgs[endDate]} -t ${funcArgs[timeScale]} -l ${funcArgs[latBox]} -n ${funcArgs[lonBox]};
+	EOF
+
   # evaluate the script file using the arguments provided
-  if [[ "${jobSubmission}" == true ]]; then
-    echo "not implemented yet" # placeholder
+  if [[ "${funcArgs[jobSubmission]}" == true ]]; then
+    # SLURM batch file
+    sbatch <<- EOF
+	#!/bin/bash
+
+	#SBATCH --account=rpp-kshook
+	#SBATCH --time=8:00:00
+	#SBATCH --cpus-per-task=1
+	#SBATCH --mem=4GB
+	#SBATCH --job-name=GWF_${script}
+	#SBATCH --error=$HOME/GWF_job_id_%j_err.txt
+	#SBATCH --output=$HOME/GWF_job_id_%j.txt
+
+	srun ${scriptRun}
+	EOF
   else
-    # decompose array values and run the $script
-    bash "${script}" -i "${funcArgs[datasetDir]}" \
-    		     -o "${funcArgs[outputDir]}" \
-		     -s "${funcArgs[startDate]}" \
-      		     -e "${funcArgs[endDate]}" \
-   		     -t "${funcArgs[timeScale]}" \
-   		     -l "${funcArgs[latBox]}" \
-   		     -n "${funcArgs[lonBox]}";
+    eval "$scriptRun"
   fi
 }
 
@@ -153,17 +166,18 @@ call_processing_func () {
 case "${forcingData,,}" in
   # NCAR-GWF CONUSI
   conus1 | conusi | conus_1 | conus_i | "conus 1" | "conus i" | "conus-1" | "conus-ii")
-    call_processing_func "$(declare -p funcArgs)" "./conus_i.sh";;
-  
+    call_processing_func "conus_i.sh";;
+
   # NCAR-GWF CONUSII
   conus2 | conusii | conus_2 | conus_ii | "conus 2" | "conus ii" | "conus-2" | "conus-ii")
-    call_processing_func "$(declare -p funcArgs)" "./conus_ii.sh";;
+    call_processing_func "conus_ii.sh";;
 
   # ECMWF ERA5
   era_5 | era5)
-    call_processing_func "$(declare -p funcArgs)" "./era_5.sh";;
+    call_processing_func "era_5.sh";;
 
+  # dataset not included above
   *)
-    echo "$0: unknown dataset";
+    echo "$0: missing/unknown dataset";
     exit 1;;
 esac
