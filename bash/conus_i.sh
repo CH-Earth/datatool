@@ -63,7 +63,7 @@ do
     --) shift; break ;;
 
     # in case of invalid option
-    *) 
+    *)
       echo "$0: invalid option '$1'";
       short_usage; exit 1 ;;
   esac
@@ -81,11 +81,6 @@ module load nco/5.0.6
 # display info
 echo "$0: processing NCAR-GWF CONUSI..."
 
-# display job submission info placeholder, WILL BE ADDED LATER
-if [[ -n "$jubSubmission" ]]; then
-  echo "$0: SLRUM job submitted with ID: $jobID"
-fi
-
 # make the output directory
 mkdir -p "$outputDir" # create output directory
 
@@ -95,51 +90,202 @@ startYear=$(date --date="$startDate" "+%Y") # start year (first folder)
 endYear=$(date --date="$endDate" "+%Y") # end year (last folder)
 yearsRange=$(seq $startYear $endYear)
 
-## extract the start and end months, days, and hours as well
-startMonth=$(date --date="$startDate" "+%m")
-endMonth=$(date --date="$endDate" "+%m")
-monthsRange=$(seq -f %02g $startMonth $endMonth)
+# assigning the startDate to $toDate for counting
+toDate=$startDate
+unixToDate=$(date --date="$startDate" "+%s") # first date to read proper files
+unixStartDate=$(date --date="$startDate" "+%s") # starting point in unix timestamp
+unixEndDate=$(date --date="$endDate" "+%s") # end point in unix timestamp
 
-startDay=$(date --date="$startDate" "+%d")
-endDay=$(date --date="$endDate" "+%d")
+## for each year (folder) do the following calculations
+for yr in $yearsRange; do
+  # creating a temporary directory for temporary files
+  echo "$0: creating temporary files for year $yr in $HOME/.temp_gwfdata"
+  tempDir="$HOME/.temp_gwfdata"
+  mkdir -p "$tempDir/$yr" # making the directory
 
-startHour=$(date --date="$startDate" "+%H")
-endHour=$(date --date="$endDate" "+%H")
+  # setting the end point for the current year
+  unixEndOfCurrentYear=$(date --date="$yr-01-01 +1 year -1 hour" "+%s") # hourly files
+  if [[ $unixEndOfCurrentYear -lt $unixEndDate ]]; then
+    unixEndPoint=$unixEndOfCurrentYear
+  else
+    unixEndPoint=$unixEndDate
+  fi
 
-## for each year (folder) do the following calculations and print
-## the outputs to $outputDir depending on the $timeScale value
-if [ "${timeScale,,}" = "m" ]; then
-  for yr in $yearsRange; do
-    # understanding what the file naming convention is
-    # based on knowledge that the delimiter is '_' and
-    # first two pieces are common in all files
-    datasetFiles=($datasetDir/$yr/*)
-    IFS='/' read -ra fileNameArr <<< "${datasetFiles[0]}" # parsing file path
-    fileStruct=$(echo "${fileNameArr[-1]}" | rev | cut -d '_' -f 3- | rev) # extracting first bit of file
+  # The structure of file names is as follows:
+  # wrf2d_d01_YYYY-MM-DD_HH:MM:SS (no file extension)
+  format="%Y-%m-%d_%H:%M:%S"
+  fileStruct="wrf2d_d01"
 
-    for mn in $monthsRange; do
-      
-      subFiles=("${datasetDir}/${yr}/${fileStruct}_${yr}-${mn}*") # list files
-      
-      for f in $subFiles; do # iterate over hourly files
-	IFS='/' read -ra outputFileArr <<< "$f" # splitting path strings by foreslash character
-	outputFile="h2d_${outputFileArr[-1]}.nc" # extract file name
-	# Dr. Zhenhua Li's contribution - Global Water Futures
-	ncks -v T2,Q2,PSFC,U,V,GLW,LH,SWDOWN,QFX,HFX "$f" "${outputDir}/${outputFile}" # selecting variables of interest - hard-coded
-      done
-      
-      # concatenating hourly files to monthly
-      monthlyFiles="${outputDir}/h2d_${fileStruct}_${yr}-${mn}*.nc"
-      ncrcat $monthlyFiles "${outputDir}/h2d_${fileStruct}_${yr}_${mn}.nc"
-      
-      # adding time axis
-      cdo -f nc4c -z zip_1 -r settaxis,"${yr}-${mn}-01",00:00:00,1hour "${outputDir}/h2d_${fileStruct}_${yr}_${mn}.nc" "${outputDir}/wrf2d_${yr}_${mn}.nc"
-      ncrename -a .description,long_name "${outputDir}/wrf2d_${yr}_${mn}.nc"
-      #ncatted -O -a coordinates,PREC,c,c,lon lat "${outputDir}/wrf2d_${yr}_${mn}.nc" # erreoneous - correct later
-      
-      # extracting spatial box
-      cdo sellonlatbox,${lonBox},${latBox} "${outputDir}/wrf2d_${yr}_${mn}.nc" "${outputDir}/wrf2d_${yr}_${mn}_boxed.nc"
-    done
-    # Dr. Zhenhua Li's contribution
+  while [[ "${unixToDate}" -le "${unixEndPoint}" ]]; do
+    toDate=$(date --date "$toDate +1 hour") # current timestamp
+    unixToDate=$(date --date="$toDate" "+%s") # current timestamp in unix EPOCH
+    toDateFormatted=$(date --date "$toDate" "+$format") # current filename timestamp
+    file="wrf2d_d01_${toDateFormatted}" # current file name
+    ncks -v T2,Q2,PSFC,U,V,GLW,LH,SWDOWN,QFX,HFX "$datasetDir/$yr/$file" "${tempDir}/${yr}/${file}" # selecting variables of interest - hard-coded
   done
-fi
+
+  # go to the next year
+  toDate=$(date --date "$toDate +1 hour") # current timestamp
+
+  # make the output directory
+  mkdir -p "$outputDir/$yr/"
+
+  # check the $timeScale variable
+
+  case "${timeScale,,}" in
+
+    h)
+       files=($tempDir/$yr/*) # listing temporary files
+
+       # going through every hourly file
+       for f in "${files[@]}"; do
+         
+	 # extracting information
+         fileName=$(echo "$f" | rev | cut -d '/' -f 1 | rev) # file name
+         fileNameDate=$(echo "$fileName" | cut -d '_' -f 3) # file date (YYYY-MM-DD)
+         fileNameTime=$(echo "$fileName" | cut -d '_' -f 4) # file time (HH:MM:SS)
+	 
+	 # necessary operations
+	 cdo -f nc4c -z zip_1 -r settaxis,$fileNameDate,$fileNameTime,1hour "$f" "$tempDir/$yr/$fileName.nc"; # setting time axis
+         ncrename -a .description,long_name "$tempDir/$yr/$fileName.nc"; # changing some attributes
+         cdo sellonlatbox,$lonBox,$latBox "$tempDir/$yr/$fileName.nc" "$outputDir/$yr/$fileName.nc" # selecting a box of data
+       done
+       ;;
+
+    d)
+       files=($tempDir/$yr/*) # listing temporary files
+       datesArr=() # empty array of dates
+       hoursArr=() # empty array of hours
+
+       for f in "${files[@]}"; do
+
+	 # extract information
+         fileName=$(echo "$f" | rev | cut -d '/' -f 1 | rev); # file name
+         fileNameHour=$(echo "$fileName" | cut -d '_' -f 4) # file hour
+	 fileNameDate=$(echo "$fileName" | cut -d '_' -f 3); # file date
+
+	 # populate dates
+	 datesArr+=(${fileNameDate});
+	 hoursArr+=(${fileNameHour});
+       done
+
+       uniqueDaysArr=($(echo "${datesArr[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' '));
+       
+       # for each day (i.e., YYYY-MM-DD)
+       for d in "${uniqueDaysArr[@]}"; do
+
+         # start date and time of first occurence of the $d
+         idx=1
+         for k in "${datesArr[@]}"; do
+           if [[ "$k" == "$d"  ]]; then
+             break;
+           else
+             idx=`expr $idx + 1`
+           fi
+         done
+
+	 # concatenate hourly to daily files
+         dailyFiles="$tempDir/$yr/${fileStruct}_${d}*";
+	 ncrcat $dailyFiles "$tempDir/$yr/${fileStruct}_${d}_cat.nc";
+	 cdo -f nc4c -z zip_1 -r settaxis,"$d","${hoursArr[$idx]}",1hour "$tempDir/$yr/${fileStruct}_${d}_cat.nc" "$tempDir/$yr/${fileStruct}_${d}_taxis.nc"; # setting time axis
+         ncrename -a .description,long_name "$tempDir/$yr/${fileStruct}_${d}_taxis.nc" # rename some attributes (CF-1.6)
+         cdo sellonlatbox,$lonBox,$latBox "$tempDir/$yr/${fileStruct}_${d}_taxis.nc" "$outputDir/$yr/${fileStruct}_${d}.nc"; # subsetting the lats & lons
+       done
+       ;;
+
+    m)
+       files=($tempDir/$yr/*); # listing temporary files
+       monthsArr=();
+       datesArr=();
+       hoursArr=();
+
+       for f in "${files[@]}"; do
+	 # extract information
+         fileName=$(echo "$f" | rev | cut -d '/' -f 1 | rev); # file name
+         fileNameHour=$(echo "$fileName" | cut -d '_' -f 4) # file hour
+	 fileNameDate=$(echo "$fileName" | cut -d '_' -f 3); # file date
+	 fileNameMonth=$(echo "$fileNameDate" | cut -d '-' -f 1,2); # file year and month
+
+	 # populate dates
+	 monthsArr+=(${fileNameMonth});
+	 datesArr+=(${fileNameDate});
+	 hoursArr+=(${fileNameHour});
+       done
+
+       uniqueMonthsArr=($(echo "${monthsArr[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' '));
+
+
+       echo "${datesArr[@]}"
+
+       # for each month
+       for m in "${uniqueMonthsArr[@]}"; do
+
+         # start date and time of first occurrence of the $m
+	 idx=0
+	 for k in "${datesArr[@]}"; do
+	 echo
+	 echo $m
+	 echo $k | cut -d '-' -f 2
+	 echo
+	   if [[ $(echo "$m" | cut -d '-' -f 2) == $(echo $k | cut -d '-' -f 2) ]]; then
+	     break;
+	   else
+	     idx=`expr $idx + 1`
+	   fi
+	 done
+
+	 echo $idx
+
+         # concatenate hourly to monthly files
+	 monthlyFiles="$tempDir/$yr/${fileStruct}_${m}*";
+	 ncrcat $monthlyFiles "$tempDir/$yr/${fileStruct}_${m}_cat.nc";
+	 cdo -f nc4c -z zip_1 -r settaxis,"${datesArr[$idx]}","${hoursArr[$idx]}",1hour "$tempDir/$yr/${fileStruct}_${m}_cat.nc" "$tempDir/$yr/${fileStruct}_${m}_taxis.nc"; # setting time axis
+	 ncrename -a .description,long_name "$tempDir/$yr/${fileStruct}_${m}_taxis.nc" # renaming some attributes (CF-1.6)
+	 cdo sellonlatbox,$lonBox,$latBox "$tempDir/$yr/${fileStruct}_${m}_taxis.nc" "$outputDir/$yr/${fileStruct}_${m}.nc"; # subsetting the lats & lons
+       done
+       ;;
+
+    y) 
+       files=($tempDir/$yr/*); # listing temporary files
+       monthsArr=();
+       datesArr=();
+       hoursArr=();
+
+       for f in "${files[@]}"; do
+         # extract information
+         fileName=$(echo "$f" | rev | cut -d '/' -f 1 | rev); # file name
+         fileNameHour=$(echo "$fileName" | cut -d '_' -f 4) # file hour
+         fileNameDate=$(echo "$fileName" | cut -d '_' -f 3); # file date
+         fileNameMonth=$(echo "$fileNameDate" | cut -d '-' -f 1,2); # file year and month
+
+         # populate dates
+         monthsArr+=(${fileNameMonth});
+         datesArr+=(${fileNameDate});
+         hoursArr+=(${fiileNameHour});
+       done
+
+       idx=1
+       for k in "${datesArr[@]}"; do
+	 if [[ "$k" == "$yr*"  ]]; then
+	   break;
+	 else
+	   idx=`expr $idx + 1`
+	 fi
+       done
+
+
+       # concatenate hourly to yearly files
+       yearlyFiles="$tempDir/$yr/${fileStruct}_${yr}*"
+       ncrcat $yearlyFiles "$tempDir/$yr/${fileStruct}_${yr}_cat.nc";
+       cdo -f nc4c -z zip_1 -r settaxis,"${datesArr[$idx]}","${hoursArr[$idx]}",1hour "$tempDir/$yr/${fileStruct}_${yr}_cat.nc" "$tempDir/$yr/${fileStruct}_${yr}_taxis.nc"; # setting time axis
+       ncrename -a .description,long_name "$tempDir/$yr/${fileStruct}_${yr}_taxis.nc"; # renaming some attributes (CF-1.6)
+       cdo sellonlatbox,$lonBox,$latBox "$tempDir/$yr/${fileStruct}_${yr}_taxis.nc" "$outputDir/$yr/${fileStruct}_${yr}.nc"; # subsetting the lats & lons
+       ;;
+  
+  esac
+
+done
+
+rm -r $tempDir # removing the temporary directory
+echo "$0: temporary files from $tempDir are removed."
+echo "$0: results are produced under $outputDir."

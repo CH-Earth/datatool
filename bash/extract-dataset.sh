@@ -47,9 +47,9 @@ usage () {
        -o, --output-dir=DIR        Writes processed files to DIR
        -s, --start-date=STRING     The start date of the forcing data
        -e, --end-date=STRING       The end date of the forcing data
-       -t, --time-scale=CHAR       The time scale of interest, i.e., H (hourly), D (Daily), M (Monthly), A (Annual)
-       -l, --lat-box=NUM,NUM       Latitude's upper and lower bounds
-       -n, --lon-box=NUM,NUM       Longitude's upper and lower bounds
+       -t, --time-scale=CHAR       The time scale of interest, i.e., H (hourly), D (Daily), M (Monthly), Y (Yearly)
+       -l, --lat-box=INT,INT       Latitude's upper and lower bounds
+       -n, --lon-box=INT,INT       Longitude's upper and lower bounds
        -j, --submit-job            Submit the data extraction process as a job on the SLURM system
        -h, --help                  Print this message
 
@@ -59,7 +59,7 @@ and/or open an issue at https://github.com/kasra-keshavarz/gwf-forcing-data/issu
 }
 
 short_usage() {
-  echo "usage: $0 [-jh] [-i DIR] [-d DATASET] [-o DIR] [-se DATE] [-ln NUM,NUM]" >&1;
+  echo "usage: $0 [-jh] [-i DIR] [-d DATASET] [-o DIR] [-se DATE] [-ln INT,INT]" >&1;
 }
 
 
@@ -120,6 +120,7 @@ declare -A funcArgs=([jobSubmission]="$jobSubmission" \
 		     [latBox]="$latBox" \
 		     [lonBox]="$lonBox" \
 		    );
+
 
 # =================================
 # Template data processing function
