@@ -214,27 +214,18 @@ for yr in $yearsRange; do
 
        uniqueMonthsArr=($(echo "${monthsArr[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' '));
 
-
-       echo "${datesArr[@]}"
-
        # for each month
        for m in "${uniqueMonthsArr[@]}"; do
 
          # start date and time of first occurrence of the $m
 	 idx=0
 	 for k in "${datesArr[@]}"; do
-	 echo
-	 echo $m
-	 echo $k | cut -d '-' -f 2
-	 echo
 	   if [[ $(echo "$m" | cut -d '-' -f 2) == $(echo $k | cut -d '-' -f 2) ]]; then
 	     break;
 	   else
 	     idx=`expr $idx + 1`
 	   fi
 	 done
-
-	 echo $idx
 
          # concatenate hourly to monthly files
 	 monthlyFiles="$tempDir/$yr/${fileStruct}_${m}*";
