@@ -96,6 +96,9 @@ unixToDate=$(date --date="$startDate" "+%s") # first date to read proper files
 unixStartDate=$(date --date="$startDate" "+%s") # starting point in unix timestamp
 unixEndDate=$(date --date="$endDate" "+%s") # end point in unix timestamp
 
+# hard-coding the address of the co-ordinate NetCDF files
+coordFile="/project/6008034/Model_Output/WRF/CONUS/coord.nc"
+
 ## for each year (folder) do the following calculations
 for yr in $yearsRange; do
   # creating a temporary directory for temporary files
@@ -139,15 +142,16 @@ for yr in $yearsRange; do
 
        # going through every hourly file
        for f in "${files[@]}"; do
-         
+
 	 # extracting information
          fileName=$(echo "$f" | rev | cut -d '/' -f 1 | rev) # file name
          fileNameDate=$(echo "$fileName" | cut -d '_' -f 3) # file date (YYYY-MM-DD)
          fileNameTime=$(echo "$fileName" | cut -d '_' -f 4) # file time (HH:MM:SS)
-	 
+
 	 # necessary operations
 	 cdo -f nc4c -z zip_1 -r settaxis,$fileNameDate,$fileNameTime,1hour "$f" "$tempDir/$yr/$fileName.nc"; # setting time axis
          ncrename -a .description,long_name "$tempDir/$yr/$fileName.nc"; # changing some attributes
+	 #ncks -A -v XLONG,XLAT $coordFile "$tempDir/$yr/$fileName.nc" # coordination variables
          cdo sellonlatbox,$lonBox,$latBox "$tempDir/$yr/$fileName.nc" "$outputDir/$yr/$fileName.nc" # selecting a box of data
        done
        ;;
@@ -161,8 +165,8 @@ for yr in $yearsRange; do
 
 	 # extract information
          fileName=$(echo "$f" | rev | cut -d '/' -f 1 | rev); # file name
-         fileNameHour=$(echo "$fileName" | cut -d '_' -f 4) # file hour
-	 fileNameDate=$(echo "$fileName" | cut -d '_' -f 3); # file date
+         fileNameHour=$(echo "$fileName" | cut -d '_' -f 4) # file hour (ie, HH:MM:SS)
+	 fileNameDate=$(echo "$fileName" | cut -d '_' -f 3); # file date (ie, YYYY-MM-DD)
 
 	 # populate dates
 	 datesArr+=(${fileNameDate});
@@ -170,26 +174,27 @@ for yr in $yearsRange; do
        done
 
        uniqueDaysArr=($(echo "${datesArr[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' '));
-       
+
        # for each day (i.e., YYYY-MM-DD)
        for d in "${uniqueDaysArr[@]}"; do
 
-         # start date and time of first occurence of the $d
-         idx=1
-         for k in "${datesArr[@]}"; do
-           if [[ "$k" == "$d"  ]]; then
-             break;
-           else
-             idx=`expr $idx + 1`
-           fi
-         done
+         # start date and time of first occurrence of the $m
+	 idx=0
+	 for k in "${datesArr[@]}"; do
+	   if [[ "$d" == "$k" ]]; then
+	     break;
+	   else
+	     idx=`expr $idx + 1`
+	   fi
+	 done
 
 	 # concatenate hourly to daily files
          dailyFiles="$tempDir/$yr/${fileStruct}_${d}*";
 	 ncrcat $dailyFiles "$tempDir/$yr/${fileStruct}_${d}_cat.nc";
 	 cdo -f nc4c -z zip_1 -r settaxis,"$d","${hoursArr[$idx]}",1hour "$tempDir/$yr/${fileStruct}_${d}_cat.nc" "$tempDir/$yr/${fileStruct}_${d}_taxis.nc"; # setting time axis
          ncrename -a .description,long_name "$tempDir/$yr/${fileStruct}_${d}_taxis.nc" # rename some attributes (CF-1.6)
-         cdo sellonlatbox,$lonBox,$latBox "$tempDir/$yr/${fileStruct}_${d}_taxis.nc" "$outputDir/$yr/${fileStruct}_${d}.nc"; # subsetting the lats & lons
+         #ncks -A -v XLONG,XLAT "$coordFile" "$tempDir/$yr/${fileStruct}_${d}_taxis.nc" # adding coordinate variables
+	 cdo sellonlatbox,$lonBox,$latBox "$tempDir/$yr/${fileStruct}_${d}_taxis.nc" "$outputDir/$yr/${fileStruct}_${d}.nc"; # subsetting the lats & lons
        done
        ;;
 
@@ -230,13 +235,14 @@ for yr in $yearsRange; do
          # concatenate hourly to monthly files
 	 monthlyFiles="$tempDir/$yr/${fileStruct}_${m}*";
 	 ncrcat $monthlyFiles "$tempDir/$yr/${fileStruct}_${m}_cat.nc";
+	 #ncks -A -v XLONG,XLAT "$coordFile" "$tempDir/$yr/${fileStruct}_${m}_cat.nc"
 	 cdo -f nc4c -z zip_1 -r settaxis,"${datesArr[$idx]}","${hoursArr[$idx]}",1hour "$tempDir/$yr/${fileStruct}_${m}_cat.nc" "$tempDir/$yr/${fileStruct}_${m}_taxis.nc"; # setting time axis
 	 ncrename -a .description,long_name "$tempDir/$yr/${fileStruct}_${m}_taxis.nc" # renaming some attributes (CF-1.6)
 	 cdo sellonlatbox,$lonBox,$latBox "$tempDir/$yr/${fileStruct}_${m}_taxis.nc" "$outputDir/$yr/${fileStruct}_${m}.nc"; # subsetting the lats & lons
        done
        ;;
 
-    y) 
+    y)
        files=($tempDir/$yr/*); # listing temporary files
        monthsArr=();
        datesArr=();
@@ -255,24 +261,24 @@ for yr in $yearsRange; do
          hoursArr+=(${fiileNameHour});
        done
 
-       idx=1
+       idx=0
        for k in "${datesArr[@]}"; do
-	 if [[ "$k" == "$yr*"  ]]; then
+	 if [[ $(echo "$k" | cut -d '-' -f 1) == "$yr"  ]]; then
 	   break;
 	 else
 	   idx=`expr $idx + 1`
 	 fi
        done
 
-
        # concatenate hourly to yearly files
        yearlyFiles="$tempDir/$yr/${fileStruct}_${yr}*"
        ncrcat $yearlyFiles "$tempDir/$yr/${fileStruct}_${yr}_cat.nc";
        cdo -f nc4c -z zip_1 -r settaxis,"${datesArr[$idx]}","${hoursArr[$idx]}",1hour "$tempDir/$yr/${fileStruct}_${yr}_cat.nc" "$tempDir/$yr/${fileStruct}_${yr}_taxis.nc"; # setting time axis
        ncrename -a .description,long_name "$tempDir/$yr/${fileStruct}_${yr}_taxis.nc"; # renaming some attributes (CF-1.6)
+       #ncks -A -v XLONG,XLAT "$coordFile" "$tempDir/$yr/${fileStruct}_${yr}_taxis.nc"
        cdo sellonlatbox,$lonBox,$latBox "$tempDir/$yr/${fileStruct}_${yr}_taxis.nc" "$outputDir/$yr/${fileStruct}_${yr}.nc"; # subsetting the lats & lons
        ;;
-  
+
   esac
 
 done
@@ -280,3 +286,4 @@ done
 rm -r $tempDir # removing the temporary directory
 echo "$0: temporary files from $tempDir are removed."
 echo "$0: results are produced under $outputDir."
+
