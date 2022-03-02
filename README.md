@@ -9,7 +9,7 @@ This repository contains scripts to process necessary forcing data from various 
    Script options:
        -d, --dataset               Meteorological forcing dataset of interest
        				   currently available options are:
-				   'CONUSI'; 'CONUSII';
+				   'CONUSI';
        -i, --dataset-dir=DIR       The source path of the dataset file(s)
        -o, --output-dir=DIR        Writes processed files to DIR
        -s, --start-date=STRING     The start date of the forcing data
