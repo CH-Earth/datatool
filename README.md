@@ -24,7 +24,7 @@ This repository contains scripts to process necessary forcing data from various 
 
 # Example
 
-As an example, follow the code block below. Please remember that you MUST have access to GRAHAM cluster with Compute Canada (CC) and have access to `CONUS I` model outputs. Remeber to generate a "Personal Access Token" with GitHub beforehands. Enter the codes on your Graham Bash shell:
+As an example, follow the code block below. Please remember that you MUST have access to GRAHAM cluster with Compute Canada (CC) and have access to `CONUS I` model outputs. Remeber to generate a [Personal Access Token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) with GitHub beforehands. Enter the following codes in your GRAHAM Bash shell:
 
 ```console
 foo@bar:~$ git clone https://github.com/kasra-keshavarz/gwf-forcing-data 
