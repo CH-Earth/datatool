@@ -7,18 +7,19 @@ This repository contains scripts to process necessary forcing data from various 
        ./extract-dataset.sh [options...]
 
    Script options:
-       -d, --dataset               Meteorological forcing dataset of interest
-       				   currently available options are:
-				   'CONUSI';
-       -i, --dataset-dir=DIR       The source path of the dataset file(s)
-       -o, --output-dir=DIR        Writes processed files to DIR
-       -s, --start-date=STRING     The start date of the forcing data
-       -e, --end-date=STRING       The end date of the forcing data
-       -t, --time-scale=CHAR       The time scale of interest, i.e., H (hourly), D (Daily), M (Monthly), Y (Yearly)
-       -l, --lat-box=INT,INT       Latitude's upper and lower bounds
-       -n, --lon-box=INT,INT       Longitude's upper and lower bounds
-       -j, --submit-job            Submit the data extraction process as a job on the SLURM system
-       -h, --help                  Print this message
+       -d, --dataset               	Meteorological forcing dataset of interest
+       				   	currently available options are:
+				   	'CONUSI';
+       -i, --dataset-dir=DIR       	The source path of the dataset file(s)
+       -o, --output-dir=DIR        	Writes processed files to DIR
+       -s, --start-date=STRING     	The start date of the forcing data
+       -e, --end-date=STRING       	The end date of the forcing data
+       -t, --time-scale=CHAR       	The time scale of interest, i.e., H (hourly), D (Daily), M (Monthly), Y (Yearly)
+       -l, --lat-box=INT,INT       	Latitude's upper and lower bounds
+       -n, --lon-box=INT,INT       	Longitude's upper and lower bounds
+       -f, --forcing-vars=[var1, ...]	List of variables to be extracted from datasets
+       -j, --submit-job            	Submit the data extraction process as a job on the SLURM system
+       -h, --help                  	Print this message
 
 ```
 
