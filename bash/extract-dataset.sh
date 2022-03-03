@@ -1,38 +1,43 @@
 #!/bin/bash
 
-# Global Water Futures (GWF) Meteorological Forcing Data Processing Script
-# Copyright (C) 2022, Kasra Keshavarz, Global Water Futures (GWF)
-
+# GWF Forcing Data Preparation Workflow
+# Copyright (C) 2022 Global Water Futures; University of Saskatchewan
+#
+# This file is part of GWF Forcing Data Preparation Workflow
+#
+# For more information see: http://www.usask.ca/gwf
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-
+#
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+# ======
 # CREDIT
 # ======
 # 1. Parts of the code are taken from https://www.shellscript.sh/tips/getopt/index.html
 # 2. Dr. Zhenhua Li provided scripts to extract and process CONUS I & II datasets
 # 3. Parts of the code are taken from https://stackoverflow.com/a/17557904/5188208
 
+# ================
+# GENERAL COMMENTS
+# ================
+# 1. All variables are camelCased;
 
-# GENERAL COMMENTS:
-# * All variables are camelCased;
 
+# ===============
+# Usage functions
+# ===============
 
-# ==============
-# Help functions
-# ==============
-
-#help string
 usage () {
   echo "Global Water Futures (GWF) Meteorological Forcing Data Processing Script
 
