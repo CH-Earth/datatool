@@ -37,7 +37,7 @@ As an example, follow the code block below. Please remember that you MUST have a
 foo@bar:~$ git clone https://github.com/kasra-keshavarz/gwf-forcing-data 
 foo@bar:~$ cd ./gwf-focring-data/bash/
 foo@bar:~$ ./extract-dataset.sh -h # to view the usage message
-foo@bar:~$ ./extract-dataset.sh  --dataset=CONUS1 --output-dir="$HOME/scratch/conus_test" --start-date="2000-11-1" --end-date="2000-11-3" --time-scale=M --lat-box=49,51 --lon-box=-117,-116 --variable=T2,Q2,PSFC,U,V # an example!
+foo@bar:~$ ./extract-dataset.sh  --dataset=CONUS1 --dataset-dir="$HOME/projects/rpp-kshook/Model_Output/WRF/CONUS/CTRL" --output-dir="$HOME/scratch/conus_test" --start-date="2001-12-25 22:00:00" --end-date="2002-01-3 05:00:00" --time-scale=h  --lat-lims=49,51  --lon-lims=-117,-115 --variable=T2,Q2,PSFC,U,V,GLW
 ```
 
 # Contributing
