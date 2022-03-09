@@ -207,8 +207,6 @@ date_match_idx () {
   # index variable
   idx=0
 
-  echo "delim is: ${delim}"
-
   # looping through the $strArr
   for s in "${strArr[@]}"; do
     if [[ "$str" == $(echo "$s" | cut -d ${delim} -f "$matchPos") ]]; then
