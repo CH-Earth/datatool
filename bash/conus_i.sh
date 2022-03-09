@@ -1,14 +1,33 @@
 #!/bin/bash
+# Global Water Futures (GWF) Meteorological Data Processing Workflow
+# Copyright (C) 2022, Global Water Futures (GWF), University of Saskatchewan
+#
+# This file is part of GWF Meteorological Data Processing Workflow
+#
+# For more information see: https://gwf.usask.ca/
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# ======
-# Credit
-# ======
+# =========================
+# Credits and contributions
+# =========================
 # 1. Parts of the code are taken from https://www.shellscript.sh/tips/getopt/index.html
 # 2. Dr. Zhenhua Li provided scripts to extract and process CONUS I datasets
 
 
 # ================
-# General Comments
+# General comments
 # ================
 # * All variables are camelCased for distinguishing from function names;
 # * function names are all in lower_case with words seperated by underscore for legibility;
@@ -19,13 +38,12 @@
 # ===============
 # Usage Functions
 # ===============
-
 short_usage() {
-  echo "usage: $0 [-io DIR] [-se DATE] [-t CHAR] [-ln INT,INT]"
+  echo "usage: $0 [-io DIR] [-v VARS] [-se DATE] [-t CHAR] [-ln INT,INT]"
 }
 
 # argument parsing using getopt - WORKS ONLY ON LINUX BY DEFAULT
-parsedArguments=$(getopt -a -n extract-dataset -o i:o:s:e:t:l:n:f: --long dataset-dir:,output-dir:,start-date:,end-date:,time-scale:,lat-box:,lon-box:,forcing-vars:, -- "$@")
+parsedArguments=$(getopt -a -n extract-dataset -o i:v:o:s:e:t:l:n: --long dataset-dir:,variables:,output-dir:,start-date:,end-date:,time-scale:,lat-lims:,lon-lims:, -- "$@")
 validArguments=$?
 if [ "$validArguments" != "0" ]; then
   short_usage;
@@ -44,13 +62,13 @@ while :
 do
   case "$1" in
     -i | --dataset-dir)   datasetDir="$2"      ; shift 2 ;; # required
+    -v | --variables)     variables="$2"       ; shift 2 ;; # required
     -o | --output-dir)    outputDir="$2"       ; shift 2 ;; # required
     -s | --start-date)    startDate="$2"       ; shift 2 ;; # required
     -e | --end-date)      endDate="$2"         ; shift 2 ;; # required
     -t | --time-scale)    timeScale="$2"       ; shift 2 ;; # required
-    -l | --lat-box)       latLims="$2"         ; shift 2 ;; # required
-    -n | --lon-box)       lonLims="$2"         ; shift 2 ;; # required
-    -f | --forcing-vars)  forcingVars="$2"     ; shift 2 ;; # required
+    -l | --lat-lims)      latLims="$2"         ; shift 2 ;; # required
+    -n | --lon-lims)      lonLims="$2"         ; shift 2 ;; # required
 
     # -- means the end of the arguments; drop this, and break out of the while loop
     --) shift; break ;;
@@ -66,7 +84,6 @@ done
 # ===================
 # Necessary Functions
 # ===================
-
 # Modules below available on Compute Canada (CC) Graham Cluster Server
 module load cdo/2.0.4
 module load nco/5.0.6
@@ -87,8 +104,7 @@ module load nco/5.0.6
 #	       final files
 #
 # Arguments:
-#   1: -> fName: file name of the forc-
-#		 ing file
+#   1: -> fName: data file name
 #   2: -> fDate: date of the forcing
 #   3: -> fTime: time of the forcing
 #######################################
@@ -98,12 +114,20 @@ generate_netcdf () {
   local fName="$1"		# raw file name string
   local fDate="$2"		# file string date (YYYY-MM-DD)
   local fTime="$3"		# file string time (HH:MM:SS)
+  local fTempDir="$4"		# file directory path
+  local fOutDir="$5"		# file output path
+  local fTimeScale="$6"		# fime scale to check the file name
+
+  # add _cat if necessary
+  if [[ "${fTimeScale,,}" != "h" ]]; then
+    local fExt="_cat.nc"
+  fi
 
   # necessary netCDF operations
-  cdo -f nc4c -z zip_1 -r settaxis,"$fDate","$fTime",1hour "${tempDir}/${yr}/${fName}_cat.nc" "${tempDir}/${yr}/${fName}_taxis.nc"; # setting time axis
-  ncrename -a .description,long_name "${tempDir}/${yr}/${fName}_taxis.nc"; # conforming to CF-1.6 standards
+  cdo -f nc4c -z zip_1 -r settaxis,"$fDate","$fTime",1hour "${fTempDir}/${fName}${fExt}" "${fTempDir}/${fName}_taxis.nc"; # setting time axis
+  ncrename -a .description,long_name "${fTempDir}/${fName}_taxis.nc"; # conforming to CF-1.6 standards
   #ncks -A -v XLONG,XLAT $coordFile "${fTempDir}/${fName}_taxis.nc" # coordination variables
-  cdo sellonlatbox,"$lonLims","$latLims" "${tempDir}/${yr}/${fName}_taxis.nc" "${outputDir}/${yr}/${fName}.nc" # spatial subsetting 
+  cdo sellonlatbox,"$lonLims","$latLims" "${fTempDir}/${fName}_taxis.nc" "${fOutDir}/${fName}.nc" # spatial subsetting
 }
 
 
@@ -123,7 +147,8 @@ generate_netcdf () {
 #   1: -> fName: the 
 #
 # Outputs:
-#   produces the following variables:
+#   produces the following global
+#   variables:
 #    a) fileName
 #    b) fileNameDate
 #    c) fileNameYear
@@ -171,19 +196,23 @@ date_match_idx () {
   
   # defining local variables
   local str="$1"	# string to be matched 
-  local strArr="$2"	# array of strings (dates)
-  local matchPos="$3"	# the position of the matching string within the "YYYY-MM-DD",
+  local matchPos="$2"	# the position of the matching string within the "YYYY-MM-DD",
   			# 1: year, 2: month, 3: day
 			# 1,2: year and month, 2,3: month and day, 1,3: year and day
 			# 1-3: complete date
-  
+  local delim="$3"	# delimiter
+  shift	3		# shift argument positins by 3
+  local strArr=("$@")	# arrays of string
+
   # index variable
   idx=0
 
+  echo "delim is: ${delim}"
+
   # looping through the $strArr
   for s in "${strArr[@]}"; do
-    if [[ "$str" == $(echo "$s" | cut -d '-' -f "$matchPos") ]]; then
-      break;
+    if [[ "$str" == $(echo "$s" | cut -d ${delim} -f "$matchPos") ]]; then
+      break
     else
       idx=`expr $idx + 1`
     fi
@@ -192,55 +221,65 @@ date_match_idx () {
 
 
 #######################################
-# function for extracting the index of 
-# first match between $str and that of
-# the ordered array elements
+# concatenating files based on a speci-
+# temporal scale.
 #
 # Globals:
-#   idx: index of the first match
+#   None
 #
 # Arguments:
-#   1: the string to be matched with
-#   2: the array containing strings to
-#      be checked
-#   3: the position within the matching
-#      string split by '-'
+#   1: name of the concatenated file
+#   2: destination directory
+#   3-: array of file paths
 #
 # Outputs:
-#   produces $fName.nc under $fTempDir
-#   out of all $filesArr
+#   produces $fName_cat.nc under $fDir
+#   out of all elements of $filesArr
 #######################################
 concat_files () {
   # defining local variables
-  local filesArr="$1"
-  local fName="$2"
-  local fTempDir="$3"
-
+  local fName="$1"	# output file name
+  local fTempDir="$2"	# temporary directory
+  shift 2		# shift arguments by 2 positions
+  local filesArr=("$@") # array of file names
+  
   # concatenating $files and producing a single $fName.nc
-  ncrcat "$filesArr" "${fTempDir}/${fName}.nc"
+  ncrcat "${filesArr[@]}" "${fTempDir}/${fName}_cat.nc"
 }
 
 
 #######################################
-# function for extracting the index of 
-# first match between $str and that of
-# the ordered array elements
+# populating arrays with date and time
+# values.
 #
 # Globals:
-#   idx: index of the first match
+#   datesArr: array of date values
+#   monthsArr: array of year-month va-
+#              lues
+#   timesArr: array of time values
+#   files: array of file paths
+#   fileNameDate: date of the current
+#		  filename
+#   fileNameYear: year of the current
+#		  filename
+#   fileNameMonth: month of the current
+#		   filename
+#   uniqueMonthsArr: array of unique
+#		     months
+#   uniqueDatesArr: array of unique
+#		    dates
 #
 # Arguments:
-#   1: the string to be matched with
-#   2: the array containing strings to
-#      be checked
-#   3: the position within the matching
-#      string split by '-'
+#   None
 #
 # Outputs:
-#   produces $fName.nc under $fTempDir
-#   out of all $filesArr
+#   produces the following variables:
+#    1) datesArr
+#    2) monthsArr
+#    3) timesArr
+#    4) uniqueMonthsArr
+#    5) unqiueDatesArr
 #######################################
-
 populate_date_arrays () {
   # defining empty arrays
   datesArr=();
@@ -251,8 +290,8 @@ populate_date_arrays () {
     extract_file_info "$f" # extract necessary information
 
     # populate date arrays
-    monthsArr+=(${fileNameMonth});
     datesArr+=(${fileNameDate});
+    monthsArr+=("${fileNameYear}-${fileNameMonth}")
     timesArr+=(${fileNameTime});
   done
 
@@ -264,7 +303,6 @@ populate_date_arrays () {
 # ===============
 # Data Processing
 # ===============
-
 # display info
 echo "$0: processing NCAR-GWF CONUSI..."
 
@@ -288,8 +326,8 @@ coordFile="/project/6008034/Model_Output/WRF/CONUS/coord.nc"
 for yr in $yearsRange; do
 
   # creating a temporary directory for temporary files
-  echo "$0: creating temporary files for year $yr in $HOME/.temp_gwfdata"
-  tempDir="$HOME/.temp_gwfdata"
+  echo "$0: creating cache files for year $yr in $HOME/.temp_gwfdata"
+  tempDir="$HOME/.temp_gwfdata" # hard-coded, can change int he future
   mkdir -p "$tempDir/$yr" # making the directory
 
   # setting the end point, either the end of current year, or the $endDate
@@ -306,22 +344,29 @@ for yr in $yearsRange; do
 
   # extract variables from the forcing data files
   while [[ "$toDateUnix" -le "$endPointUnix" ]]; do
-    toDate=$(date --date "$toDate +1 hour") # current time-step
-    toDateUnix=$(date --date="$toDate" "+%s") # current timestamp in unix EPOCH time
+    # date manipulations
     toDateFormatted=$(date --date "$toDate" "+$format") # current timestamp formatted to conform to CONUSI naming convention
-    file="wrf2d_d01_$toDateFormatted" # current file name
-    ncks -v "$forcingVars" "$datasetDir/$yr/$file" "$tempDir/$yr/$file" # extracting $forcingVars
+    
+    # creating file name
+    file="${fileStruct}_${toDateFormatted}" # current file name
+    
+    # extracting variables from the files
+    ncks -v "$variables" "$datasetDir/$yr/$file" "$tempDir/$yr/${file}" # extracting $variables
+    
+    # increment time-step by one unit
+    toDate=$(date --date "$toDate 1hour") # current time-step
+    toDateUnix=$(date --date="$toDate" "+%s") # current timestamp in unix EPOCH time
   done
 
   # go to the next year if necessary
   if [[ "$toDateUnix" == "$endOfCurrentYearUnix" ]]; then 
-    toDate=$(date --date "$toDate +1 hour")
+    toDate=$(date --date "$toDate 1hour")
   fi
 
   # make the output directory
   mkdir -p "$outputDir/$yr/"
 
-  # forcing files for the current year with extracted $forcingVars
+  # data files for the current year with extracted $variables
   files=($tempDir/$yr/*)
 
   # check the $timeScale variable
@@ -333,23 +378,25 @@ for yr in $yearsRange; do
 	# extracting information
 	extract_file_info "$f"
 	# necessary NetCDF operations
-	generate_netcdf "$fileName" "$fileNameDate" "$fileNameTime"
+	generate_netcdf "$fileName" "$fileNameDate" "$fileNameTime" "$tempDir/$yr/" "$outputDir/$yr/" "$timeScale"
       done
       ;;
 
     d)
+      # construct the date arrays
       populate_date_arrays 
 
       # for each date (i.e., YYYY-MM-DD)
       for d in "${uniqueDatesArr[@]}"; do
-        # find the index of the $timeArr corresponding to $d -> $idx
-	date_match_idx "$d" "${datesArr[@]}" "1-3"
+        # find the index of the $timesArr corresponding to $d -> $idx
+	date_match_idx "$d" "1-3" "-" "${datesArr[@]}" 
 
-	# concatenate hourly netCDF files to daily files
-	concat_files "$tempDir/$yr/${fileStruct}_${d}*" "$tempDir/$yr/" "${fileStruct}_${d}_cat.nc"
+	# concatenate hourly netCDF files to daily file, i.e., already produces _cat.nc files
+	dailyFiles=($tempDir/$yr/${fileStruct}_${d}*)
+	concat_files "${fileStruct}_${d}" "$tempDir/$yr/" "${dailyFiles[@]}" 
 
 	# implement CDO/NCO operations
-	generate_netcdf "${fileStruct}_${d}" "$d" "${timeArr[$idx]}" "$tempDir/$yr/" "$outputDir/$yr/"
+	generate_netcdf "${fileStruct}_${d}" "$d" "${timesArr[$idx]}" "$tempDir/$yr/" "$outputDir/$yr/" "$timeScale"
       done
       ;;
 
@@ -359,30 +406,32 @@ for yr in $yearsRange; do
 
       # for each date (i.e., YYYY-MM-DD)
       for m in "${uniqueMonthsArr[@]}"; do
-        # find the index of the $timeArr corresponding to $d -> $idx
-	date_match_idx "$m" "${datesArr[@]}" "1,2"
+        # find the index of the $timesArr corresponding to $d -> $idx
+	# $m is in 'YYYY-MM' format
+	date_match_idx "$m" "1,2" "-" "${datesArr[@]}" 
 
-	# concatenate hourly netCDF files to daily files
-	concat_files "$tempDir/$yr/${fileStruct}_${yr}-${m}*" "$tempDir/$yr/" "${fileStruct}_${yr}-${m}_cat.nc"
+	# concatenate hourly netCDF files to monthly files, i.e., already produced *_cat.nc files
+	monthlyFiles=($tempDir/$yr/${fileStruct}_${m}*)
+	concat_files "${fileStruct}_${m}" "$tempDir/$yr/" "${monthlyFiles[@]}" 
 
 	# implement CDO/NCO operations
-	generate_netcdf "${fileStruct}_${yr}-${d}" "${datesArr[idx]}" "${timeArr[$idx]}" "$tempDir/$yr/" "$outputDir/$yr/"
+	generate_netcdf "${fileStruct}_${m}" "${datesArr[$idx]}" "${timesArr[$idx]}" "$tempDir/$yr/" "$outputDir/$yr/" "$timeScale"
       done
-     ;;
+      ;;
 
     y)
       # construct the date arrays
       populate_date_arrays
 
-      date_match_idx "$yr" "${datesArr[@]}" "1"
+      # find the index of the $timesArr and $datesArr corresponding to $d -> $idx
+      date_match_idx "$yr" "1" "-" "${datesArr[@]}"
 
-      # concatenate hourly to yearly files
-      yearlyFiles="$tempDir/$yr/${fileStruct}_${yr}*"
-      ncrcat $yearlyFiles "$tempDir/$yr/${fileStruct}_${yr}_cat.nc";
-      cdo -f nc4c -z zip_1 -r settaxis,"${datesArr[$idx]}","${timeArr[$idx]}",1hour "$tempDir/$yr/${fileStruct}_${yr}_cat.nc" "$tempDir/$yr/${fileStruct}_${yr}_taxis.nc"; # setting time axis
-      ncrename -a .description,long_name "$tempDir/$yr/${fileStruct}_${yr}_taxis.nc"; # renaming some attributes (CF-1.6)
-      #ncks -A -v XLONG,XLAT "$coordFile" "$tempDir/$yr/${fileStruct}_${yr}_taxis.nc"
-      cdo sellonlatbox,$lonBox,$latBox "$tempDir/$yr/${fileStruct}_${yr}_taxis.nc" "$outputDir/$yr/${fileStruct}_${yr}.nc"; # subsetting the lats & lons
+      # concatenate hourly to yearly files - produced _cat.nc files
+      yearlyFiles=($tempDir/$yr/${fileStruct}_${yr}*)
+      concat_files "${fileStruct}_${yr}" "$tempDir/$yr/" "${yearlyFiles[@]}"
+
+      # implement CDO/NCO operations
+      generate_netcdf "${fileStruct}_${yr}" "${datesArr[$idx]}" "${timesArr[$idx]}" "$tempDir/$yr/" "$outputDir/$yr/" "$timeScale"
       ;;
 
   esac
