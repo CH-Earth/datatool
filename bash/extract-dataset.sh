@@ -47,7 +47,7 @@ usage () {
   echo "Global Water Futures (GWF) Forcing Data Processing Script
 
 Usage:
-  $0 [options...]
+  $(basename $0) [options...]
 
 Script options:
   -d, --dataset				Meteorological forcing dataset of interest
@@ -75,11 +75,11 @@ and/or open an issue at https://github.com/kasra-keshavarz/gwf-forcing-data/issu
 }
 
 short_usage () {
-  echo "usage: $0 [-jh] [-i DIR] [-d DATASET] [-o DIR] [-se DATE] [-ln INT,INT]" >&1;
+  echo "usage: $(basename $0) [-jh] [-i DIR] [-d DATASET] [-o DIR] [-se DATE] [-ln INT,INT]" >&1;
 }
 
 version () {
-  echo "$0: version $VER";
+  echo "$(basename $0): version $VER";
   exit 0;
 }
 
@@ -124,11 +124,26 @@ do
     --) shift; break ;;
 
     # in case of invalid option
-    *) echo "$0: invalid option '$1'" >$2;
+    *) echo "$(basename $0): invalid option '$1'" >$2;
        short_usage;
        exit 1;;
   esac
 done
+
+# check mandatory arguments whether provided
+if [[ -z "${datasetDir}" ]] || \
+   [[ -z "${dataset}"    ]] || \
+   [[ -z "${variables}"  ]] || \
+   [[ -z "${outputDir}"  ]] || \
+   [[ -z "${startDate}"  ]] || \
+   [[ -z "${endDate}"    ]] || \
+   [[ -z "${latLims}"    ]] || \
+   [[ -z "${lonLims}"    ]]; then
+
+   echo "$(basename $0): mandatory option(s) missing.";
+   short_usage;
+   exit 1;
+fi
 
 # default value for timeScale if not provided as an argument
 if [[ -z $timeScale ]]; then
@@ -180,7 +195,7 @@ call_processing_func () {
 
 	srun ${scriptRun}
 	EOF
-    echo "$0: job submission details are printed under ${HOME}"
+    echo "$(basename $0): job submission details are printed under ${HOME}"
   else
     eval "$scriptRun"
   fi
@@ -193,19 +208,29 @@ call_processing_func () {
 
 case "${dataset,,}" in
   # NCAR-GWF CONUSI
-  conus1 | conusi | conus_1 | conus_i | "conus 1" | "conus i" | "conus-1" | "conus-i")
-    call_processing_func "conus_i.sh";;
+  "conus1" | "conusi" | "conus_1" | "conus_i" | "conus 1" | "conus i" | "conus-1" | "conus-i")
+    call_processing_func "conus_i.sh"
+    ;;
 
   # NCAR-GWF CONUSII
-  conus2 | conusii | conus_2 | conus_ii | "conus 2" | "conus ii" | "conus-2" | "conus-ii")
-    call_processing_func "conus_ii.sh";;
+  "conus2" | "conusii" | "conus_2" | "conus_ii" | "conus 2" | "conus ii" | "conus-2" | "conus-ii")
+    call_processing_func "conus_ii.sh"
+    ;;
 
   # ECMWF ERA5
-  era_5 | era5)
-    call_processing_func "era_5.sh";;
+  "era_5" | "era5" | "era-5" | "era 5")
+    call_processing_func "era5.sh"
+    ;;
+  
+  # PCIC CMIP6 downscaled
+  "pcic cmip6" | "pcic-cmip6" | "pcic_cmip6")
+    call_processing_func "pcic-cmip6.sh"
+    call_regridding_func "pcic-cmip6-regrid.sh"
+    ;;
 
   # dataset not included above
   *)
-    echo "$0: missing/unknown dataset";
+    echo "$(basename $0): missing/unknown dataset";
     exit 1;;
 esac
+

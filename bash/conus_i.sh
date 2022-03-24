@@ -39,7 +39,7 @@
 # Usage Functions
 # ===============
 short_usage() {
-  echo "usage: $0 [-io DIR] [-v VARS] [-se DATE] [-t CHAR] [-ln INT,INT]"
+  echo "usage: $(basename $0) [-io DIR] [-v VARS] [-se DATE] [-t CHAR] [-ln INT,INT]"
 }
 
 # argument parsing using getopt - WORKS ONLY ON LINUX BY DEFAULT
@@ -126,7 +126,7 @@ generate_netcdf () {
   # necessary netCDF operations
   cdo -f nc4c -z zip_1 -r settaxis,"$fDate","$fTime",1hour "${fTempDir}/${fName}${fExt}" "${fTempDir}/${fName}_taxis.nc"; # setting time axis
   ncrename -a .description,long_name "${fTempDir}/${fName}_taxis.nc"; # conforming to CF-1.6 standards
-  #ncks -A -v XLONG,XLAT $coordFile "${fTempDir}/${fName}_taxis.nc" # coordination variables
+  ncks -A -v XLONG,XLAT $coordFile "${fTempDir}/${fName}_taxis.nc" # coordination variables
   cdo sellonlatbox,"$lonLims","$latLims" "${fTempDir}/${fName}_taxis.nc" "${fOutDir}/${fName}.nc" # spatial subsetting
 }
 
@@ -162,7 +162,7 @@ extract_file_info () {
   local fPath="$1" # format: "/path/to/file/wrf2d_d01_YYYY-MM-DD_HH:MM:SS"
   
   # file name
-  fileName=$(echo "$fPath" | rev | cut -d '/' -f 1 | rev) # file name
+  fileName=$(basename "$fPath") # file name
   
   # file date
   fileNameDate=$(echo "$fileName" | cut -d '_' -f 3) # file date (YYYY-MM-DD)
@@ -318,7 +318,7 @@ toDateUnix=$(date --date="$startDate" "+%s") # first date in unix EPOCH time
 endDateUnix=$(date --date="$endDate" "+%s") # end date in unix EPOCH time
 
 # hard-coding the address of the co-ordinate NetCDF files
-coordFile="/project/6008034/Model_Output/WRF/CONUS/coord.nc"
+coordFile="/project/6008034/Model_Output/WRF/CONUS/coord_new.nc"
 
 # for each year (folder) do the following calculations
 for yr in $yearsRange; do
