@@ -39,7 +39,7 @@
 # Usage Functions
 # ===============
 short_usage() {
-  echo "usage: $(basename $0) [-io DIR] [-v VARS] [-se DATE] [-t CHAR] [-ln REAL,REAL]"
+  echo "usage: $(basename $0) [-io DIR] [-v VARS] [-se DATE] [-t CHAR] [-ln REAL,REAL] [-p STR]"
 }
 
 # argument parsing using getopt - WORKS ONLY ON LINUX BY DEFAULT
@@ -69,6 +69,7 @@ do
     -t | --time-scale)    timeScale="$2"       ; shift 2 ;; # required
     -l | --lat-lims)      latLims="$2"         ; shift 2 ;; # required
     -n | --lon-lims)      lonLims="$2"         ; shift 2 ;; # required
+    -p | --prefix)	  prefix="$2"	       ; shift 2 ;; # optional
 
     # -- means the end of the arguments; drop this, and break out of the while loop
     --) shift; break ;;
@@ -88,7 +89,17 @@ done
 module load cdo/2.0.4
 module load nco/5.0.6
 
+########################################
+# useful one-liners
 #######################################
+unix_epoch { date --date="$@" "+%s"; } # calculate Unix EPOCH time
+
+ts_index { "$(( ($1-$2)/($3)+1  ))";  } # $1: ts in seconds
+					# $2: initial ts
+					# $3:steps in Seconds
+
+
+######################################
 # Implements the necessary netCDF
 # operations using CDO and NCO
 #
@@ -160,7 +171,7 @@ extract_filename_info () {
 }
 
 
-#######################################
+######################################
 # populating an array of dates based
 # on the input format and time-step
 # ranged between the start and end
@@ -203,6 +214,149 @@ date_range () {
   done
 }
 
+#######################################
+# subsetting netCDF files based on the
+# start and end dates separated by str-
+# ides
+#
+# Globals:
+#   None
+#
+# Arguments:
+#   1. start date index
+#   2. end date index (could be $1)
+#   3. stride
+#   4. time variable name
+#   5. /path/to/source/files.nc
+#   6. /destination/path/
+#   7. output file prefix
+#   8. delimiter in the file name
+#   9. file name suffix, i.e., .nc
+#   10. date string 
+#
+# Outputs:
+#   produces the output NetCDF files
+#   as follows: /path/to/output/ \
+#               $prefix$dlm$format.$suffix
+#######################################
+temporal_subset () {
+  # assign local variables
+  local startIdx=$1	 # start index
+  local endIdx=$2	 # end index
+  local stride=$3	 # split stride
+  local timeVar=$4	 # time variable
+  local sourceFile=$5	 # source file
+  local destDir=$6	 # destination directory
+  local filePrefix=$7	 # file prefix
+  local dlm=$8		 # nomenclatur delimiter
+  local fileSuffix=$9	 # file suffix
+  local dateStr=${10}	 # date string
+
+  ncks -d $timeVar,$startIdx,$endIdx,$stride "$sourceFile" "${destDir}/${filePrefix}${dlm}${dateStr}.${fileSuffix}" 
+}
+
+
+#######################################
+# end of a chosen time-frame minus
+# the value of the time-step, e.g.,
+#   1. end of the year date based on
+#      hourly time-steps
+#   2. end of the month based on daily
+#      time-steps
+#
+# Globals:
+#   None
+#
+# Arguments:
+#   1. dateStr
+#   2. time-frame, i.e., year, mmonth, 
+#			 day, hour
+#      (parsable by GNU date)
+#   3. time-step, i.e., year, month, 
+#			day, hour
+#      (parsable by GNU date)
+#
+# Outputs:
+#   prints the end of the time-frame
+#   at the last time-step to the stdout
+#######################################
+timeFrameEnd () {
+  local dateStr=$1	# date string
+  local timeFrame=$2	# time-frame
+  local timeStep=$3	# time-step
+  local fmt=$4		# date format
+
+  case "${timeFrame,,}" in
+    year)
+      local dateStrTrim=$(date --date="$dateStr" "+%Y-01-01 00:00:00")
+      ;;
+    month)
+      local dateStrTrim=$(date --date="$dateStr" "+%Y-%m-01 00:00:00")
+      ;;
+    day)
+      local dateStrTrim=$(date --date="$dateStr" "+%Y-%m-%d 00:00:00")
+      ;;
+    hour)
+      local dateStrTrim=$(date --date="$dateStr" "+%Y-%m-%d 00:00:00")
+      ;;
+    minute)
+      local dateStrTrim=$(date --date="$dateStr" "+%Y-%m-%d %H:00:00")
+      ;;
+    second)
+      local dateStrTrim=$(date --date="$dateStr" "+%Y-%m-%d %H:%M:00")
+      ;;
+  esac
+
+  local endDateStr="$(date --date="$dateStrTrim 1${timeFrame} -1${timeStep}" "+${fmt}")"
+  echo $endDateStr
+}
+
+
+#######################################
+# splitting netCDF files based on the 
+# tsValue
+#
+# Globals:
+#   None
+#
+# Arguments:
+#   
+  # assign local variables
+  local iniDate=$1	 # initial date
+  local start=$2	 # start date
+  local end=$3		 # end date
+  local stride=$4	 # split stride
+  local timeVar=$5	 # time variable
+  local sourceFile=$6	 # source file
+  local destDir=$7	 # destination directory
+  local filePrefix=$8	 # file prefix
+  local dlm=$9		 # nomenclatur delimiter
+  local fileSuffix=${10} # file suffix
+  local dateFmt=${11}	 # date format
+  local tsSeconds=${12}  # time-step length
+  			 # in seconds
+  
+  # calculate Unix EPOCH values - using one-liner funcs
+  local iniUnix="$(unix_epoch "$iniDate")"
+  local startUnix="$(unix_epoch "$start")"
+  local endUnix="$(unix_epoch "$end")"
+
+  # calculate indices and range - using one-liner funcs
+  local startIdx=$(ts_index "$startUnix" "$iniUnix" "$tsSeconds")
+  local endIdx=$(ts_index "$endUnix" "$iniUnix" "$tsSeconds")
+  local idxRange=$(seq 0 $(($startIdx-$endIdx+1)))
+
+  # split based on the given tsSeconds
+  # e.g., h=(1*60*60) s,
+  # e.g., d=(1*24*60*60) s,
+  # e.g., m=($monthDays*24*60*60) s,
+  # e.g., y=(365*24*60*60) s.
+  for idx in idxRange; do
+    curTSStart=$(($startUnix + ($idx * tsSeconds))) # current time-step start
+    curTSEnd=$(( )) # current time-step end
+
+  done
+
 
 # ===============
 # Data Processing
@@ -218,8 +372,12 @@ format="%Y%m"
 cdoDateFormat="%Y-%m-%dT%H:%M:%S"
 fileStruct="ERA5_merged"
 
+# making Unix EPOCH times
+startDateUnix=$(date --date="${startDate}" "+%s") # start date
+endDateUnix=$(date --date="${endDate}" "+%s") # end date
+
 # extract the dates using `date_range` function -> dateRangeArr
-date_range "$startDate" "$endDate" "$format" "1hour" # tstep is hard-coded
+date_range "$startDate" "$endDate" "$format" "1hour" # tstep is hard-coded for ERA5
 
 # extract unique values from $dateRangeArr
 uniqueDatesArr=($(echo "${dateRangeArr[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' '));
@@ -252,13 +410,22 @@ case "${timeScale,,}" in
       extract_filenameinfo "$f"
       
       # check dates
-      if [[ "$fileNameDate" -eq "$(date --date="${startDate}" "+${format}")"  ]]; then
-        # define start and end points of the file containing $startDate
-	startPoint="$(date --date="${startDate}" "+${cdoDateFormat}")"
-	endPoint="$(date --date="${startDate}" "+${cdoDateFormat}")"
+      if [[ $fileNameDate -eq "$(date --date="${startDate}" "+${format}")"  ]]; then
+        # startPoint
+	startPointCDO="$(date --date="${startDate}" "+${cdoDateFormat}")"
+	# endPoint
+	endOfCurrentMonthUnix=$(date --date="${fileNameDate}01 +1month -1hour" "+%s") # end of month Unix EPOCH time
+	if [[ $endOfCurrentMonthUnix -lt $endDateUnix ]]; then
+	  endPointUnix=$endOfCurrentMonthUnix
+	else
+	  endPointUnix=$endDateUnix
+	fi
+	endPointCDO="$(date --date="${endPointUnix}" "+${cdoDateFormat}")"
+	
+	# spatial subsetting 
+	cdo sellonlatbox,$latLims,$lonLims "$f" "${tempDir}/${fileStruct}-${fileNameDate}.nc"
+	# temporal subsetting
 
-	# extracting data
-	cdo seldate,$startPoint,$endPoint "$f" "$outputDir/"
 
       elif [[ ]]; then
 

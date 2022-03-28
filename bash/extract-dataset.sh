@@ -65,6 +65,7 @@ Script options:
   -n, --lon-lims=REAL,REAL		Longitude's upper and lower bounds
   -j, --submit-job			Submit the data extraction process as a job
 					on the SLURM system
+  -p, --prefix=STR			Prefix to be added to the processed files
   -V, --version				Show version
   -h, --help				Show this screen
 
@@ -75,7 +76,7 @@ and/or open an issue at https://github.com/kasra-keshavarz/gwf-forcing-data/issu
 }
 
 short_usage () {
-  echo "usage: $(basename $0) [-jh] [-i DIR] [-d DATASET] [-o DIR] [-se DATE] [-ln INT,INT]" >&1;
+  echo "usage: $(basename $0) [-jh] [-i DIR] [-d DATASET] [-o DIR] [-se DATE] [-ln INT,INT] [-p STR]" >&1;
 }
 
 version () {
@@ -88,7 +89,7 @@ version () {
 # Parsing input arguments
 # =======================
 # argument parsing using getopt - WORKS ONLY ON LINUX BY DEFAULT
-parsedArguments=$(getopt -a -n extract-dataset -o jhVd:i:v:o:s:e:t:l:n: --long submit-job,help,version,dataset:,dataset-dir:,variable:,output-dir:,start-date:,end-date:,time-scale:,lat-lims:,lon-lims:, -- "$@")
+parsedArguments=$(getopt -a -n extract-dataset -o jhVd:i:v:o:s:e:t:l:n:p: --long submit-job,help,version,dataset:,dataset-dir:,variable:,output-dir:,start-date:,end-date:,time-scale:,lat-lims:,lon-lims:,prefix: -- "$@")
 validArguments=$?
 # check if there is no valid options
 if [ "$validArguments" != "0" ]; then
@@ -119,6 +120,7 @@ do
     -t | --time-scale)    timeScale="$2"       ; shift 2 ;; # required
     -l | --lat-lims)      latLims="$2"         ; shift 2 ;; # required
     -n | --lon-lims)      lonLims="$2"         ; shift 2 ;; # required
+    -p | --prefix)	  prefix="$2"	       ; shift 2 ;; # optional
 
     # -- means the end of the arguments; drop this, and break out of the while loop
     --) shift; break ;;
@@ -161,6 +163,7 @@ declare -A funcArgs=([jobSubmission]="$jobSubmission" \
 		     [timeScale]="$timeScale" \
 		     [latLims]="$latLims" \
 		     [lonLims]="$lonLims" \
+		     [prefix]="$prefix" \
 		    );
 
 
@@ -176,7 +179,7 @@ call_processing_func () {
   # all processing script files must follow same input argument standard
   local scriptRun
   read -rd '' scriptRun <<- EOF
-	bash ./${script} -i "${funcArgs[datasetDir]}" -v "${funcArgs[variables]}" -o "${funcArgs[outputDir]}" -s "${funcArgs[startDate]}" -e "${funcArgs[endDate]}" -t "${funcArgs[timeScale]}" -l "${funcArgs[latLims]}" -n "${funcArgs[lonLims]}";
+	bash ./${script} -i "${funcArgs[datasetDir]}" -v "${funcArgs[variables]}" -o "${funcArgs[outputDir]}" -s "${funcArgs[startDate]}" -e "${funcArgs[endDate]}" -t "${funcArgs[timeScale]}" -l "${funcArgs[latLims]}" -n "${funcArgs[lonLims]}" -p "${funcArgs[prefix]}";
 	EOF
 
   # evaluate the script file using the arguments provided
