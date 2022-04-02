@@ -6,23 +6,26 @@ Usage:
    extract-dataset [options...]
 
 Script options:
-  -d, --dataset                         Meteorological forcing dataset of interest
-                                        currently available options are:
-                                        'CONUSI';
-  -i, --dataset-dir=DIR                 The source path of the dataset file(s)
+  -d, --dataset				Meteorological forcing dataset of interest
+					currently available options are:
+					'CONUSI';'ERA5';
+  -i, --dataset-dir=DIR			The source path of the dataset file(s)
   -v, --variable=var1[,var2[...]]	Variables to process
-  -o, --output-dir=DIR                  Writes processed files to DIR
-  -s, --start-date=DATE                 The start date of the forcing data
-  -e, --end-date=DATE                   The end date of the forcing data
-  -t, --time-scale=CHAR                 The time scale of interest:
-                                        'H' (hourly), 'D' (Daily), 'M' (Monthly), 
-                                        or 'Y' (Yearly) [default: 'M']
-  -l, --lat-lims=REAL,REAL              Latitude's upper and lower bounds
-  -n, --lon-lims=REAL,REAL              Longitude's upper and lower bounds
-  -j, --submit-job                      Submit the data extraction process as a job
-                                        on the SLURM system
-  -V, --version                         Show version
-  -h, --help                            Show this screen
+  -o, --output-dir=DIR			Writes processed files to DIR
+  -s, --start-date=DATE			The start date of the forcing data
+  -e, --end-date=DATE			The end date of the forcing data
+  -t, --time-scale=CHAR			The time scale of interest:
+					'H' (hourly), 'D' (Daily), 'M' (Monthly), 
+					or 'Y' (Yearly) [default: 'M']
+  -l, --lat-lims=REAL,REAL		Latitude's upper and lower bounds
+  -n, --lon-lims=REAL,REAL		Longitude's upper and lower bounds
+  -j, --submit-job			Submit the data extraction process as a job
+					on the SLURM system
+  -p, --prefix=STR			Prefix  prepended to the output files
+  -c, --cache=DIR			Path of the cache directory
+  -V, --version				Show version
+  -h, --help				Show this screen
+
 ```
 
 # Prerequisites
