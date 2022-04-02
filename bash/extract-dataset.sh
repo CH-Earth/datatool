@@ -52,7 +52,7 @@ Usage:
 Script options:
   -d, --dataset				Meteorological forcing dataset of interest
 					currently available options are:
-					'CONUSI';
+					'CONUSI';'ERA5'
   -i, --dataset-dir=DIR			The source path of the dataset file(s)
   -v, --variable=var1[,var2[...]]	Variables to process
   -o, --output-dir=DIR			Writes processed files to DIR
@@ -65,7 +65,8 @@ Script options:
   -n, --lon-lims=REAL,REAL		Longitude's upper and lower bounds
   -j, --submit-job			Submit the data extraction process as a job
 					on the SLURM system
-  -p, --prefix=STR			Prefix to be added to the processed files
+  -p, --prefix=STR			Prefix  prepended to the output files
+  -c, --cache=DIR			Path of the cache directory
   -V, --version				Show version
   -h, --help				Show this screen
 
@@ -76,7 +77,7 @@ and/or open an issue at https://github.com/kasra-keshavarz/gwf-forcing-data/issu
 }
 
 short_usage () {
-  echo "usage: $(basename $0) [-jh] [-i DIR] [-d DATASET] [-o DIR] [-se DATE] [-ln INT,INT] [-p STR]" >&1;
+  echo "usage: $(basename $0) [-jh] [-i DIR] [-d DATASET] [-co DIR] [-se DATE] [-ln INT,INT] [-p STR]" >&1;
 }
 
 version () {
@@ -89,7 +90,7 @@ version () {
 # Parsing input arguments
 # =======================
 # argument parsing using getopt - WORKS ONLY ON LINUX BY DEFAULT
-parsedArguments=$(getopt -a -n extract-dataset -o jhVd:i:v:o:s:e:t:l:n:p: --long submit-job,help,version,dataset:,dataset-dir:,variable:,output-dir:,start-date:,end-date:,time-scale:,lat-lims:,lon-lims:,prefix: -- "$@")
+parsedArguments=$(getopt -a -n extract-dataset -o jhVd:i:v:o:s:e:t:l:n:p:c: --long submit-job,help,version,dataset:,dataset-dir:,variable:,output-dir:,start-date:,end-date:,time-scale:,lat-lims:,lon-lims:,prefix:,cache:, -- "$@")
 validArguments=$?
 # check if there is no valid options
 if [ "$validArguments" != "0" ]; then
@@ -120,7 +121,8 @@ do
     -t | --time-scale)    timeScale="$2"       ; shift 2 ;; # required
     -l | --lat-lims)      latLims="$2"         ; shift 2 ;; # required
     -n | --lon-lims)      lonLims="$2"         ; shift 2 ;; # required
-    -p | --prefix)	  prefix="$2"	       ; shift 2 ;; # optional
+    -p | --prefix)	  prefixStr="$2"       ; shift 2 ;; # required
+    -c | --cache)	  cache="$2"	       ; shift 2 ;; # optional
 
     # -- means the end of the arguments; drop this, and break out of the while loop
     --) shift; break ;;
@@ -140,7 +142,8 @@ if [[ -z "${datasetDir}" ]] || \
    [[ -z "${startDate}"  ]] || \
    [[ -z "${endDate}"    ]] || \
    [[ -z "${latLims}"    ]] || \
-   [[ -z "${lonLims}"    ]]; then
+   [[ -z "${lonLims}"    ]] || \
+   [[ -z "${prefixStr}"  ]]; then
 
    echo "$(basename $0): mandatory option(s) missing.";
    short_usage;
@@ -150,6 +153,10 @@ fi
 # default value for timeScale if not provided as an argument
 if [[ -z $timeScale ]]; then
   timeScale="M"
+fi
+# default value for cache path if not provided as an argument
+if [[ -z $cache ]]; then
+  cache="$HOME/.temp_gwfdata"
 fi
 
 # put necessary arguments in an array - just to make things more legible
@@ -163,9 +170,9 @@ declare -A funcArgs=([jobSubmission]="$jobSubmission" \
 		     [timeScale]="$timeScale" \
 		     [latLims]="$latLims" \
 		     [lonLims]="$lonLims" \
-		     [prefix]="$prefix" \
+		     [prefixStr]="$prefixStr" \
+		     [cache]="$cache" \
 		    );
-
 
 # =================================
 # Template data processing function
@@ -179,7 +186,7 @@ call_processing_func () {
   # all processing script files must follow same input argument standard
   local scriptRun
   read -rd '' scriptRun <<- EOF
-	bash ./${script} -i "${funcArgs[datasetDir]}" -v "${funcArgs[variables]}" -o "${funcArgs[outputDir]}" -s "${funcArgs[startDate]}" -e "${funcArgs[endDate]}" -t "${funcArgs[timeScale]}" -l "${funcArgs[latLims]}" -n "${funcArgs[lonLims]}" -p "${funcArgs[prefix]}";
+	bash ./${script} -i "${funcArgs[datasetDir]}" -v "${funcArgs[variables]}" -o "${funcArgs[outputDir]}" -s "${funcArgs[startDate]}" -e "${funcArgs[endDate]}" -t "${funcArgs[timeScale]}" -l "${funcArgs[latLims]}" -n "${funcArgs[lonLims]}" -p "${funcArgs[prefixStr]}" -c "${funcArgs[cache]}";
 	EOF
 
   # evaluate the script file using the arguments provided

@@ -52,7 +52,7 @@ fi
 
 # check if no options were passed
 if [ $# -eq 0 ]; then
-  echo "ERROR $0: arguments missing";
+  echo "ERROR $(basename $0): arguments missing";
   exit 1;
 fi
 
@@ -75,7 +75,7 @@ do
 
     # in case of invalid option
     *)
-      echo "ERROR $0: invalid option '$1'";
+      echo "ERROR $(basename $0): invalid option '$1'";
       short_usage; exit 1 ;;
   esac
 done
@@ -302,7 +302,7 @@ populate_date_arrays () {
 # Data Processing
 # ===============
 # display info
-echo "$0: processing NCAR-GWF CONUSI..."
+echo "$(basename $0): processing NCAR-GWF CONUSI..."
 
 # make the output directory
 mkdir -p "$outputDir" # create output directory
@@ -324,7 +324,7 @@ coordFile="/project/6008034/Model_Output/WRF/CONUS/coord_new.nc"
 for yr in $yearsRange; do
 
   # creating a temporary directory for temporary files
-  echo "$0: creating cache files for year $yr in $HOME/.temp_gwfdata"
+  echo "$(basename $0): creating cache files for year $yr in $HOME/.temp_gwfdata"
   tempDir="$HOME/.temp_gwfdata" # hard-coded, can change int he future
   mkdir -p "$tempDir/$yr" # making the directory
 
@@ -436,6 +436,6 @@ for yr in $yearsRange; do
 done
 
 rm -r $tempDir # removing the temporary directory
-echo "$0: temporary files from $tempDir are removed."
-echo "$0: results are produced under $outputDir."
+echo "$(basename $0): temporary files from $tempDir are removed."
+echo "$(basename $0): results are produced under $outputDir."
 
