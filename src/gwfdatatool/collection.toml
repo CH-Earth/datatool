@@ -1,0 +1,239 @@
+# This file will be replaced by a sql server
+# providing these data by a request
+
+title = "GWF Datasets"
+
+
+[era5]
+product = "ECMWF ERA5"
+address = "/project/6008034/CompHydCore/climateForcingData/ERA5/ERA5_for_SUMMA/2_merged_data"
+nomenclature = "ERA5_merged_%Y%m.nc"
+file_time_scale = "monthly"
+start_date = "1950-01-01 00:00:00"
+end_date = "2020-12-31 23:00:00"
+time_step = "hourly"
+coordinate_variables = ['latitude', 'longitude']
+time_variable = "time"
+variables = "['LWRadAtm', 'SWRadAtm', 'pptrate', 'airpres', 'airtemp', 'spechum', 'windspd']"
+extra_files = ""
+
+
+[conusi]
+product = "GWF/NCAR WRF CONUS I"
+address = "/project/6008034/Model_Output/WRF/CONUS/CTRL"
+nomenclature = "%Y/wrf2d_d01_%Y-%m-%d_%H:%M:%S"
+file_time_scale = "hourly"
+start_date = "2000-10-01 00:00:00"
+end_date = "2013-10-08 00:00:00"
+time_step = "hourly"
+coordinate_variables = ['XLAT', 'XLONG', 'XLAT_V', 'XLONG_V', 'XLAT_U', 'XLONG_U']
+time_variable = "Times"
+variables = [
+    'ACDEWC', 'ACDRIPR', 'ACDRIPS', 
+    'ACEVAC', 'ACEVB', 'ACEVC', 
+    'ACEVG', 'ACFROC', 'ACFRZC', 
+    'ACGHB', 'ACGHV', 'ACGRDFLX',
+    'ACHFX', 'ACICG', 'ACIGC',
+    'ACINTR', 'ACINTS', 'ACIRB',
+    'ACIRC', 'ACIRG', 'ACLHF',
+    'ACLWDNB', 'ACLWDNBC', 'ACLWDNLSM', 
+    'ACLWDNT', 'ACLWDNTC', 'ACLWUPB', 
+    'ACLWUPBC', 'ACLWUPLSM', 'ACLWUPT', 
+    'ACLWUPTC', 'ACMELTC', 'ACPAHB', 
+    'ACPAHG', 'ACPAHV', 'ACPONDING',
+    'ACRAINLSM', 'ACRAINSNOW', 'ACRUNSB',
+    'ACRUNSF', 'ACSAGB', 'ACSAGV', 
+    'ACSAV', 'ACSCG', 'ACSGC', 
+    'ACSHB', 'ACSHC', 'ACSHG', 
+    'ACSNBOT', 'ACSNFRO', 'ACSNOWLSM', 
+    'ACSNSUB', 'ACSUBC', 'ACSWDNB', 
+    'ACSWDNBC', 'ACSWDNLSM', 'ACSWDNT', 
+    'ACSWDNTC', 'ACSWUPB', 'ACSWUPBC', 
+    'ACSWUPLSM', 'ACSWUPT', 'ACSWUPTC', 
+    'ACTHROR', 'ACTHROS', 'ACTR', 
+    'ALBBCK', 'ALBEDO', 'ALBOLD', 
+    'APAR', 'BGAP', 'CANICE', 
+    'CANLIQ', 'CANWAT', 'CH', 
+    'CHB', 'CHB2', 'CHLEAF', 
+    'CHSTAR', 'CHUC', 'CHV', 
+    'CHV2', 'CM', 'EAH', 
+    'ECAN', 'EDIR', 'EMISS', 
+    'ETRAN', 'EVB', 'EVC', 
+    'EVG', 'FASTCP', 'FIRA', 
+    'FORCPLSM', 'FORCQLSM', 'FORCTLSM', 
+    'FORCWLSM', 'FORCZLSM', 'FPICE', 
+    'FSA', 'FVEG', 'FWET', 
+    'GHB', 'GHV', 'GLW', 
+    'GPP', 'GRAUPELNC', 'GRAUPEL_ACC_NC', 
+    'GRDFLX', 'HFX', 'HFX_FORCE', 
+    'HFX_FORCE_TEND', 'ICG', 'IGC', 
+    'IRB', 'IRC', 'IRG', 
+    'ISNOW', 'I_ACLWDNB', 'I_ACLWDNBC', 
+    'I_ACLWDNT', 'I_ACLWDNTC', 'I_ACLWUPB', 
+    'I_ACLWUPBC', 'I_ACLWUPT', 'I_ACLWUPTC', 
+    'I_ACSWDNB', 'I_ACSWDNBC', 'I_ACSWDNT', 
+    'I_ACSWDNTC', 'I_ACSWUPB', 'I_ACSWUPBC', 
+    'I_ACSWUPT', 'I_ACSWUPTC', 'I_RAINC', 
+    'I_RAINNC', 'LFMASS', 'LH', 
+    'LH_FORCE', 'LH_FORCE_TEND', 'LWDNB', 
+    'LWDNBC', 'LWDNT', 'LWDNTC', 
+    'LWUPB', 'LWUPBC', 'LWUPT', 
+    'LWUPTC', 'MU', 'NEE', 
+    'NOAHRES', 'NPP', 'OLR', 
+    'P', 'PAH', 'PAHB', 
+    'PAHG', 'PAHV', 'PBLH', 
+    'PONDING', 'PREC_ACC_C', 'PREC_ACC_NC', 
+    'PSFC', 'PSN', 'PWAT', 
+    'P_TOP', 'Q2', 'Q2B', 
+    'Q2V', 'QDEWC', 'QDRIPR', 
+    'QDRIPS', 'QEVAC', 'QFROC', 
+    'QFRZC', 'QFX', 'QIN', 
+    'QINTR', 'QINTS', 'QMELTC', 
+    'QNWFA2D', 'QSNBOT', 'QSNFRO', 
+    'QSNOWXY', 'QSNSUB', 'QSUBC', 
+    'QTHROR', 'QTHROS', 'QVAPOR', 
+    'RAINC', 'RAINLSM', 'RAINNC', 
+    'RAINSH', 'REFLC_10CM', 'REFL_10CM', 
+    'RSSHA', 'RSSUN', 'RTMASS', 
+    'RUNSB', 'RUNSF', 'SAG', 
+    'SAV', 'SAVE_TOPO_FROM_REAL', 'SCG', 
+    'SEED1', 'SEED2', 'SFROFF', 
+    'SGC', 'SH2O', 'SHB', 
+    'SHC', 'SHDMAX', 'SHDMIN', 
+    'SHG', 'SMCREL', 'SMOIS', 
+    'SNEQVO', 'SNICE', 'SNLIQ', 
+    'SNOALB', 'SNOW', 'SNOWC', 
+    'SNOWH', 'SNOWLSM', 'SNOWNC', 
+    'SNOW_ACC_NC', 'SR', 'SST', 
+    'SSTSK', 'STBLCP', 'STMASS', 
+    'SWDNB', 'SWDNBC', 'SWDNT', 
+    'SWDNTC', 'SWDOWN', 'SWNORM', 
+    'SWUPB', 'SWUPBC', 'SWUPT', 
+    'SWUPTC', 'T2', 'T2B', 
+    'T2V', 'TAH', 'TAUSS', 
+    'TG', 'TGB', 'TGV', 
+    'TH2', 'TK', 'TMN', 
+    'TR', 'TRAD', 'TSK', 
+    'TSK_FORCE', 'TSK_FORCE_TEND', 'TSLB', 
+    'TSNO', 'TV', 'Times', 
+    'U', 'U10', 'UDROFF', 
+    'UST', 'V', 'V10', 
+    'W', 'WA', 'WGAP', 
+    'WOOD', 'WSLAKE', 'WT', 
+    'XLAND', 'XSAI', 'XTIME', 
+    'Z', 'ZSNSO', 'ZWT', 
+    'totalIce', 'totalLiq', 'totalVap'
+]
+extra_files = "{address}/coord.nc"
+
+
+[conusii.2d]
+product = "GWF/NCAR WRF CONUS II - 2D"
+address = "/project/6008034/Model_Output/wrf-conus/CONUSII/hist"
+nomenclature = "%Y/wrf2d_conusii_%Y%m%d.tar/glade/scratch/kyoko/CONUSII_PI/hist/%Y/wrf2d_d01_%Y-%m-%d_%H:%M:%S"
+file_time_scale = "hourly"
+start_date = "1995-01-01 00:00:00"
+end_date = "2015-12-31 23:00:00"
+time_step = "hourly"
+coordinate_variables = [
+    'COSALPHA', 'HGT', 'LANDMASK', 
+    'SINALPHA', 'XLAT', 'XLAT_U', 
+    'XLAT_V', 'XLONG', 'XLONG_U', 
+    'XLONG_V',
+]
+time_variable = "Time"
+variables = [
+    'Times', 'MU', 'Q2', 
+    'T2', 'TH2', 'PSFC', 
+    'U10', 'V10', 'XTIME', 
+    'SEAICE', 'ACSNOM', 'SNOW', 
+    'SNOWH', 'CANWAT', 'SSTSK', 
+    'COSZEN', 'LAI', 'TSK', 
+    'SWDOWN', 'GLW', 'SWNORM', 
+    'ACSWUPT', 'ACSWUPTC', 'ACSWDNT', 
+    'ACSWDNTC', 'ACSWUPB', 'ACSWUPBC', 
+    'ACSWDNB', 'ACSWDNBC', 'ACLWUPT', 
+    'ACLWUPTC', 'ACLWDNT', 'ACLWDNTC', 
+    'ACLWUPB', 'ACLWUPBC', 'ACLWDNB', 
+    'ACLWDNBC', 'I_ACSWUPT', 'I_ACSWUPTC', 
+    'I_ACSWDNT', 'I_ACSWDNTC', 'I_ACSWUPB', 
+    'I_ACSWUPBC', 'I_ACSWDNB', 'I_ACSWDNBC', 
+    'I_ACLWUPT', 'I_ACLWUPTC', 'I_ACLWDNT', 
+    'I_ACLWDNTC', 'I_ACLWUPB', 'I_ACLWUPBC', 
+    'I_ACLWDNB', 'I_ACLWDNBC', 'SWUPT', 
+    'SWUPTC', 'SWDNT', 'SWDNTC', 
+    'SWUPB', 'SWUPBC', 'SWDNB', 
+    'SWDNBC', 'LWUPT', 'LWUPTC', 
+    'LWDNT', 'LWDNTC', 'LWUPB', 
+    'LWUPBC', 'LWDNB', 'LWDNBC', 
+    'OLR', 'ALBEDO', 'EMISS', 
+    'TV', 'TG', 'TRAD', 
+    'QSLAT', 'QRFS', 'RECH', 
+    'QSPRINGS', 'ACINTS', 'ACINTR', 
+    'ACDRIPR', 'ACTHROR', 'ACEVAC', 
+    'ACDEWC', 'FORCTLSM', 'FORCQLSM', 
+    'FORCPLSM', 'FORCZLSM', 'FORCWLSM', 
+    'CANICE', 'SMCWTD', 'ZWT', 
+    'ACRAINLSM', 'ACRUNSB', 'ACRUNSF', 
+    'ACECAN', 'ACETRAN', 'ACEDIR', 
+    'ACQLAT', 'ACQRF', 'ACETLSM', 
+    'ACSNOWLSM', 'ACSUBC', 'ACFROC',
+    'ACFRZC', 'ACMELTC', 'ACSNBOT', 
+    'ACPONDING', 'ACSNSUB', 'ACSNFRO', 
+    'ACRAINSNOW', 'ACDRIPS', 'ACTHROS', 
+    'ACSAGB', 'ACIRB', 'ACSHB', 
+    'ACEVB', 'ACGHB', 'ACPAHB', 
+    'ACSAGV', 'ACIRG', 'ACSHG', 
+    'ACEVG', 'ACGHV', 'ACPAHG', 
+    'ACSAV', 'ACIRC', 'ACSHC', 
+    'ACEVC', 'ACTR', 'ACPAHV', 
+    'ACSWDNLSM', 'ACSWUPLSM', 'ACLWDNLSM', 
+    'ACLWUPLSM', 'ACSHFLSM', 'ACLHFLSM', 
+    'ACGHFLSM', 'ACPAHLSM', 'SOILENERGY', 
+    'SNOWENERGY', 'UST', 'PBLH', 
+    'SNOWC', 'SR', 'WSPD10MAX', 
+    'W_UP_MAX', 'W_DN_MAX', 'REFL_1KM_AGL', 
+    'REFL_COM', 'UP_HELI_MAX', 'W_MEAN', 
+    'GRPL_MAX', 'HAIL_MAXK1', 'HAIL_MAX2D', 
+    'SBCAPE', 'MLCAPE', 'MUCAPE', 
+    'SBCINH', 'MLCINH', 'MUCINH', 
+    'SBLCL', 'MLLCL', 'USHR1', 
+    'USHR6', 'VSHR1', 'VSHR6', 
+    'U_BUNK', 'V_BUNK', 'SRH01', 
+    'SRH03', 'TD2', 'PREC_ACC_NC', 
+    'SNOW_ACC_NC', 'GRAUPEL_ACC_NC', 
+    'SST', 'totalIce', 'totalLiq', 
+    'totalVap', 'PWAT', 'U', 
+    'V', 'P', 'QVAPOR', 
+    'REFL_10CM', 'W', 'Z', 
+    'TK'
+]
+extra_files = "{address}/wrf04km_coord.nc"
+
+
+[conusii.3d]
+product = "GWF/NCAR WRF CONUS II - 3D"
+address = "/project/6008034/Model_Output/wrf-conus/CONUSII/hist"
+nomenclature = "%Y/wrf3d_conusii_%Y%m%d.tar/glade/scratch/kyoko/CONUSII_PI/hist/%Y/wrf3d_d01_%Y-%m-%d_%H:%M:%S"
+file_time_scale = "3-hourly"
+start_date = "1995-01-01 00:00:00"
+end_date = "2015-12-31 23:00:00"
+time_step = "3-hourly"
+coordinate_variables = [
+    'COSALPHA', 'HGT', 'LANDMASK', 
+    'SINALPHA', 'XLAT', 'XLAT_U', 
+    'XLAT_V', 'XLONG', 'XLONG_U', 
+    'XLONG_V',
+]
+time_variable = "Time"
+variables = [
+'Times', 'U', 'V', 
+'W', 'P', 'P_HYD', 
+'XTIME', 'QVAPOR', 
+'QCLOUD', 'QRAIN', 'QICE', 
+'QSNOW', 'QGRAUP', 'QNICE', 
+'QNRAIN', 'O3RAD', 'REFL_10CM', 
+'CLDFRA', 'SNICE', 'SNLIQ', 
+'Z', 'TK', 
+]
+extra_files = "{address}/wrf04km_coord.nc"

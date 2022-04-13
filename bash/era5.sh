@@ -189,6 +189,7 @@ date_range () {
   local end=$2      # end date
   local fmt=$3      # format of the ouput dates
   local tstep=$4    # the time-step value parsable by bash `date`
+
   local curr=$start # current time-step
 
   # make Unix EPOCH time 

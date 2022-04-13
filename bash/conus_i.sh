@@ -43,7 +43,7 @@ short_usage() {
 }
 
 # argument parsing using getopt - WORKS ONLY ON LINUX BY DEFAULT
-parsedArguments=$(getopt -a -n extract-dataset -o i:v:o:s:e:t:l:n: --long dataset-dir:,variables:,output-dir:,start-date:,end-date:,time-scale:,lat-lims:,lon-lims:, -- "$@")
+parsedArguments=$(getopt -a -n extract-dataset -o i:v:o:s:e:t:l:n:c:p: --long dataset-dir:,variables:,output-dir:,start-date:,end-date:,time-scale:,lat-lims:,lon-lims:,cache:,prefix: -- "$@")
 validArguments=$?
 if [ "$validArguments" != "0" ]; then
   short_usage;
@@ -69,6 +69,8 @@ do
     -t | --time-scale)    timeScale="$2"       ; shift 2 ;; # required
     -l | --lat-lims)      latLims="$2"         ; shift 2 ;; # required
     -n | --lon-lims)      lonLims="$2"         ; shift 2 ;; # required
+    -c | --cache)         cacheDir="$2"           ; shift 2 ;; # required
+    -p | --prefix)        prefix="$2"          ; shift 2 ;; # required
 
     # -- means the end of the arguments; drop this, and break out of the while loop
     --) shift; break ;;
@@ -88,6 +90,29 @@ done
 module load cdo/2.0.4
 module load nco/5.0.6
 
+
+#######################################
+# useful one-liners
+#######################################
+#calcualte Unix EPOCH time in seconds from 1970-01-01 00:00:00
+unix_epoch () { date --date="$@" +"%s"; }
+
+#format date string
+format_date () { date --date="$1" +"$2"; }
+
+#check whether the input is float or real
+check_real () { if [[ "$1" == *'.'* ]]; then echo 'float'; else echo 'int'; fi; }
+
+#convert to float if the number is 'int'
+to_float () { if [[ $(check_real $1) == 'int' ]]; then printf "%.1f" "$1"; echo; else printf "$1"; echo; fi; }
+
+#join array element by the specified delimiter
+join_by () { local IFS="$1"; shift; echo "$*"; }
+
+#to_float the latLims and lonLims, real numbers delimited by ','
+lims_to_float () { IFS=',' read -ra l <<< $@; f_arr=(); for i in "${l[@]}"; do f_arr+=($(to_float $i)); done; echo $(join_by , "${f_arr[@]}"); }
+
+
 #######################################
 # Implements the necessary netCDF
 # operations using CDO and NCO
@@ -97,7 +122,7 @@ module load nco/5.0.6
 #	       file
 #   lonLims: longitute bounds
 #   latLims: latitute bounds
-#   tempDir: temporary directory for
+#   cacheDir: temporary directory for
 #	     file manipulations
 #   yr: year of selected forcing data
 #   outputDir: output directory for
@@ -124,10 +149,14 @@ generate_netcdf () {
   fi
 
   # necessary netCDF operations
-  cdo -f nc4c -z zip_1 -r settaxis,"$fDate","$fTime",1hour "${fTempDir}/${fName}${fExt}" "${fTempDir}/${fName}_taxis.nc"; # setting time axis
-  ncrename -a .description,long_name "${fTempDir}/${fName}_taxis.nc"; # conforming to CF-1.6 standards
-  ncks -A -v XLONG,XLAT $coordFile "${fTempDir}/${fName}_taxis.nc" # coordination variables
-  cdo sellonlatbox,"$lonLims","$latLims" "${fTempDir}/${fName}_taxis.nc" "${fOutDir}/${fName}.nc" # spatial subsetting
+  ## add coordinate variables: only XLAT & XLONG
+  ncks -A -v XLONG,XLAT "$coordFile" "${fTempDir}/${fName}${fExt}" 
+  ## set time axes
+  cdo -f nc4c -z zip_1 -r settaxis,"$fDate","$fTime",1hour "${fTempDir}/${fName}${fExt}" "${fTempDir}/${fName}_taxis.nc"; 
+  ## rename the `description` attribute
+  ncrename -a .description,long_name "${fTempDir}/${fName}_taxis.nc"
+  ## spatial extent
+  cdo sellonlatbox,"$lonLims","$latLims" "${fTempDir}/${fName}_taxis.nc" "${fOutDir}/${fName}.nc"
 }
 
 
@@ -318,15 +347,14 @@ toDateUnix=$(date --date="$startDate" "+%s") # first date in unix EPOCH time
 endDateUnix=$(date --date="$endDate" "+%s") # end date in unix EPOCH time
 
 # hard-coding the address of the co-ordinate NetCDF files
-coordFile="/project/6008034/Model_Output/WRF/CONUS/coord_new.nc"
+coordFile="$(pwd)/coord_new.nc"
 
 # for each year (folder) do the following calculations
 for yr in $yearsRange; do
 
   # creating a temporary directory for temporary files
-  echo "$(basename $0): creating cache files for year $yr in $HOME/.temp_gwfdata"
-  tempDir="$HOME/.temp_gwfdata" # hard-coded, can change int he future
-  mkdir -p "$tempDir/$yr" # making the directory
+  echo "$(basename $0): creating cache files for year $yr in $cacheDir"
+  mkdir -p "$cacheDir/$yr" # making the directory
 
   # setting the end point, either the end of current year, or the $endDate
   endOfCurrentYearUnix=$(date --date="$yr-01-01 +1 year -1 hour" "+%s") # last time-step of the current year
@@ -349,7 +377,7 @@ for yr in $yearsRange; do
     file="${fileStruct}_${toDateFormatted}" # current file name
     
     # extracting variables from the files
-    ncks -v "$variables" "$datasetDir/$yr/$file" "$tempDir/$yr/${file}" # extracting $variables
+    ncks -O -v "$variables" "$datasetDir/$yr/$file" "$cacheDir/$yr/${file}" # extracting $variables
     
     # increment time-step by one unit
     toDate=$(date --date "$toDate 1hour") # current time-step
@@ -365,7 +393,7 @@ for yr in $yearsRange; do
   mkdir -p "$outputDir/$yr/"
 
   # data files for the current year with extracted $variables
-  files=($tempDir/$yr/*)
+  files=($cacheDir/$yr/*)
 
   # check the $timeScale variable
   case "${timeScale,,}" in
@@ -376,7 +404,7 @@ for yr in $yearsRange; do
 	# extracting information
 	extract_file_info "$f"
 	# necessary NetCDF operations
-	generate_netcdf "$fileName" "$fileNameDate" "$fileNameTime" "$tempDir/$yr/" "$outputDir/$yr/" "$timeScale"
+	generate_netcdf "$fileName" "$fileNameDate" "$fileNameTime" "$cacheDir/$yr/" "$outputDir/$yr/" "$timeScale"
       done
       ;;
 
@@ -390,11 +418,11 @@ for yr in $yearsRange; do
 	date_match_idx "$d" "1-3" "-" "${datesArr[@]}" 
 
 	# concatenate hourly netCDF files to daily file, i.e., already produces _cat.nc files
-	dailyFiles=($tempDir/$yr/${fileStruct}_${d}*)
-	concat_files "${fileStruct}_${d}" "$tempDir/$yr/" "${dailyFiles[@]}" 
+	dailyFiles=($cacheDir/$yr/${fileStruct}_${d}*)
+	concat_files "${fileStruct}_${d}" "$cacheDir/$yr/" "${dailyFiles[@]}" 
 
 	# implement CDO/NCO operations
-	generate_netcdf "${fileStruct}_${d}" "$d" "${timesArr[$idx]}" "$tempDir/$yr/" "$outputDir/$yr/" "$timeScale"
+	generate_netcdf "${fileStruct}_${d}" "$d" "${timesArr[$idx]}" "$cacheDir/$yr/" "$outputDir/$yr/" "$timeScale"
       done
       ;;
 
@@ -409,11 +437,11 @@ for yr in $yearsRange; do
 	date_match_idx "$m" "1,2" "-" "${datesArr[@]}" 
 
 	# concatenate hourly netCDF files to monthly files, i.e., already produced *_cat.nc files
-	monthlyFiles=($tempDir/$yr/${fileStruct}_${m}*)
-	concat_files "${fileStruct}_${m}" "$tempDir/$yr/" "${monthlyFiles[@]}" 
+	monthlyFiles=($cacheDir/$yr/${fileStruct}_${m}*)
+	concat_files "${fileStruct}_${m}" "$cacheDir/$yr/" "${monthlyFiles[@]}" 
 
 	# implement CDO/NCO operations
-	generate_netcdf "${fileStruct}_${m}" "${datesArr[$idx]}" "${timesArr[$idx]}" "$tempDir/$yr/" "$outputDir/$yr/" "$timeScale"
+	generate_netcdf "${fileStruct}_${m}" "${datesArr[$idx]}" "${timesArr[$idx]}" "$cacheDir/$yr/" "$outputDir/$yr/" "$timeScale"
       done
       ;;
 
@@ -425,17 +453,17 @@ for yr in $yearsRange; do
       date_match_idx "$yr" "1" "-" "${datesArr[@]}"
 
       # concatenate hourly to yearly files - produced _cat.nc files
-      yearlyFiles=($tempDir/$yr/${fileStruct}_${yr}*)
-      concat_files "${fileStruct}_${yr}" "$tempDir/$yr/" "${yearlyFiles[@]}"
+      yearlyFiles=($cacheDir/$yr/${fileStruct}_${yr}*)
+      concat_files "${fileStruct}_${yr}" "$cacheDir/$yr/" "${yearlyFiles[@]}"
 
       # implement CDO/NCO operations
-      generate_netcdf "${fileStruct}_${yr}" "${datesArr[$idx]}" "${timesArr[$idx]}" "$tempDir/$yr/" "$outputDir/$yr/" "$timeScale"
+      generate_netcdf "${fileStruct}_${yr}" "${datesArr[$idx]}" "${timesArr[$idx]}" "$cacheDir/$yr/" "$outputDir/$yr/" "$timeScale"
       ;;
 
   esac
 done
 
-rm -r $tempDir # removing the temporary directory
-echo "$(basename $0): temporary files from $tempDir are removed."
+rm -r $cacheDir # removing the temporary directory
+echo "$(basename $0): temporary files from $cacheDir are removed."
 echo "$(basename $0): results are produced under $outputDir."
 
