@@ -38,13 +38,24 @@ from typing import (
     Optional,
 )
 
+<<<<<<< HEAD
+=======
+from collection.abc import (
+
+)
+
+>>>>>>> 1be4474b0cb74c28c6de48f2f48ed99a1d18f813
 from __future__ import (
     annotations,
 )
 
 class GWFDataTool(object):
     """
+<<<<<<< HEAD
     Main class to process and subset pre-defined
+=======
+    Main class to process and subset defined
+>>>>>>> 1be4474b0cb74c28c6de48f2f48ed99a1d18f813
     meteorological datasets.
 
     ...
@@ -60,8 +71,13 @@ class GWFDataTool(object):
         dataset: str,
         variables: Tuple[str, ...],
         time_lims: Dict[str, str],
+<<<<<<< HEAD
         return_method: str,
         space_lims: Optional[Tuple[float, ...]] = None,
+=======
+        space_lims: Optional[Tuple[float, ...]] = None,
+        return_method: str,
+>>>>>>> 1be4474b0cb74c28c6de48f2f48ed99a1d18f813
         esri_shapefile: Optional[str] = None,
         slurm_job: bool = False,
     ):
@@ -71,11 +87,15 @@ class GWFDataTool(object):
         cls,
         json_string: str,
     ) -> GWFDataTool:
+<<<<<<< HEAD
         toolset = cls(
             ...,
             return_method='globus',
             ...,
         )
+=======
+        toolset = cls(...)
+>>>>>>> 1be4474b0cb74c28c6de48f2f48ed99a1d18f813
         
         return toolset
 
