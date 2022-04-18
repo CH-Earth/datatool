@@ -110,7 +110,7 @@ while :
 do
   case "$1" in
     -h | --help)          usage                ; shift   ;; # optional
-    -V | --version)	  version	       ; shift   ;; # optional
+    -V | --version)	      version	           ; shift   ;; # optional
     -j | --submit-job)    jobSubmission=true   ; shift   ;; # optional
     -i | --dataset-dir)   datasetDir="$2"      ; shift 2 ;; # required
     -d | --dataset)       dataset="$2"         ; shift 2 ;; # required
@@ -121,8 +121,8 @@ do
     -t | --time-scale)    timeScale="$2"       ; shift 2 ;; # required
     -l | --lat-lims)      latLims="$2"         ; shift 2 ;; # required
     -n | --lon-lims)      lonLims="$2"         ; shift 2 ;; # required
-    -p | --prefix)	  prefixStr="$2"       ; shift 2 ;; # required
-    -c | --cache)	  cache="$2"	       ; shift 2 ;; # optional
+    -p | --prefix)	      prefixStr="$2"       ; shift 2 ;; # required
+    -c | --cache)	      cache="$2"	       ; shift 2 ;; # optional
 
     # -- means the end of the arguments; drop this, and break out of the while loop
     --) shift; break ;;
@@ -163,7 +163,7 @@ fi
 # these variables are global anyways...
 declare -A funcArgs=([jobSubmission]="$jobSubmission" \
 		     [datasetDir]="$datasetDir" \
-                     [variables]="$variables" \
+             [variables]="$variables" \
 		     [outputDir]="$outputDir" \
 		     [startDate]="$startDate" \
 		     [endDate]="$endDate" \
@@ -196,7 +196,7 @@ call_processing_func () {
 	#!/bin/bash
 
 	#SBATCH --account=rpp-kshook
-	#SBATCH --time=8:00:00
+	#SBATCH --time=4:00:00
 	#SBATCH --cpus-per-task=1
 	#SBATCH --mem=16GB
 	#SBATCH --job-name=GWF_${script}
@@ -219,23 +219,22 @@ call_processing_func () {
 case "${dataset,,}" in
   # NCAR-GWF CONUSI
   "conus1" | "conusi" | "conus_1" | "conus_i" | "conus 1" | "conus i" | "conus-1" | "conus-i")
-    call_processing_func "conus_i.sh"
+    call_processing_func "$(pwd)/conus_i/conus_i.sh"
     ;;
 
   # NCAR-GWF CONUSII
   "conus2" | "conusii" | "conus_2" | "conus_ii" | "conus 2" | "conus ii" | "conus-2" | "conus-ii")
-    call_processing_func "conus_ii.sh"
+    call_processing_func "$(pwd)/conus_ii/conus_ii.sh"
     ;;
 
   # ECMWF ERA5
   "era_5" | "era5" | "era-5" | "era 5")
-    call_processing_func "era5.sh"
+    call_processing_func "$(pwd)/era5/era5.sh"
     ;;
   
   # PCIC CMIP6 downscaled
   "pcic cmip6" | "pcic-cmip6" | "pcic_cmip6")
-    call_processing_func "pcic-cmip6.sh"
-    call_regridding_func "pcic-cmip6-regrid.sh"
+    call_processing_func "$(pwd)/pcic/pcic-cmip6.sh"
     ;;
 
   # dataset not included above

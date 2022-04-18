@@ -39,7 +39,7 @@
 # Usage Functions
 # ===============
 short_usage() {
-  echo "usage: $(basename $0) [-io DIR] [-v VARS] [-se DATE] [-t CHAR] [-ln INT,INT]"
+  echo "usage: $(basename $0) [-io DIR] [-v VARS] [-se DATE] [-t CHAR] [-ln REAL,REAL]"
 }
 
 # argument parsing using getopt - WORKS ONLY ON LINUX BY DEFAULT
@@ -81,6 +81,13 @@ do
       short_usage; exit 1 ;;
   esac
 done
+
+# hard-coding the address of the co-ordinate NetCDF files
+coordFile="$(pwd)/asset/coord_XLAT_XLONG_conus_i.nc"
+
+# The structure of file names is as follows: "wrf2d_d01_YYYY-MM-DD_HH:MM:SS" (no file extension)
+format="%Y-%m-%d_%H:%M:%S"
+fileStruct="wrf2d_d01"
 
 
 # ===================
@@ -265,9 +272,9 @@ date_match_idx () {
 #######################################
 concat_files () {
   # defining local variables
-  local fName="$1"	# output file name
+  local fName="$1"	    # output file name
   local fTempDir="$2"	# temporary directory
-  shift 2		# shift arguments by 2 positions
+  shift 2               # shift arguments by 2 positions
   local filesArr=("$@") # array of file names
   
   # concatenating $files and producing a single $fName.nc
@@ -318,7 +325,7 @@ populate_date_arrays () {
 
     # populate date arrays
     datesArr+=(${fileNameDate});
-    monthsArr+=("${fileNameYear}-${fileNameMonth}")
+    monthsArr+=("${fileNameYear}-${fileNameMonth}");
     timesArr+=(${fileNameTime});
   done
 
@@ -346,9 +353,6 @@ toDate=$startDate
 toDateUnix=$(date --date="$startDate" "+%s") # first date in unix EPOCH time
 endDateUnix=$(date --date="$endDate" "+%s") # end date in unix EPOCH time
 
-# hard-coding the address of the co-ordinate NetCDF files
-coordFile="$(pwd)/coord_new.nc"
-
 # for each year (folder) do the following calculations
 for yr in $yearsRange; do
 
@@ -363,10 +367,6 @@ for yr in $yearsRange; do
   else
     endPointUnix=$endDateUnix
   fi
-
-  # The structure of file names is as follows: "wrf2d_d01_YYYY-MM-DD_HH:MM:SS" (no file extension)
-  format="%Y-%m-%d_%H:%M:%S"
-  fileStruct="wrf2d_d01"
 
   # extract variables from the forcing data files
   while [[ "$toDateUnix" -le "$endPointUnix" ]]; do
@@ -401,10 +401,10 @@ for yr in $yearsRange; do
     h)
       # going through every hourly file
       for f in "${files[@]}"; do
-	# extracting information
-	extract_file_info "$f"
-	# necessary NetCDF operations
-	generate_netcdf "$fileName" "$fileNameDate" "$fileNameTime" "$cacheDir/$yr/" "$outputDir/$yr/" "$timeScale"
+        # extracting information
+        extract_file_info "$f"
+        # necessary NetCDF operations
+        generate_netcdf "${fileName}" "$fileNameDate" "$fileNameTime" "$cacheDir/$yr/" "$outputDir/$yr/" "$timeScale"
       done
       ;;
 
@@ -415,14 +415,14 @@ for yr in $yearsRange; do
       # for each date (i.e., YYYY-MM-DD)
       for d in "${uniqueDatesArr[@]}"; do
         # find the index of the $timesArr corresponding to $d -> $idx
-	date_match_idx "$d" "1-3" "-" "${datesArr[@]}" 
+        date_match_idx "$d" "1-3" "-" "${datesArr[@]}" 
 
-	# concatenate hourly netCDF files to daily file, i.e., already produces _cat.nc files
-	dailyFiles=($cacheDir/$yr/${fileStruct}_${d}*)
-	concat_files "${fileStruct}_${d}" "$cacheDir/$yr/" "${dailyFiles[@]}" 
+        # concatenate hourly netCDF files to daily file, i.e., already produces _cat.nc files
+	    dailyFiles=($cacheDir/$yr/${fileStruct}_${d}*)
+	    concat_files "${fileStruct}_${d}" "$cacheDir/$yr/" "${dailyFiles[@]}" 
 
-	# implement CDO/NCO operations
-	generate_netcdf "${fileStruct}_${d}" "$d" "${timesArr[$idx]}" "$cacheDir/$yr/" "$outputDir/$yr/" "$timeScale"
+	    # implement CDO/NCO operations
+	    generate_netcdf "${fileStruct}_${d}" "$d" "${timesArr[$idx]}" "$cacheDir/$yr/" "$outputDir/$yr/" "$timeScale"
       done
       ;;
 
@@ -433,15 +433,15 @@ for yr in $yearsRange; do
       # for each date (i.e., YYYY-MM-DD)
       for m in "${uniqueMonthsArr[@]}"; do
         # find the index of the $timesArr corresponding to $d -> $idx
-	# $m is in 'YYYY-MM' format
-	date_match_idx "$m" "1,2" "-" "${datesArr[@]}" 
+        # $m is in 'YYYY-MM' format
+        date_match_idx "$m" "1,2" "-" "${datesArr[@]}" 
 
-	# concatenate hourly netCDF files to monthly files, i.e., already produced *_cat.nc files
-	monthlyFiles=($cacheDir/$yr/${fileStruct}_${m}*)
-	concat_files "${fileStruct}_${m}" "$cacheDir/$yr/" "${monthlyFiles[@]}" 
+        # concatenate hourly netCDF files to monthly files, i.e., already produced *_cat.nc files
+        monthlyFiles=($cacheDir/$yr/${fileStruct}_${m}*)
+        concat_files "${fileStruct}_${m}" "$cacheDir/$yr/" "${monthlyFiles[@]}" 
 
-	# implement CDO/NCO operations
-	generate_netcdf "${fileStruct}_${m}" "${datesArr[$idx]}" "${timesArr[$idx]}" "$cacheDir/$yr/" "$outputDir/$yr/" "$timeScale"
+        # implement CDO/NCO operations
+        generate_netcdf "${fileStruct}_${m}" "${datesArr[$idx]}" "${timesArr[$idx]}" "$cacheDir/$yr/" "$outputDir/$yr/" "$timeScale"
       done
       ;;
 
