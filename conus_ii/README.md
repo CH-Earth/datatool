@@ -1,4 +1,4 @@
-# NCAR-GWF `WRF-CONUSI` Simulation Outputs
+# NCAR-GWF `WRF-CONUSII` Simulation Outputs
 
 In this file, the details of the dataset is explained.
 

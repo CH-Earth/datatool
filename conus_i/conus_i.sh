@@ -23,8 +23,10 @@
 # Credits and contributions
 # =========================
 # 1. Parts of the code are taken from https://www.shellscript.sh/tips/getopt/index.html
-# 2. Dr. Zhenhua Li provided scripts to extract and process CONUS I datasets
-
+# 2. Dr. Zhenhua Li provided scripts to extract and process CONUSI datasets
+# 3. Dr. Shervan Gharari produced the netCDF file containing XLAT and XLONG
+#    coordinate variables put under /asset/coord_XLAT_XLONG_conus_i.nc.
+# 4. Kasra Keshavarz has written the following script to process WRF-CONUSI files.
 
 # ================
 # General comments
