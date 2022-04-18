@@ -58,7 +58,7 @@ Furthermore, the substitute NetCDF file containing the coordinate variables are 
 The time-stamp of the time-steps are missing from the dataset NetCDF files. However, the time-stamps for each time-step is obvious from the file names. The time-stamp pattern of the dataset files is as following: `%Y-%m-%d_%H:00:00` which will be changed to `%Y-%m-%s %H:00:00` to be registered as a valid time-stamp in the NetCDF files. The script is able to set the time-stamps for the final produced file(s) automatically.
 
 ## Dataset Variables
-The NetCDF files of the dataset contain 283 variables. You may see a list of variables by using the `ncdump -h`  command on one of the files:
+The NetCDF files of the dataset contain 281 variables. You may see a list of variables by using the `ncdump -h`  command on one of the files:
 ```console
 foo@bar:~$ module load cdo/2.0.4
 foo@bar:~$ module load nco/5.0.6
