@@ -25,7 +25,7 @@
 # 1. Parts of the code are taken from https://www.shellscript.sh/tips/getopt/index.html
 # 2. Dr. Zhenhua Li provided scripts to extract and process CONUSI datasets
 # 3. Dr. Shervan Gharari produced the netCDF file containing XLAT and XLONG
-#    coordinate variables put under /asset/coord_XLAT_XLONG_conus_i.nc.
+#    coordinate variables put under /assets/coord_XLAT_XLONG_conus_i.nc.
 # 4. Kasra Keshavarz has written the following script to process WRF-CONUSI files.
 
 # ================
@@ -85,7 +85,7 @@ do
 done
 
 # hard-coding the address of the co-ordinate NetCDF files
-coordFile="$(pwd)/asset/coord_XLAT_XLONG_conus_i.nc"
+coordFile="$(pwd)/assets/coord_XLAT_XLONG_conus_i.nc"
 
 # The structure of file names is as follows: "wrf2d_d01_YYYY-MM-DD_HH:MM:SS" (no file extension)
 format="%Y-%m-%d_%H:%M:%S"
