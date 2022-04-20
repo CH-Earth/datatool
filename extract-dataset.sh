@@ -51,8 +51,8 @@ Usage:
 
 Script options:
   -d, --dataset				Meteorological forcing dataset of interest
-					currently available options are:
-					'CONUSI';'ERA5'
+                                        currently available options are:
+                                        'CONUSI';'ERA5';'CONUSII';
   -i, --dataset-dir=DIR			The source path of the dataset file(s)
   -v, --variable=var1[,var2[...]]	Variables to process
   -o, --output-dir=DIR			Writes processed files to DIR
@@ -77,7 +77,7 @@ and/or open an issue at https://github.com/kasra-keshavarz/gwf-forcing-data/issu
 }
 
 short_usage () {
-  echo "usage: $(basename $0) [-jh] [-i DIR] [-d DATASET] [-co DIR] [-se DATE] [-ln INT,INT] [-p STR]" >&1;
+  echo "usage: $(basename $0) [-jh] [-i DIR] [-d DATASET] [-co DIR] [-se DATE] [-ln REAL,REAL] [-p STR]" >&1;
 }
 
 version () {
@@ -219,22 +219,22 @@ call_processing_func () {
 case "${dataset,,}" in
   # NCAR-GWF CONUSI
   "conus1" | "conusi" | "conus_1" | "conus_i" | "conus 1" | "conus i" | "conus-1" | "conus-i")
-    call_processing_func "$(pwd)/conus_i/conus_i.sh"
+    call_processing_func "./conus_i/conus_i.sh"
     ;;
 
   # NCAR-GWF CONUSII
   "conus2" | "conusii" | "conus_2" | "conus_ii" | "conus 2" | "conus ii" | "conus-2" | "conus-ii")
-    call_processing_func "$(pwd)/conus_ii/conus_ii.sh"
+    call_processing_func "./conus_ii/conus_ii.sh"
     ;;
 
   # ECMWF ERA5
   "era_5" | "era5" | "era-5" | "era 5")
-    call_processing_func "$(pwd)/era5/era5.sh"
+    call_processing_func "./era5/era5.sh"
     ;;
   
   # PCIC CMIP6 downscaled
   "pcic cmip6" | "pcic-cmip6" | "pcic_cmip6")
-    call_processing_func "$(pwd)/pcic/pcic-cmip6.sh"
+    call_processing_func "./pcic/pcic-cmip6.sh"
     ;;
 
   # dataset not included above

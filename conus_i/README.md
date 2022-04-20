@@ -48,9 +48,30 @@ The coordinate variables of the `WRF-CONUSI` simulations are located outside of 
 ```
 However, upon many trials by the author, the variables were not concatenated with the main NetCDF files easily. A workaround has been provided to add at least two necessary coordinate variables, i.e., `XLAT` and `XLONG`, to the WRF simulation files. These two coordinates are enough to work with almost all of the meteorological variables included in the dataset. The following scripts are used on Compute Canada (CC) Graham Cluster to produce the substitute NetCDF file containing coordinate variables:
 ```console
-foo@bar:~$ 
-foo@bar:~$ 
-foo@bar:~$ 
+# make a copy of coordinate variable netCDF file first
+foo@bar:~$ coordFile="/project/6008034/Model_Output/WRF/CONUS/CTRL/coord.nc"
+foo@bar:~$ ncks -O -v XLAT,XLONG "$coordFile" coord2.nc
+foo@bar:~$ nccopy -4 coord2.nc coord_new.nc 
+foo@bar:~$ ncatted -O -a FieldType,XLAT,d,, coord_new.nc 
+foo@bar:~$ ncatted -O -a MemoryOrder,XLAT,d,, coord_new.nc 
+foo@bar:~$ ncatted -O -a stagger,XLAT,d,, coord_new.nc 
+foo@bar:~$ ncatted -O -a coordinates,XLAT,d,, coord_new.nc 
+foo@bar:~$ ncatted -O -a sr_x,XLAT,d,, coord_new.nc
+foo@bar:~$ ncatted -O -a sr_y,XLAT,d,, coord_new.nc
+foo@bar:~$ ncatted -O -a FieldType,XLONG,d,, coord_new.nc 
+foo@bar:~$ ncatted -O -a MemoryOrder,XLONG,d,, coord_new.nc 
+foo@bar:~$ ncatted -O -a stagger,XLONG,d,, coord_new.nc 
+foo@bar:~$ ncatted -O -a coordinates,XLONG,d,, coord_new.nc
+foo@bar:~$ ncatted -O -a sr_x,XLONG,d,, coord_new.nc
+foo@bar:~$ ncatted -O -a sr_y,XLONG,d,, coord_new.nc
+foo@bar:~$ ncwa -O -a Times coord_new.nc coord_new.nc
+foo@bar:~$ ncks -O -v XLAT,XLONG coord_new.nc coord_new.nc
+foo@bar:~$ ncrename -a XLONG@description,long_name coord_new.nc
+foo@bar:~$ ncrename -a XLAT@description,long_name coord_new.nc
+foo@bar:~$ ncatted -O -a cell_methods,,d,, coord_new.nc
+foo@bar:~$ ncatted -O -a cell_methods,,d,, coord_new.nc
+foo@bar:~$ ncatted -O -a ,global,d,, coord_new.nc
+foo@bar:~$ ncatted -O -h -a license,global,c,c,"GNU General Public License v3 (GPLv3)" coord_new.nc
 ```
 Furthermore, the substitute NetCDF file containing the coordinate variables are located at `/asset/coord_XLAT_XLONG_conus_i.nc` within this repository. The workaround NetCDF is automatically being used by the script to add the `XLAT` and `XLONG` variables to the final, produced files.
 
@@ -70,3 +91,15 @@ The spatial extent of the `WRF-CONUSI` is on latitutes from `18.13629` to `57.91
 
 ## Temporal Extent
 As is obvious from the nomenclature of the dataset files, the time-steps are hourly covering from the October 2000 to December 2013.
+
+# Short Description on `WRF-CONUSI` Variables
+In most hydrological modelling applications, usually 7 variables are needed detailed as following: 1) specific humidity at 2 meters, 2) surface pressure, 3) air temperature at 2 meters, 4) wind speed at 10 meters, 5) precipitation, 6) downward short wave radiation, and 7) downward long wave radiation. These variables are available through `WRF-CONUSI` dataset and their details are described in the table below:
+|Variable Name        |WRF-CONUSI Variable|Unit |IPCC abbreviation|Comments            |
+|---------------------|-------------------|-----|-----------------|--------------------|
+|surface pressure     |PSFC               |Pa   |ps               |                    |
+|specific humidity @2m|Q2                 |1    |huss             |                    |
+|air tempreature @2m  |T2                 |k    |tas              |                    |
+|wind speed @10m      |U10,V10            |m/s  |wspd             |WIND=SQRT(U102+V102)|
+|precipitation        |PREC_ACC_NC        |mm/hr|                 |accumulated precipitation over one hour|
+|short wave radiation |ACSWDNB            |W m-2|rsds             |                    |
+|long wave radiation  |ACLWDNB            |W m-2|rlds             |                    |

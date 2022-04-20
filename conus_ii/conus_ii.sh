@@ -24,7 +24,9 @@
 # =========================
 # 1. Parts of the code are taken from https://www.shellscript.sh/tips/getopt/index.html
 # 2. Dr. Zhenhua Li provided scripts to extract and process CONUSII datasets
-# 3. Kasra Keshavarz has written the following script to process WRF-CONUSII files.
+# 3. Dr. Shervan Gharari produced the netCDF file containing XLAT and XLONG
+#    coordinate variables put under /asset/coord_XLAT_XLONG_conus_i.nc.
+# 4. Kasra Keshavarz has written the following script to process WRF-CONUSII files.
 
 # ================
 # General comments
@@ -69,7 +71,7 @@ do
     -t | --time-scale)    timeScale="$2"       ; shift 2 ;; # required
     -l | --lat-lims)      latLims="$2"         ; shift 2 ;; # required
     -n | --lon-lims)      lonLims="$2"         ; shift 2 ;; # required
-    -c | --cache)         cacheDir="$2"        ; shift 2 ;; # required
+    -c | --cache)         cacheDir="$2"           ; shift 2 ;; # required
     -p | --prefix)        prefix="$2"          ; shift 2 ;; # required
 
     # -- means the end of the arguments; drop this, and break out of the while loop
@@ -83,11 +85,13 @@ do
 done
 
 # hard-coding the address of the co-ordinate NetCDF files
-coordFile="$(pwd)/asset/coord_XLAT_XLONG_conus_i.nc"
+coordFile="$(pwd)/asset/coord_XLAT_XLONG_conus_ii.nc"
 
 # The structure of file names is as follows: "wrf2d_d01_YYYY-MM-DD_HH:MM:SS" (no file extension)
 format="%Y-%m-%d_%H:%M:%S"
 fileStruct="wrf2d_d01"
+tarFormat="%Y%m%d"
+tarFileStruct="wrf2d_conusii"
 
 
 # ===================
@@ -169,7 +173,7 @@ generate_netcdf () {
 
 #######################################
 # extracts file name, date, and time 
-# from CONUSI file name strings.
+# from CONUSII file name strings.
 #
 # Globals:
 #   fileName: file name of the .nc data
@@ -338,7 +342,7 @@ populate_date_arrays () {
 # Data Processing
 # ===============
 # display info
-echo "$(basename $0): processing NCAR-GWF CONUSI..."
+echo "$(basename $0): processing NCAR-GWF CONUSII..."
 
 # make the output directory
 mkdir -p "$outputDir" # create output directory
@@ -361,7 +365,7 @@ for yr in $yearsRange; do
   mkdir -p "$cacheDir/$yr" # making the directory
 
   # setting the end point, either the end of current year, or the $endDate
-  endOfCurrentYearUnix=$(date --date="$yr-01-01 +1 year -1 hour" "+%s") # last time-step of the current year
+  endOfCurrentYearUnix=$(date --date="$yr-01-01 1year -1day" "+%s") # last time-step of the current year
   if [[ $endOfCurrentYearUnix -le $endDateUnix ]]; then
     endPointUnix=$endOfCurrentYearUnix
   else
@@ -371,17 +375,30 @@ for yr in $yearsRange; do
   # extract variables from the forcing data files
   while [[ "$toDateUnix" -le "$endPointUnix" ]]; do
     # date manipulations
-    toDateFormatted=$(date --date "$toDate" "+$format") # current timestamp formatted to conform to CONUSI naming convention
-    
+    toDateFormatted=$(date --date "$toDate" "+$tarFormat") # current timestamp formatted to conform to CONUSII naming convention
+
     # creating file name
-    file="${fileStruct}_${toDateFormatted}" # current file name
-    
+    file="${tarFileStruct}_${toDateFormatted}.tar" # current file name
+
     # extracting variables from the files
-    ncks -O -v "$variables" "$datasetDir/$yr/$file" "$cacheDir/$yr/${file}" # extracting $variables
+    echo "----DEBUG----"
+    echo "file is: "$datasetDir/$yr/$file""
+    tar --strip-components=6 -xf "$datasetDir/$yr/$file" -C "$cacheDir/$yr/"
+    tarFiles="$(tar -tf $HOME/scratch/workflow/1995/wrf2d_conusii_19950101.tar)"
+    IFS=' ' read -ra tarFiles <<< $(echo $tarFiles)
     
+    echo "tar file contents are:"
+    echo "${tarFiles[@]}"
+
+    for f in "${tarFiles[@]}"; do
+      f2=($(echo $f | rev | cut -d '/' -f 1 | rev))
+      echo "file being ncks'd is: $f2"
+      ncks -O -v "$variables" "$cacheDir/$yr/$f2" "$cacheDir/$yr/$f2" # extracting $variables
+    done
+
     # increment time-step by one unit
-    toDate=$(date --date "$toDate 1hour") # current time-step
-    toDateUnix=$(date --date="$toDate" "+%s") # current timestamp in unix EPOCH time
+    toDate=$(date --date "$toDate 1day") # current time-step
+    toDateUnix=$(date --date="$toDate" +"%s") # current timestamp in unix EPOCH time
   done
 
   # go to the next year if necessary
