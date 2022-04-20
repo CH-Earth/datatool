@@ -28,10 +28,6 @@ Script options:
 
 ```
 
-# Prerequisites
-
-# Installation 
-
 # Usage
  
 As an example, follow the code block below. Please remember that you MUST have access to GRAHAM cluster with Compute Canada (CC) and have access to `CONUS I` model outputs. Also, remember to generate a [Personal Access Token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) with GitHub in advance. Enter the following codes in your GRAHAM Bash terminal:
@@ -49,7 +45,25 @@ foo@bar:~$ ./extract-dataset.sh  --dataset=CONUS1 --dataset-dir="$HOME/projects/
 # Contributing
 
 # Authors
+Kasra Keshavarz (kasra.keshavarz@usask.ca)
 
 # License
+Global Water Futures (GWF) Meteorological Data Processing Workflow
+Copyright (C) 2022, Global Water Futures (GWF), University of Saskatchewan
+
+For more information see: https://gwf.usask.ca/
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # Acknowledgements
