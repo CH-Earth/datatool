@@ -40,10 +40,11 @@ foo@bar:~$ ./extract-dataset.sh  --dataset=CONUS1 --dataset-dir="$HOME/projects/
 ```
 
 # Contributing
-Zhenhua Li (zhenhua.li@usask.ca)
+Zhenhua Li (zhenhua.li@usask.ca): processing scripts and datasets files of `WRF-CONUSI`.<br>
+Quoqiang Tang (quoqiang.tang@usask.ca): download scripts and datasets files of `ERA5`.<br>
 # Authors
-Kasra Keshavarz (kasra.keshavarz@usask.ca)
-Shervan Gharari (shervan.gharari@usask.ca)
+Kasra Keshavarz (kasra.keshavarz@usask.ca): main scripts structure and development.<br>
+Shervan Gharari (shervan.gharari@usask.ca): supervision.
 # License
 Global Water Futures (GWF) Meteorological Data Processing Workflow
 Copyright (C) 2022, Global Water Futures (GWF), University of Saskatchewan
