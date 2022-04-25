@@ -10,7 +10,7 @@ The `WRF-CONUSII` simulation outputs are located under the following directory a
 and the structure of the dataset hourly files is as following:
 ```console
 /project/6008034/Model_Output/wrf-conus/CONUSII/hist
-├── 2000
+├── 1995
 │   ├── wrf2d_conusii_19950101.tar
 │   ├── wrf2d_conusii_19950102.tar
 │   ├── .

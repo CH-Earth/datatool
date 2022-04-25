@@ -85,20 +85,28 @@ do
 done
 
 # hard-coding the address of the co-ordinate NetCDF files
-coordFile="$(pwd)/assets/coord_XLAT_XLONG_conus_i.nc"
+# containing XLAT and XLONG variables each having dimensions
+# of "south_north" and "west_east".
+coordMainFile="$(pwd)/assets/coord_conus_i.nc"
+coordEssFile="$(pwd)/assets/coord_XLAT_XLONG_conus_i.nc"
+latVar="south_north"
+lonVar="west_east"
 
 # The structure of file names is as follows: "wrf2d_d01_YYYY-MM-DD_HH:MM:SS" (no file extension)
 format="%Y-%m-%d_%H:%M:%S"
 fileStruct="wrf2d_d01"
+coordIdxScript="$(pwd)/assets/coord_wrf_idx.ncl"
 
 
 # ===================
 # Necessary Functions
 # ===================
 # Modules below available on Compute Canada (CC) Graham Cluster Server
-module load cdo/2.0.4
-module load nco/5.0.6
-
+load_core_modules () {
+    module -q load cdo/2.0.4;
+    module -q load nco/5.0.6;
+}
+load_core_modules # load necessary modules
 
 #######################################
 # useful one-liners
@@ -158,14 +166,12 @@ generate_netcdf () {
   fi
 
   # necessary netCDF operations
-  ## add coordinate variables: only XLAT & XLONG
-  ncks -A -v XLONG,XLAT "$coordFile" "${fTempDir}/${fName}${fExt}" 
+  ## add coordinate variables: XLAT and XLONG
+  ncks -A -v XLONG,XLAT "$coordFileSubset" "${fTempDir}/${fName}${fExt}" 
   ## set time axes
   cdo -f nc4c -z zip_1 -r settaxis,"$fDate","$fTime",1hour "${fTempDir}/${fName}${fExt}" "${fTempDir}/${fName}_taxis.nc"; 
   ## rename the `description` attribute
-  ncrename -a .description,long_name "${fTempDir}/${fName}_taxis.nc"
-  ## spatial extent
-  cdo sellonlatbox,"$lonLims","$latLims" "${fTempDir}/${fName}_taxis.nc" "${fOutDir}/${fName}.nc"
+  ncrename -O -a .description,long_name "${fTempDir}/${fName}_taxis.nc" -o "${fOutDir}/${fName}.nc"
 }
 
 
@@ -355,6 +361,28 @@ toDate=$startDate
 toDateUnix=$(date --date="$startDate" "+%s") # first date in unix EPOCH time
 endDateUnix=$(date --date="$endDate" "+%s") # end date in unix EPOCH time
 
+# extract the associated indices corresponding to latLims and lonLims
+module -q load ncl/6.6.2
+## min and max of latitude and longitude limits
+minLat=$(echo $latLims | cut -d ',' -f 1)
+maxLat=$(echo $latLims | cut -d ',' -f 2)
+minLon=$(echo $lonLims | cut -d ',' -f 1)
+maxLon=$(echo $lonLims | cut -d ',' -f 2)
+## extract coord
+coordIdx="$(ncl -nQ 'coord_file='\"$coordMainFile\" 'minlat='"$minLat" 'maxlat='"$maxLat" 'minlon='"$minLon" 'maxlon='"$maxLon" "$coordIdxScript")"
+lonLimsIdx="$(echo $coordIdx | cut -d ' ' -f 1)"
+latLimsIdx="$(echo $coordIdx | cut -d ' ' -f 2)"
+module -q unload ncl/6.6.2
+load_core_modules
+
+# produce subsetted $coordFile as well
+mkdir -p "$cacheDir"
+coordFileSubset="${cacheDir}/coordFileSubset.nc"
+ncks -v "XLAT,XLONG" \
+     -d "$latVar","$latLimsIdx" \
+     -d "$lonVar","$lonLimsIdx" \
+     "$coordEssFile" "$coordFileSubset"
+
 # for each year (folder) do the following calculations
 for yr in $yearsRange; do
 
@@ -363,7 +391,7 @@ for yr in $yearsRange; do
   mkdir -p "$cacheDir/$yr" # making the directory
 
   # setting the end point, either the end of current year, or the $endDate
-  endOfCurrentYearUnix=$(date --date="$yr-01-01 +1 year -1 hour" "+%s") # last time-step of the current year
+  endOfCurrentYearUnix=$(date --date="$yr-01-01 +1year -1hour" "+%s") # last time-step of the current year
   if [[ $endOfCurrentYearUnix -le $endDateUnix ]]; then
     endPointUnix=$endOfCurrentYearUnix
   else
@@ -374,13 +402,17 @@ for yr in $yearsRange; do
   while [[ "$toDateUnix" -le "$endPointUnix" ]]; do
     # date manipulations
     toDateFormatted=$(date --date "$toDate" "+$format") # current timestamp formatted to conform to CONUSI naming convention
-    
+
     # creating file name
     file="${fileStruct}_${toDateFormatted}" # current file name
-    
-    # extracting variables from the files
-    ncks -O -v "$variables" "$datasetDir/$yr/$file" "$cacheDir/$yr/${file}" # extracting $variables
-    
+
+    # extracting variables from the files and spatial subsetting
+    ncks -O -v "$variables" \
+         -d "$latVar","$latLimsIdx" \
+         -d "$lonVar","$lonLimsIdx" \
+         "$datasetDir/$yr/$file" "$cacheDir/$yr/$file" & # extracting $variables
+    [ $( jobs | wc -l ) -ge $( nproc ) ] && wait
+
     # increment time-step by one unit
     toDate=$(date --date "$toDate 1hour") # current time-step
     toDateUnix=$(date --date="$toDate" "+%s") # current timestamp in unix EPOCH time
