@@ -229,7 +229,8 @@ case "${dataset,,}" in
 
   # ECMWF ERA5
   "era_5" | "era5" | "era-5" | "era 5")
-    call_processing_func "./era5/era5.sh"
+    call_processing_func "./era5/era5_simplified.sh"
+    # call_processing_func "./era5/era5.sh" # including timeScale option
     ;;
   
   # ECCC RDRS 
