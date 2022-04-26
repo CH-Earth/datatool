@@ -27,7 +27,7 @@ Script options:
 
 # Usage
  
-As an example, follow the code block below. Please remember that you MUST have access to GRAHAM cluster with Compute Canada (CC) and have access to `CONUS I` model outputs. Also, remember to generate a [Personal Access Token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) with GitHub in advance. Enter the following codes in your GRAHAM Bash terminal:
+As an example, follow the code block below. Please remember that you MUST have access to GRAHAM cluster with Compute Canada (CC) and have access to `CONUS I` model outputs. Also, remember to generate a [Personal Access Token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) with GitHub in advance. Enter the following codes in your Graham shell as a test case:
 
 > :warning: The code is not efficient for time periods more than one month. Consider submitting several jobs in cases where longer
 time periods are desired from the dataset. Please note that each job submission should not take more than 4 hours.
