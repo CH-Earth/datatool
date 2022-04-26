@@ -37,3 +37,16 @@ The spatial extent of the `ERA5` is on latitutes from `+90` to `-90` and longitu
 
 ## Temporal Extent
 The time-steps are hourly covering from January 1950 to December 2020.
+
+## Short Description on `ERA5` Variables
+In most hydrological modelling applications, usually 7 variables are needed detailed as following:  1) specific humidity at 2 meters, 2) surface pressure, 3) air temperature at 2 meters, 4) wind speed at 10 meters, 5) precipitation, 6) downward short wave radiation, and 7) downward long wave radiation. These variables are available through the current `ERA5` dataset and their details are described in the table below:
+
+|Variable Name        |ERA5 Variable      |Unit |IPCC abbreviation|Comments            |
+|---------------------|-------------------|-----|-----------------|--------------------|
+|surface pressure     |airpres            |Pa   |ps               |                    |
+|specific humidity @2m|spechum            |1    |huss             |                    |
+|air tempreature @2m  |airtemp            |k    |tas              |                    |
+|wind speed @10m      |windspd            |m/s  |wspd             |WIND=SQRT(U+V)      |
+|precipitation        |pptrate            |mm/hr|                 |accumulated precipitation over one hour|
+|short wave radiation |SWRadAtm           |W m-2|rsds             |                    |
+|long wave radiation  |LWRadAtm           |W m-2|rlds             |                    |
