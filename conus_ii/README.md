@@ -57,6 +57,8 @@ The coordinate variables of the `WRF-CONUSII` simulations are located outside of
 ```
 However, upon many trials by the author, the variables were not concatenated with the main NetCDF files easily. A workaround has been provided to add at least two necessary coordinate variables, i.e., `XLAT` and `XLONG`, to the WRF simulation files. These two coordinates are enough to work with almost all of the meteorological variables included in the dataset. The following scripts are used on Compute Canada (CC) Graham Cluster to produce the substitute NetCDF file containing coordinate variables:
 ```console
+# make a copy of coordinate variable NetCDF file first!
+foo@bar:~$ module load cdo/2.0.4; module load nco/5.0.6; # load necessary modules
 foo@bar:~$ coordFile="/project/6008034/Model_Output/wrf-conus/CONUSII/hist/wrf04km_coord.nc"
 foo@bar:~$ ncks -v XLAT,XLONG "$coordFile" coord.nc
 foo@bar:~$ nccopy -4 coord.nc coord_new.nc
