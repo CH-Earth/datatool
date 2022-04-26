@@ -87,7 +87,7 @@ done
 # hard-coding the address of the co-ordinate NetCDF files
 # containing XLAT and XLONG variables each having dimensions
 # of "south_north" and "west_east".
-coordMainFile="$(pwd)/assets/coord_conus_i.nc"
+coordMainFile="/project/rpp-kshook/Model_Output/WRF/CONUS/coord.nc"
 coordEssFile="$(pwd)/assets/coord_XLAT_XLONG_conus_i.nc"
 latVar="south_north"
 lonVar="west_east"

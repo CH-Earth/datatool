@@ -232,9 +232,9 @@ case "${dataset,,}" in
     call_processing_func "./era5/era5.sh"
     ;;
   
-  # PCIC CMIP6 downscaled
-  "pcic cmip6" | "pcic-cmip6" | "pcic_cmip6")
-    call_processing_func "./pcic/pcic-cmip6.sh"
+  # ECCC RDRS 
+  "rdrs" | "rdrsv2.1")
+    call_processing_func "./rdrs/rdrs.sh"
     ;;
 
   # dataset not included above

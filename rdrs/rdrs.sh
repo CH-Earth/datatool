@@ -23,7 +23,7 @@
 # Credits and contributions
 # =========================
 # 1. Parts of the code are taken from https://www.shellscript.sh/tips/getopt/index.html
-# 2. Dr. Gouqiang Tang provided the downloaded ERA5 dataset files
+# 2. Dr. Julie Mai provided the methodology to download data from CaSPAr data portal.
 
 
 # ================
@@ -92,18 +92,22 @@ fi
 # Necessary Global Variables
 # ==========================
 # the structure of file names is as follows: "ERA5_merged_YYYYMM.nc"
-era5Format="%Y%m" # era5 file date format
-reportFormat="%Y-%m-%d %H:%M:%S" # report format for manupulations
-exportFormat="%Y-%m-%d_%H:%M:%S" # exported file date format
-fileStruct="ERA5_merged" # source dataset files' prefix constant
+rdrsFormat="%Y%m%d" # era5 file date format
+exportFormat="%Y%m%d" # exported file date format
+fileStruct="" # source dataset files' prefix constant
 
+latVar="rlat"
+lonVar="rlon"
 
 # ===================
 # Necessary Functions
 # ===================
 # Modules below available on Compute Canada (CC) Graham Cluster Server
-module load cdo/2.0.4
-module load nco/5.0.6
+load_core_modules () {
+    module -q load cdo/2.0.4
+    module -q load nco/5.0.6
+}
+load_core_modules
 
 
 #######################################
@@ -111,9 +115,6 @@ module load nco/5.0.6
 #######################################
 #calcualte Unix EPOCH time in seconds from 1970-01-01 00:00:00
 unix_epoch () { date --date="$@" +"%s"; }
-
-#format date string
-format_date () { date --date="$1" +"$2"; }
 
 #check whether the input is float or real
 check_real () { if [[ "$1" == *'.'* ]]; then echo 'float'; else echo 'int'; fi; }
@@ -128,360 +129,64 @@ join_by () { local IFS="$1"; shift; echo "$*"; }
 lims_to_float () { IFS=',' read -ra l <<< $@; f_arr=(); for i in "${l[@]}"; do f_arr+=($(to_float $i)); done; echo $(join_by , "${f_arr[@]}"); }
 
 
-#######################################
-# extracts file name, date, and time 
-# from CONUSI file name strings.
-#
-# Globals:
-#   fileName: file name of the .nc data
-#   fileNameDate: date (YYYYMM)
-#   fileNameYear: year (YYYY)
-#   fileNameMonth: month (MM)
-#
-# Arguments:
-#   1: -> fName: the 
-#
-# Outputs:
-#   produces the following global
-#   variables:
-#    a) fileName
-#    b) fileNameDate
-#    c) fileNameYear
-#    d) fileNameMonth
-#######################################
-extract_filename_info () {
-  
-  # define local variable for input argument
-  local fPath="$1" # format: "/path/to/file/ERA5_merged_YYYYMM.nc"
-  
-  # file name
-  fileName="$(basename $fPath | cut -d '.' -f 1)" # file name
-  
-  # file date
-  fileNameDate="$(echo "$fileName" | cut -d '_' -f 3)" # file date (YYYYMM)
-  
-  # year part of the date
-  fileNameYear="$(echo "$fileNameDate" | cut -c 1-4)" # file year (YYYY)
-}
-
-
-######################################
-# populating an array of dates based
-# on the input format and time-step
-# ranged between the start and end
-# points
-#
-# Globals:
-#   dateRangeArr: array of dates
-#
-# Arguments:
-#   1: start date
-#   2: end date
-#   3: format string parsable by `date`
-#   4: time-step, e.g., "1hour"
-#
-# Outputs:
-#   produces the following variables:
-#    5) dateRangeArr
-#######################################
-date_range () {
-  local start=$1    # start date
-  local end=$2      # end date
-  local fmt=$3      # format of the ouput dates
-  local tstep=$4    # the time-step value parsable by bash `date`
-
-  local curr=$start # current time-step
-
-  # make Unix EPOCH time 
-  local currUnix="$(unix_epoch "$curr")"
-  local endUnix="$(unix_epoch "$end")"
-
-  # a global array variable
-  dateRangeArr=()
-
-  while [[ "$currUnix" -le "$endUnix" ]]; do
-    dateRangeArr+=("$(format_date "$curr" "$fmt")")
-    curr="$(date --date="${curr} ${tstep}")"
-     
-    # update $currUnix for the `while` loop
-    currUnix="$(unix_epoch "$curr")"
-  done
-}
-
-
-#######################################
-# end of a chosen time-frame minus
-# the value of the time-step, e.g.,
-#   1. end of the year date based on
-#      hourly time-steps
-#   2. end of the month based on daily
-#      time-steps
-#
-# Globals:
-#   None
-#
-# Arguments:
-#   1. dateStr
-#   2. time-frame, i.e., year, mmonth, 
-#			 day, hour
-#      (parsable by GNU date)
-#   3. time-step, i.e., year, month, 
-#			day, hour
-#      (parsable by GNU date)
-#
-# Outputs:
-#   prints the end of the time-frame
-#   at the last time-step to the stdout
-#######################################
-time_frame_end () {
-  local dateStr=$1	# date string
-  local timeFrame=$2	# time-frame
-  local timeStep=$3	# time-step
-  local fmt=$4		# date format
-
-  local dateStrTrim     # date string variable
-  local endDateStr	# end date string
-
-  # calculte the last time-step included in the file
-  # based on the timeframe of the files;
-  # e.g., ERA5_199201.nc indicates a monthly of that
-  # has hourly data (ERA5 is hourly).
-  case "${timeFrame,,}" in
-    year)
-      dateStrTrim=$(format_date "$dateStr" "%Y-01-01 00:00:00")
-      ;;
-    month)
-      dateStrTrim=$(format_date "$dateStr" "%Y-%m-01 00:00:00")
-      ;;
-    day)
-      dateStrTrim=$(format_date "$dateStr" "%Y-%m-%d 00:00:00")
-      ;;
-    hour)
-      dateStrTrim=$(format_date "$dateStr" "%Y-%m-%d %H:00:00")
-      ;;
-  esac
-  
-  local endDateStr="$(date --date="${dateStrTrim} 1${timeFrame} -1${timeStep}" +"$fmt")"
-  echo $endDateStr
-}
-
-
-#######################################
-# splitting netCDF files based on the 
-# tsValue
-#
-# Globals:
-#   None
-#
-# Arguments:
-#    
-# 
-# Outputs:
-#
-#######################################
-split_ts () {
-  # assign local variables
-  local start=$1	 # start date
-  local end=$2		 # end date
-  local timeVar=$3	 # time variable
-  local sourceFile=$4	 # source file
-  local destDir=$5	 # destination directory
-  local filePrefix=$6	 # file prefix
-  local dateFmt=$7	 # date format
-  local timeFrame=$8	 # time frame:
-  			 # month, day, etc.
-  local timeStep=$9	 # time step length
-  
-  # local variables used in the while loop
-  local tBegin="$(format_date "$start" "$dateFmt")"
-  local tEnd
-
-  while [[ "$(unix_epoch "$tBegin")" -le "$(unix_epoch "$end")" ]]; do
-    tEnd=$(time_frame_end "$tBegin" "$timeFrame" "$timeStep" "$dateFmt")
-
-    if [[ $(unix_epoch "$tEnd") -gt $(unix_epoch "$end") ]]; then
-      tEnd="$end"
-    fi
-
-    exportDate="$(format_date "$tBegin" "$exportFormat")"
-    ncks -d "$timeVar","$tBegin","$tEnd" \
-    	 -d latitude,"$(lims_to_float $latLims)" \
-    	 -d longitude,"$(lims_to_float $lonLims)" \
-	 -v "$variables" \
-	 "$sourceFile" "${destDir}/${filePrefix}-${exportDate}.nc"
-
-    tBegin=$(date --date="${tEnd} 1${timeStep}" "+${dateFmt}")
-  done
-}
-
-
-#######################################
-# splitting netCDF files based on the 
-# tsValue
-#
-# Globals:
-#   None
-#
-# Arguments:
-#    
-# 
-# Outputs:
-#
-#######################################
-define_time_points () {
-  
-  local fDate=$1
-
-  local startPoint
-  local endPoint
-  local endOfCurrentMonthUnix
-  local endPoinUnix
-
-  # check dates
-  if [[ "$fDate" -eq "$(format_date "$startDate" "$era5Format")" ]]; then
-    endOfCurrentMonthUnix="$(time_frame_end "${fDate}01" "month" "hour" "%s")" # end of month in Unix EPOCH time
-    if [[ "$endOfCurrentMonthUnix" -le "$(unix_epoch "$endDate")" ]]; then
-      endPointUnix="$endOfCurrentMonthUnix"
-    else
-      endPointUnix="$(unix_epoch "$endDate")"
-    fi
-    startPoint="$(format_date "$startDate" "$reportFormat")"
-    endPoint="$(format_date "@$endPointUnix" "$reportFormat")"
-      
-  elif [[ "$fDate" -eq "$(format_date "$endDate" "$era5Format")" ]]; then
-    startPoint="$(format_date "${fDate}01" "$reportFormat")"
-    endPoint="$(format_date "${endDate}" "$reportFormat")"
-
-  else
-    startPoint="$(format_date "${fDate}01" "$reportFormat")"
-    endPoint="$(time_frame_end "${fDate}01" "month" "hour" "$reportFormat")"
-
-  fi
-
-  timePoints=("$startPoint" "$endPoint")
-}
-
-
 # ===============
 # Data Processing
 # ===============
 # display info
-echo "$(basename $0): processing ECMWF ERA5..."
-
-# extract the dates using `date_range` function -> dateRangeArr
-date_range "$startDate" "$endDate" "$era5Format" "1hour" # tstep is hard-coded for ERA5
-# extract unique values from $dateRangeArr
-uniqueDatesArr=($(echo "${dateRangeArr[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' '));
-
-# creating a temporary directory for temporary files
-echo "$(basename $0): creating cache files in $HOME/.temp_gwfdata"
-mkdir -p "$cache" # making the directory
-
-# copy necessary files to the $cache
-for ym in "${uniqueDatesArr[@]}"; do
-  cp "${datasetDir}/${fileStruct}_${ym}.nc" "${cache}/${fileStruct}_${ym}.nc"
-done
+echo "$(basename $0): processing ECCC RDRSv2.1..."
 
 # make the output directory
+echo "$(basename $0): creating output directory under $outputDir"
 mkdir -p "$outputDir"
 
-# define empty global array for start and end timePoints
-timePoints=() # 0: startPoint, 1: endPoint
+# define necessary dates
+startYear=$(date --date="$startDate" +"%Y") # start year (first folder)
+endYear=$(date --date="$endDate" +"%Y") # end year (last folder)
+yearsRange=$(seq $startYear $endYear)
 
-# data files for the current year with extracted $variables
-files=($cache/*)
+toDate="$startDate"
+toDateUnix="$(unix_epoch "$toDate")"
+endDateUnix="$(unix_epoch "$endDate")"
 
-# if yearly timeScale then make an empty yearsArr
-if [[ "${timeScale,,}" == "y" ]]; then
-  yearsArr=()
-  datesArr=()
-fi
+for yr in $yearsRange; do
+  # creating yearly directory
+  mkdir -p "$outputDir/$yr" # making the output directory
 
-for f in "${files[@]}"; do
-  extract_filename_info "$f" # extract file name info
-  define_time_points "$fileNameDate" # define start & end time points for subsetting
-  
-  case "${timeScale,,}" in
-    h)
-      split_ts "${timePoints[0]}" "${timePoints[1]}" "time" "$f" "$outputDir" "$prefix" "$reportFormat" "hour" "hour"
-      ;;
+  # setting the end point, either the end of current year, or the $endDate
+  endOfCurrentYearUnix=$(date --date="$yr-01-01 +1year -1day" "+%s") # last time-step of the current year
+  if [[ $endOfCurrentYearUnix -le $endDateUnix ]]; then
+    endPointUnix=$endOfCurrentYearUnix
+  else
+    endPointUnix=$endDateUnix
+  fi
 
-    d)
-      split_ts "${timePoints[0]}" "${timePoints[1]}" "time" "$f" "$outputDir" "$prefix" "$reportFormat" "day" "hour"
-      ;;
+  # extract variables from the forcing data files
+  while [[ "$toDateUnix" -le "$endPointUnix" ]]; do
+    # date manipulations
+    toDateFormatted=$(date --date "$toDate" +"$rdrsFormat") # current timestamp formatted to conform to CONUSI naming convention
 
-    m)
-      exportDate="$(format_date "${timePoints[0]}" "$exportFormat")"
+    # creating file name
+    file="${toDateFormatted}12.nc" # current file name
 
-      monthStart="$(format_date "${fDate}01" "$reportFormat")"
-      monthEnd="$(time_frame_end "${fDate}01" "month" "hour" "$reportFormat")"
-      if [[ "$monthStart" == "${timePoints[0]}" && "$monthEnd" == "${timePoints[1]}" ]]; then
-	ncks -d latitude,$(lims_to_float "$latLims") \
-	     -d longitude,$(lims_to_float "$lonLims") \
-	     -v "$variables" \
-	     "$f" "${outputDir}/${prefix}-${exportDate}.nc"
-      
-      else
-	ncks -d time,"${timePoints[0]}","${timePoints[1]}" \
-	     -d latitude,$(lims_to_float $latLims) \
-	     -d longitude,$(lims_to_float $lonLims) \
-	     -v "$variables" \
-	     "$f" "${outputDir}/${prefix}-${exportDate}.nc"
+    # extracting variables from the files and spatial subsetting
+    cdo -s -L -sellonlatbox,"$lonLims","$latLims" \
+        -selvar,"$variables" \
+        "${datasetDir}/${yr}/${file}" "${outputDir}/${yr}/${prefix}_${file}"
 
-      fi
-      ;;
+    [ $( jobs | wc -l ) -ge $( nproc ) ] && wait # forking shell processes
 
-    y)
-      yearsArr+=("$fileNameYear")
-      exportDate="$(format_date "${timePoints[0]}" "$exportFormat")"
-      datesArr+=("$exportDate")
+    # increment time-step by one unit
+    toDate="$(date --date "$toDate 1day")" # current time-step
+    toDateUnix="$(unix_epoch "$toDate")" # current timestamp in unix EPOCH time
+  done
 
-      monthStart="$(format_date "${fDate}01" "$reportFormat")"
-      monthEnd="$(time_frame_end "${fDate}01" "month" "hour" "$reportFormat")"
-      if [[ "$monthStart" == "${timePoints[0]}" && "$monthEnd" == "${timePoints[1]}" ]]; then
-	ncks -d latitude,$(lims_to_float "$latLims") \
-	     -d longitude,$(lims_to_float "$lonLims") \
-	     -v "$variables" \
-	     --mk_rec_dmn time \
-	     -O \
-	     "$f" "$f"
+  # go to the next year if necessary
+  if [[ "$toDateUnix" == "$endOfCurrentYearUnix" ]]; then
+    toDate=$(date --date "$toDate 1day")
+  fi
 
-      else
-	ncks -d time,"${timePoints[0]}","${timePoints[1]}" \
-	     -d latitude,$(lims_to_float $latLims) \
-	     -d longitude,$(lims_to_float $lonLims) \
-	     -v "$variables" \
-	     -O \
-	     --mk_rec_dmn time \
-	     "$f" "$f"
- 
-      fi
-      ;;
-
-  esac
 done
 
-if [[ "${timeScale,,}" == "y" ]]; then
-  # make an array of unique years
-  uniqueYearsArr=($(echo "${yearsArr[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' '))
 
-  for yr in "${uniqueYearsArr[@]}"; do
-    # get the first exportDate of each year
-    idx=0
-    for str in "${datesArr[@]}"; do
-      if [[ "$yr" == $(echo "$str" | cut -d '-' -f 1) ]]; then
-	break
-      else
-	idx=$(($idx + 1))
-      fi
-    done
-
-    exportDate="${datesArr[$idx]}"
-    ncrcat ${cache}/*${yr}* "${outputDir}/${prefix}-${exportDate}.nc"
-  done
-fi
-
-rm -r $cache # removing the temporary directory
-echo "$(basename $0): temporary files from $cache are removed."
 echo "$(basename $0): results are produced under $outputDir."
 

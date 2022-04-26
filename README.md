@@ -8,7 +8,7 @@ Usage:
 Script options:
   -d, --dataset				Meteorological forcing dataset of interest
 					currently available options are:
-					'CONUSI';'ERA5';'CONUS2';
+					'CONUSI';'ERA5';'CONUS2';'RDRS';
   -i, --dataset-dir=DIR			The source path of the dataset file(s)
   -v, --variable=var1[,var2[...]]	Variables to process
   -o, --output-dir=DIR			Writes processed files to DIR
@@ -39,12 +39,13 @@ foo@bar:~$ ./extract-dataset.sh -h # to view the usage message
 foo@bar:~$ ./extract-dataset.sh  --dataset=CONUS1 --dataset-dir="$HOME/projects/rpp-kshook/Model_Output/WRF/CONUS/CTRL" --output-dir="$HOME/scratch/CONUSI/" --start-date="2001-01-01 00:00:00" --end-date="2001-01-31 23:00:00" --lat-lims=49,51  --lon-lims=-117,-115 --variable=T2,PREC_ACC_NC,Q2,ACSWDNB,ACLWDNB,U10,V10,PSFC --cache="$HOME/scratch/.temp_gwfdata2" --prefix="conus_i"
 ```
 
-# Contributing
+# Contributions
 Zhenhua Li (zhenhua.li@usask.ca): processing scripts and datasets files of `WRF-CONUSI`.<br>
 Quoqiang Tang (quoqiang.tang@usask.ca): download scripts and datasets files of `ERA5`.<br>
+Julie Mai (julie.mai@uwaterloo.ca): providing RDRS dataset through CaSPAr data portal.<br>
 # Authors
 Kasra Keshavarz (kasra.keshavarz@usask.ca): main scripts structure and development.<br>
-Shervan Gharari (shervan.gharari@usask.ca): supervision.
+Shervan Gharari (shervan.gharari@usask.ca): supervision.<br>
 # License
 Global Water Futures (GWF) Meteorological Data Processing Workflow
 Copyright (C) 2022, Global Water Futures (GWF), University of Saskatchewan
