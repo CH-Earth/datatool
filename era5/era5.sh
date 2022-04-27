@@ -274,9 +274,19 @@ time_frame_end () {
 #   None
 #
 # Arguments:
-#    
+#    1: start date
+#    2: end date
+#    3: time variable name
+#    4: source file path
+#    5: destination path
+#    6: prefix file string
+#    7: date format
+#    8: time frame
+#    9: time steps
 # 
 # Outputs:
+#    it splits the netcdf files based
+#    on the time-steps (argument #9)
 #
 #######################################
 split_ts () {
@@ -316,17 +326,20 @@ split_ts () {
 
 
 #######################################
-# splitting netCDF files based on the 
-# tsValue
+# defining start and end point for the
+# netcdf file of interest (era5).
 #
 # Globals:
 #   None
 #
 # Arguments:
-#    
+#   1: file date 
 # 
 # Outputs:
-#
+#   startPoint: start point of the time
+#               frame
+#   endPoint: end point of the time
+#             frame
 #######################################
 define_time_points () {
   
