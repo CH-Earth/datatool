@@ -25,12 +25,12 @@ Script options:
 
 ```
 # Available Datasets
-|Number|Dataset                   |Time Scale                      |Path on CC Graham                                                                   |DOI                      |
-|------|--------------------------|--------------------------------|------------------------------------------------------------------------------------|-------------------------|
-|1)    |WRF-CONUS I (control)     |Hourly (Oct 2000 - Dec 2013)    |/project/rpp-kshook/Model_Output/WRF/CONUS/CTRL                                     |10.1007/s00382-016-3327-9|
-|2)    |WRF-CONUS II (control)[^1]|Hourly (Jan 1995 - Dec 2015)    |/project/rpp-kshook/Model_Output/wrf-conus/CONUSII/hist                             |10.5065/49SN-8E08        |
-|3)    |ERA5[^2]                  |Hourly (Jan 1950 - Dec 2020)    |/project/rpp-kshook/CompHydCore/climateForcingData/ERA5/ERA5_for_SUMMA/2_merged_data|10.24381/cds.adbb2d47 and [link](https://cds.climate.copernicus.eu/cdsapp#!/dataset/reanalysis-era5-single-levels-preliminary-back-extension?tab=overview)|
-|4)    |RDRS v2.1                 |Hourly (Jan 1980 - Dec 2018)    |/project/rpp-kshook/Model_Output/RDRSv2.1                                           |10.5194/hess-25-4917-2021|
+|Number|Dataset                   |Time Scale                      |DOI                      |Description          |
+|------|--------------------------|--------------------------------|-------------------------|---------------------|
+|1)    |WRF-CONUS I (control)     |Hourly (Oct 2000 - Dec 2013)    |10.1007/s00382-016-3327-9|[link](conus_i)      |                                                     |
+|2)    |WRF-CONUS II (control)[^1]|Hourly (Jan 1995 - Dec 2015)    |10.5065/49SN-8E08        |[link](conus_ii)     |
+|3)    |ERA5[^2]                  |Hourly (Jan 1950 - Dec 2020)    |10.24381/cds.adbb2d47 and [link](https://cds.climate.copernicus.eu/cdsapp#!/dataset/reanalysis-era5-single-levels-preliminary-back-extension?tab=overview)|[link](era5)|
+|4)    |RDRS v2.1                 |Hourly (Jan 1980 - Dec 2018)    |10.5194/hess-25-4917-2021|[link](rdrs)         |
 
 
 [^1]: For access to the files on Graham, please contact [Stephen O'Hearn](mailto:sdo124@mail.usask.ca).
@@ -54,7 +54,9 @@ foo@bar:~$ ./extract-dataset.sh  --dataset=CONUS1 \
                                  --cache="$HOME/scratch/.temp_gwfdata2" \
                                  --prefix="conus_i";
 ```
-> :warning: For time scales longer than a year, it is recommened to submit separate annual jobs. For example:
+
+:warning: For time scales longer than a year, it is recommened to submit separate annual jobs. For example:
+
 ```console
 foo@bar:~$ for year in {2001..2012}; \
             do ./extract-dataset.sh  --dataset=CONUS1 \
@@ -69,12 +71,13 @@ foo@bar:~$ for year in {2001..2012}; \
                                      --prefix="conus_i" \
                                      -j; done;
 ```
+The outputs of each job is printed under the `$HOME` directory of your CC Graham account.
 
 # New Datasets
-If you are considering any new dataset to be added to the GWF repository, and subsequently the scripts being added here, you can contact [Shervan Gharari](mailto:shervan.gharari@usask.ca). Or, you can make a [Pull Request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request) on this repository.
+If you are considering any new dataset to be added to the GWF repository, and subsequently the associated scripts added here, you can contact [Shervan Gharari](mailto:shervan.gharari@usask.ca). Or, you can make a [Pull Request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request) on this repository with your own script.
 
 # Contributions
-Zhenhua Li (zhenhua.li@usask.ca): processing scripts and datasets files of `WRF-CONUSI`.<br>
+Zhenhua Li (zhenhua.li@usask.ca): processing scripts for `WRF-CONUSI`.<br>
 Quoqiang Tang (quoqiang.tang@usask.ca): download scripts and datasets files of `ERA5`.<br>
 Julie Mai (julie.mai@uwaterloo.ca): providing RDRS dataset through CaSPAr data portal.<br>
 
@@ -102,6 +105,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # Acknowledgements
-![Compute Canada](https://www.computecanada.ca/wp-content/uploads/2015/04/BILINGUAL-CC-WEB-LOGO.png)
-![CaSPAr](https://caspar-data.ca/assets/images/logos/CaSPAR_Logo_White.png)
-![Global Water Futures](https://gwf.usask.ca/images/logos/gwf-simple-horizontal.svg)
+<img src="https://www.computecanada.ca/wp-content/uploads/2015/04/BILINGUAL-CC-WEB-LOGO.png" alt="Compute Canada" width="150"/>
+<img src="https://caspar-data.ca/assets/images/logos/CaSPAR_Logo_White.png" alt="CaSPAr" width="150"/>
+<img src="https://gwf.usask.ca/images/logos/gwf-simple-horizontal.svg" alt="Global Water Futures" width="300"/>
+
