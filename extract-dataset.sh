@@ -156,7 +156,7 @@ if [[ -z $timeScale ]]; then
 fi
 # default value for cache path if not provided as an argument
 if [[ -z $cache ]]; then
-  cache="$HOME/.temp_gwfdata"
+  cache="$HOME/.temp_gwfdata_$(date +"%N")"
 fi
 
 # put necessary arguments in an array - just to make things more legible
@@ -198,7 +198,7 @@ call_processing_func () {
 	#SBATCH --account=rpp-kshook
 	#SBATCH --time=4:00:00
 	#SBATCH --cpus-per-task=1
-	#SBATCH --mem=16GB
+	#SBATCH --mem=4GB
 	#SBATCH --job-name=GWF_${script}
 	#SBATCH --error=$HOME/GWF_job_id_%j_err.txt
 	#SBATCH --output=$HOME/GWF_job_id_%j.txt
