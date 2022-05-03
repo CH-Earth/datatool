@@ -26,12 +26,12 @@ Script options:
 
 ```
 # Available Datasets
-|Number|Dataset                   |Time Scale                      |DOI                      |Description          |
-|------|--------------------------|--------------------------------|-------------------------|---------------------|
-|1     |WRF-CONUS I (control)     |Hourly (Oct 2000 - Dec 2013)    |10.1007/s00382-016-3327-9|[link](conus_i)      |                                                     |
-|2     |WRF-CONUS II (control)[^1]|Hourly (Jan 1995 - Dec 2015)    |10.5065/49SN-8E08        |[link](conus_ii)     |
-|3     |ERA5[^2]                  |Hourly (Jan 1950 - Dec 2020)    |10.24381/cds.adbb2d47 and [link](https://cds.climate.copernicus.eu/cdsapp#!/dataset/reanalysis-era5-single-levels-preliminary-back-extension?tab=overview)|[link](era5)|
-|4     |RDRS v2.1                 |Hourly (Jan 1980 - Dec 2018)    |10.5194/hess-25-4917-2021|[link](rdrs)         |
+|#|Dataset                   |Time Scale                      |DOI                      |Description          |
+|-|--------------------------|--------------------------------|-------------------------|---------------------|
+|1|WRF-CONUS I (control)     |Hourly (Oct 2000 - Dec 2013)    |10.1007/s00382-016-3327-9|[link](conus_i)      |                                                     |
+|2|WRF-CONUS II (control)[^1]|Hourly (Jan 1995 - Dec 2015)    |10.5065/49SN-8E08        |[link](conus_ii)     |
+|3|ERA5[^2]                  |Hourly (Jan 1950 - Dec 2020)    |10.24381/cds.adbb2d47 and [link](https://cds.climate.copernicus.eu/cdsapp#!/dataset/reanalysis-era5-single-levels-preliminary-back-extension?tab=overview)|[link](era5)|
+|4|RDRS v2.1                 |Hourly (Jan 1980 - Dec 2018)    |10.5194/hess-25-4917-2021|[link](rdrs)         |
 
 
 [^1]: For access to the files on Graham, please contact [Stephen O'Hearn](mailto:sdo124@mail.usask.ca).
