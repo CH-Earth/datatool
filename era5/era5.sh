@@ -44,7 +44,7 @@ short_usage() {
 
 
 # argument parsing using getopt - WORKS ONLY ON LINUX BY DEFAULT
-parsedArguments=$(getopt -a -n extract-dataset -o i:v:o:s:e:t:l:n:p:c: --long dataset-dir:,variables:,output-dir:,start-date:,end-date:,time-scale:,lat-lims:,lon-lims:,prefix:,cache:, -- "$@")
+parsedArguments=$(getopt -a -n extract-dataset -o i:v:o:s:e:t:l:n:p:c:m: --long dataset-dir:,variables:,output-dir:,start-date:,end-date:,time-scale:,lat-lims:,lon-lims:,prefix:,cache:,ensemble: -- "$@")
 validArguments=$?
 if [ "$validArguments" != "0" ]; then
   short_usage;
@@ -70,8 +70,9 @@ do
     -t | --time-scale)    timeScale="$2"       ; shift 2 ;; # required
     -l | --lat-lims)      latLims="$2"         ; shift 2 ;; # required
     -n | --lon-lims)      lonLims="$2"         ; shift 2 ;; # required
-    -p | --prefix)	  prefix="$2"	       ; shift 2 ;; # optional
-    -c | --cache)	  cache="$2"	       ; shift 2 ;; # required
+    -p | --prefix)	      prefix="$2"	       ; shift 2 ;; # optional
+    -c | --cache)	      cache="$2"	       ; shift 2 ;; # required
+    -m | --ensemble)      ensemble="$2"        ; shift 2 ;; # redundant - added for compatibility
 
     # -- means the end of the arguments; drop this, and break out of the while loop
     --) shift; break ;;
@@ -82,6 +83,12 @@ do
       short_usage; exit 1 ;;
   esac
 done
+
+# check if $ensemble is provided
+if [[ -n "$ensemble" ]]; then
+  echo "ERROR $(basename $0): redundant argument (ensemble) provided";
+  exit 1;
+fi
 
 # check the prefix of not set
 if [[ -z $prefix ]]; then

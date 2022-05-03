@@ -37,7 +37,7 @@
 # ================
 # Global variables
 # ================
-VER="0.1.0-alpha"
+VER="0.1.0-rc1"
 
 
 # ==============
@@ -58,11 +58,9 @@ Script options:
   -o, --output-dir=DIR			Writes processed files to DIR
   -s, --start-date=DATE			The start date of the forcing data
   -e, --end-date=DATE			The end date of the forcing data
-  -t, --time-scale=CHAR			The time scale of interest:
-					'H' (hourly), 'D' (Daily), 'M' (Monthly), 
-					or 'Y' (Yearly) [default: 'M']
   -l, --lat-lims=REAL,REAL		Latitude's upper and lower bounds
   -n, --lon-lims=REAL,REAL		Longitude's upper and lower bounds
+  -m, --ensemble=STR            The comma separated ensemble members values
   -j, --submit-job			Submit the data extraction process as a job
 					on the SLURM system
   -p, --prefix=STR			Prefix  prepended to the output files
@@ -90,7 +88,7 @@ version () {
 # Parsing input arguments
 # =======================
 # argument parsing using getopt - WORKS ONLY ON LINUX BY DEFAULT
-parsedArguments=$(getopt -a -n extract-dataset -o jhVd:i:v:o:s:e:t:l:n:p:c: --long submit-job,help,version,dataset:,dataset-dir:,variable:,output-dir:,start-date:,end-date:,time-scale:,lat-lims:,lon-lims:,prefix:,cache:, -- "$@")
+parsedArguments=$(getopt -a -n extract-dataset -o jhVd:i:v:o:s:e:t:l:n:p:c:m: --long submit-job,help,version,dataset:,dataset-dir:,variable:,output-dir:,start-date:,end-date:,time-scale:,lat-lims:,lon-lims:,prefix:,cache:,ensemble: -- "$@")
 validArguments=$?
 # check if there is no valid options
 if [ "$validArguments" != "0" ]; then
@@ -123,6 +121,7 @@ do
     -n | --lon-lims)      lonLims="$2"         ; shift 2 ;; # required
     -p | --prefix)	      prefixStr="$2"       ; shift 2 ;; # required
     -c | --cache)	      cache="$2"	       ; shift 2 ;; # optional
+    -m | --ensemble)      ensemble="$2"        ; shift 2 ;; # optional
 
     # -- means the end of the arguments; drop this, and break out of the while loop
     --) shift; break ;;
@@ -186,7 +185,7 @@ call_processing_func () {
   # all processing script files must follow same input argument standard
   local scriptRun
   read -rd '' scriptRun <<- EOF
-	bash ./${script} -i "${funcArgs[datasetDir]}" -v "${funcArgs[variables]}" -o "${funcArgs[outputDir]}" -s "${funcArgs[startDate]}" -e "${funcArgs[endDate]}" -t "${funcArgs[timeScale]}" -l "${funcArgs[latLims]}" -n "${funcArgs[lonLims]}" -p "${funcArgs[prefixStr]}" -c "${funcArgs[cache]}";
+	bash ./${script} -i "${funcArgs[datasetDir]}" -v "${funcArgs[variables]}" -o "${funcArgs[outputDir]}" -s "${funcArgs[startDate]}" -e "${funcArgs[endDate]}" -t "${funcArgs[timeScale]}" -l "${funcArgs[latLims]}" -n "${funcArgs[lonLims]}" -p "${funcArgs[prefixStr]}" -c "${funcArgs[cache]}" -m "${funcArgs[ensemble]}";
 	EOF
 
   # evaluate the script file using the arguments provided
@@ -236,6 +235,13 @@ case "${dataset,,}" in
   # ECCC RDRS 
   "rdrs" | "rdrsv2.1")
     call_processing_func "./rdrs/rdrs.sh"
+    ;;
+
+  # CanRCM4-WFDEI-GEM-CaPA
+  "canrcm4-wfdei-gem-capa" | "canrcm4_wfdei_gem_capa")
+    # adding ensemble argument
+    funcArgs+=([ensemble="$ensemble"])
+    call_processing_func "./canrcm4_wfdei_gem_capa/canrcm4_wfdei_gem_capa.sh"
     ;;
 
   # dataset not included above

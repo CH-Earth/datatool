@@ -23,7 +23,6 @@
 # Credits and contributions
 # =========================
 # 1. Parts of the code are taken from https://www.shellscript.sh/tips/getopt/index.html
-# 2. Dr. Julie Mai provided the methodology to download data from CaSPAr data portal.
 
 
 # ================
@@ -70,9 +69,9 @@ do
     -t | --time-scale)    timeScale="$2"       ; shift 2 ;; # required
     -l | --lat-lims)      latLims="$2"         ; shift 2 ;; # required
     -n | --lon-lims)      lonLims="$2"         ; shift 2 ;; # required
-    -p | --prefix)	      prefix="$2"          ; shift 2 ;; # optional
-    -c | --cache)	      cache="$2"           ; shift 2 ;; # required
-    -m | --ensemble)      ensemble="$2"        ; shift 2 ;; # redundant - added for compatibility
+    -p | --prefix)        prefix="$2"	       ; shift 2 ;; # optional
+    -c | --cache)         cache="$2"	       ; shift 2 ;; # required
+    -m | --ensemble)      ensemble="$2"        ; shift 2 ;; # optional
 
     # -- means the end of the arguments; drop this, and break out of the while loop
     --) shift; break ;;
@@ -84,10 +83,10 @@ do
   esac
 done
 
-# check if $ensemble is provided
 if [[ -n "$ensemble" ]]; then
-  echo "ERROR $(basename $0): redundant argument (ensemble) provided";
-  exit 1;
+  IFS=',' read -ra ensembleArr <<< "$(echo "$ensemble")"
+else
+  IFS=' ' read -ra ensembleArr <<< "$(ls -d $datasetDir/*/)"
 fi
 
 # check the prefix of not set
