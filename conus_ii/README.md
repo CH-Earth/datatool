@@ -108,3 +108,6 @@ In most hydrological modelling applications, usually 7 variables are needed deta
 |precipitation        |PREC_ACC_NC         |mm/hr|                 |accumulated precipitation over one hour|
 |short wave radiation |ACSWDNB             |W m-2|rsds             |                    |
 |long wave radiation  |ACLWDNB             |W m-2|rlds             |                    |
+
+## Further Remarks
+:warning: It must be noted that the `WRF-CONUSII` dataset are in `.tar` format and the script untars the files automatically. For this specific dataset, considering submitting separate monthly jobs.
