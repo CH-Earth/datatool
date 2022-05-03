@@ -54,4 +54,4 @@ In most hydrological modelling applications, usually 7 variables are needed deta
 For a complete catalog of the dataset, see [here](https://confluence.ecmwf.int/display/CKB/ERA5%3A+data+documentation).
 
 ## Downloading Original ERA5 Data
-The scripts to download the original ERA5 data are contained in the `ERA5 download.zip` file located in the current directory of the repository. The scripts are written by [Quoqiang Tang](quoqiang.tang@usask.ca).
+The scripts to download the original ERA5 data are contained in the [`ERA5_downloads.zip`](./ERA5_downloads.zip) file located in the current directory of the repository. The scripts are written by [Quoqiang Tang](quoqiang.tang@usask.ca).
