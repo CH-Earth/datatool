@@ -2,6 +2,8 @@
 
 In this file, the details of the dataset is explained.
 
+:warning: It must be noted that the `WRF-CONUSII` dataset are in `.tar` format and the script untars the files automatically. For this specific dataset, considering submitting separate monthly jobs.
+
 ## Location of Dataset Files
 The `WRF-CONUSII` simulation outputs are located under the following directory accessible from Compute Canada (CC) Graham Cluster:
 ```
@@ -104,10 +106,7 @@ In most hydrological modelling applications, usually 7 variables are needed deta
 |surface pressure     |PSFC                |Pa   |ps               |                    |
 |specific humidity @2m|Q2                  |1    |huss             |                    |
 |air tempreature @2m  |T2                  |k    |tas              |                    |
-|wind speed @10m      |U10,V10             |m/s  |wspd             |WIND=SQRT(U102+V102)|
+|wind speed @10m      |U10,V10             |m/s  |wspd             |WIND=SQRT(U10<sup>2</sup>+V10<sup>2</sup>)|
 |precipitation        |PREC_ACC_NC         |mm/hr|                 |accumulated precipitation over one hour|
 |short wave radiation |ACSWDNB             |W m-2|rsds             |                    |
 |long wave radiation  |ACLWDNB             |W m-2|rlds             |                    |
-
-## Further Remarks
-:warning: It must be noted that the `WRF-CONUSII` dataset are in `.tar` format and the script untars the files automatically. For this specific dataset, considering submitting separate monthly jobs.
