@@ -166,7 +166,7 @@ for member in "${ensembleArr[@]}"; do
     ncks -O -d "$latVar",$(lims_to_float "$latLims") \
             -d "$lonVar",$(lims_to_float "$lonLims") \
             -d "$timeVar","$startDateFormated","$endDateFormated" \
-            "$datasetDir/$member/${var}_${member}_${fileStruct}" "$outputDir/$member/${var}_${member}_z1_${startYear}-${endYear}.Feb29.nc4"
+            "$datasetDir/$member/${var}_${member}_${fileStruct}" "$outputDir/$member/${prefix}${var}_${member}_z1_${startYear}-${endYear}.Feb29.nc4"
   done
 
 done
