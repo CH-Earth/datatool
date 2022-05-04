@@ -83,11 +83,15 @@ do
   esac
 done
 
+# make array of ensemble members
 if [[ -n "$ensemble" ]]; then
-  IFS=',' read -ra ensembleArr <<< "$(echo "$ensemble")"
+  IFS=',' read -ra ensembleArr <<< "$(echo "$ensemble")" # comma separated input
 else
-  IFS=' ' read -ra ensembleArr <<< "$(ls -d $datasetDir/*/)"
+  ensembleArr=($datasetDir/*/)
 fi
+
+# make array of variable names
+IFS=',' read -ra variablesArr <<< "$(echo "$variables")"
 
 # check the prefix of not set
 if [[ -z $prefix ]]; then
@@ -98,12 +102,12 @@ fi
 # Necessary Global Variables
 # ==========================
 # the structure of file names is as follows: "ERA5_merged_YYYYMM.nc"
-rdrsFormat="%Y%m%d" # era5 file date format
-exportFormat="%Y%m%d" # exported file date format
-fileStruct="" # source dataset files' prefix constant
+format="%Y-%m-%dT%H:%M:%S" # era5 file date format
+fileStruct="z1_1951-2100.Feb29.nc4" # source dataset files' suffix constant
 
-latVar="rlat"
-lonVar="rlon"
+latVar="lat"
+lonVar="lon"
+timeVar="time"
 
 # ===================
 # Necessary Functions
@@ -139,57 +143,31 @@ lims_to_float () { IFS=',' read -ra l <<< $@; f_arr=(); for i in "${l[@]}"; do f
 # Data Processing
 # ===============
 # display info
-echo "$(basename $0): processing ECCC RDRSv2.1..."
+echo "$(basename $0): processing CCRN CanRCM4-WFDEI-GEM_CaPA..."
 
 # make the output directory
 echo "$(basename $0): creating output directory under $outputDir"
 mkdir -p "$outputDir"
 
-# define necessary dates
-startYear=$(date --date="$startDate" +"%Y") # start year (first folder)
-endYear=$(date --date="$endDate" +"%Y") # end year (last folder)
-yearsRange=$(seq $startYear $endYear)
+# reformat $startDate and $endDate
+startDateFormated="$(date --date="$startDate" +"$format")" # startDate
+endDateFormated="$(date --date="$endDate" +"$format")" # endDate
 
-toDate="$startDate"
-toDateUnix="$(unix_epoch "$toDate")"
-endDateUnix="$(unix_epoch "$endDate")"
+# extract $startYear and $endYear
+startYear="$(date --date="$startDate" +"%Y")"
+endYear="$(date --date="$endDate" +"%Y")"
 
-for yr in $yearsRange; do
+for member in "${ensembleArr[@]}"; do
   # creating yearly directory
-  mkdir -p "$outputDir/$yr" # making the output directory
+  mkdir -p "$outputDir/$member" # making the output directory
 
-  # setting the end point, either the end of current year, or the $endDate
-  endOfCurrentYearUnix=$(date --date="$yr-01-01 +1year -1day" "+%s") # last time-step of the current year
-  if [[ $endOfCurrentYearUnix -le $endDateUnix ]]; then
-    endPointUnix=$endOfCurrentYearUnix
-  else
-    endPointUnix=$endDateUnix
-  fi
-
-  # extract variables from the forcing data files
-  while [[ "$toDateUnix" -le "$endPointUnix" ]]; do
-    # date manipulations
-    toDateFormatted=$(date --date "$toDate" +"$rdrsFormat") # current timestamp formatted to conform to CONUSI naming convention
-
-    # creating file name
-    file="${toDateFormatted}12.nc" # current file name
-
-    # extracting variables from the files and spatial subsetting
-    cdo -s -L -sellonlatbox,"$lonLims","$latLims" \
-        -selvar,"$variables" \
-        "${datasetDir}/${yr}/${file}" "${outputDir}/${yr}/${prefix}_${file}"
-
-    [ $( jobs | wc -l ) -ge $( nproc ) ] && wait # forking shell processes
-
-    # increment time-step by one unit
-    toDate="$(date --date "$toDate 1day")" # current time-step
-    toDateUnix="$(unix_epoch "$toDate")" # current timestamp in unix EPOCH time
+  # loop over variables
+  for var in "${variablesArr[@]}"; do
+    ncks -O -d "$latVar",$(lims_to_float "$latLims") \
+            -d "$lonVar",$(lims_to_float "$lonLims") \
+            -d "$timeVar","$startDateFormated","$endDateFormated" \
+            "$datasetDir/$member/${var}_${member}_${fileStruct}" "$outputDir/$member/${var}_${member}_z1_${startYear}-${endYear}.Feb29.nc4"
   done
-
-  # go to the next year if necessary
-  if [[ "$toDateUnix" == "$endOfCurrentYearUnix" ]]; then
-    toDate=$(date --date "$toDate 1day")
-  fi
 
 done
 
