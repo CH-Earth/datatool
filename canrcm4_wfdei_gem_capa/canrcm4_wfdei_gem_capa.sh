@@ -87,7 +87,7 @@ done
 if [[ -n "$ensemble" ]]; then
   IFS=',' read -ra ensembleArr <<< "$(echo "$ensemble")" # comma separated input
 else
-  ensembleArr=($datasetDir/*/)
+  IFS=' ' read -ra ensembleArr <<< $(echo $(cd $datasetDir && ls -d */ | cut -d '/' -f 1))
 fi
 
 # make array of variable names
@@ -159,6 +159,7 @@ endYear="$(date --date="$endDate" +"%Y")"
 
 for member in "${ensembleArr[@]}"; do
   # creating yearly directory
+  echo "$(basename $0):     processing member $member"
   mkdir -p "$outputDir/$member" # making the output directory
 
   # loop over variables
