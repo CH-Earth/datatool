@@ -61,8 +61,8 @@ Script options:
   -e, --end-date=DATE			The end date of the forcing data
   -l, --lat-lims=REAL,REAL		Latitude's upper and lower bounds
   -n, --lon-lims=REAL,REAL		Longitude's upper and lower bounds
-  -m, --ensemble=STR            The comma separated ensemble members values
-                                Leave empty to extract all ensemble members
+  -m, --ensemble=STR                    The comma separated ensemble members values
+                                        Leave empty to extract all ensemble members
   -j, --submit-job			Submit the data extraction process as a job
 					on the SLURM system
   -p, --prefix=STR			Prefix  prepended to the output files
