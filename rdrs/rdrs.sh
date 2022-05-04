@@ -178,7 +178,7 @@ for yr in $yearsRange; do
     # extracting variables from the files and spatial subsetting
     cdo -s -L -sellonlatbox,"$lonLims","$latLims" \
         -selvar,"$variables" \
-        "${datasetDir}/${yr}/${file}" "${outputDir}/${yr}/${prefix}_${file}"
+        "${datasetDir}/${yr}/${file}" "${outputDir}/${yr}/${prefix}${file}"
 
     [ $( jobs | wc -l ) -ge $( nproc ) ] && wait # forking shell processes
 
