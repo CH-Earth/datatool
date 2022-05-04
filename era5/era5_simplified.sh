@@ -156,7 +156,7 @@ while [[ "$toDateUnix" -le "$endDateUnix" ]]; do
   # extracting variables from the files and spatial subsetting
   cdo -s -L -sellonlatbox,"$lonLims","$latLims" \
       -selvar,"$variables" \
-      "${datasetDir}/${file}" "${outputDir}/${prefix}_${file}"
+      "${datasetDir}/${file}" "${outputDir}/${prefix}${file}"
 
   [ $( jobs | wc -l ) -ge $( nproc ) ] && wait # forking shell processes
 
