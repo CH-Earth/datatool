@@ -71,7 +71,7 @@ The time-stamps are included in the original files.
 ## Dataset Variables
 Each NetCDF file belongs to a single variable. The list of variables included in the dataset is descriped in [Short Description on Dataset Variables](##short-description-on-dataset-variables)
 ## Spatial Extent
-The spatial extent of the dataset is on latitutes from `31.0625` to `71.9375` and longitudes from `-149.9375` to `-50.0625` covering North America. The resolution is 0.09 degrees (~10km). 
+The spatial extent of the dataset is on latitutes from `31.0625` to `71.9375` and longitudes from `-149.9375` to `-50.0625` covering North America. The resolution is 0.125 degrees. 
 
 ## Temporal Extent
 The time-steps are hourly covering from `January 1951` to `December 2100`.
