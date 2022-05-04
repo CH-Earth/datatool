@@ -33,6 +33,7 @@ Script options:
 |2|WRF-CONUS II (control)[^1]|Hourly (Jan 1995 - Dec 2015)    |10.5065/49SN-8E08        |[link](conus_ii)     |
 |3|ERA5[^2]                  |Hourly (Jan 1950 - Dec 2020)    |10.24381/cds.adbb2d47 and [link](https://cds.climate.copernicus.eu/cdsapp#!/dataset/reanalysis-era5-single-levels-preliminary-back-extension?tab=overview)|[link](era5)|
 |4|RDRS v2.1                 |Hourly (Jan 1980 - Dec 2018)    |10.5194/hess-25-4917-2021|[link](rdrs)         |
+|5|CanRCM4-WFDEI-GEM-CaPA    |3-Hourly (Jan 1951 - Dec 2100)  |10.5194/essd-12-629-2020 |[link](canrcm4_wfdei_gem_capa)|
 
 
 [^1]: For access to the files on Graham, please contact [Stephen O'Hearn](mailto:sdo124@mail.usask.ca).
