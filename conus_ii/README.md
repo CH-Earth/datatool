@@ -7,11 +7,11 @@ In this file, the details of the dataset is explained.
 ## Location of Dataset Files
 The `WRF-CONUSII` simulation outputs are located under the following directory accessible from Compute Canada (CC) Graham Cluster:
 ```
-/project/6008034/Model_Output/wrf-conus/CONUSII/hist
+/project/rpp-kshook/Model_Output/wrf-conus/CONUSII/hist
 ```
 and the structure of the dataset hourly files is as following:
 ```console
-/project/6008034/Model_Output/wrf-conus/CONUSII/hist
+/project/rpp-kshook/Model_Output/wrf-conus/CONUSII/hist
 ├── 1995
 │   ├── wrf2d_conusii_19950101.tar
 │   ├── wrf2d_conusii_19950102.tar
@@ -55,13 +55,13 @@ foo@bar:~$ tar --strip-components=5 -xvf wrf2d_conusii_%Y%m%d.tar > /dev/null
 ### Coordinate Variables
 The coordinate variables of the `WRF-CONUSII` simulations are located outside of the main dataset files. The NetCDF file containing the coordinate varibles could be found at the following:
 ```console
-/project/6008034/Model_Output/wrf-conus/CONUSII/hist/wrf04km_coord.nc
+/project/rpp-kshook/Model_Output/wrf-conus/CONUSII/hist/wrf04km_coord.nc
 ```
 However, upon many trials by the author, the variables were not concatenated with the main NetCDF files easily. A workaround has been provided to add at least two necessary coordinate variables, i.e., `XLAT` and `XLONG`, to the WRF simulation files. These two coordinates are enough to work with almost all of the meteorological variables included in the dataset. The following scripts are used on Compute Canada (CC) Graham Cluster to produce the substitute NetCDF file containing coordinate variables:
 ```console
 # make a copy of coordinate variable NetCDF file first!
 foo@bar:~$ module load cdo/2.0.4; module load nco/5.0.6; # load necessary modules
-foo@bar:~$ coordFile="/project/6008034/Model_Output/wrf-conus/CONUSII/hist/wrf04km_coord.nc"
+foo@bar:~$ coordFile="/project/rpp-kshook/Model_Output/wrf-conus/CONUSII/hist/wrf04km_coord.nc"
 foo@bar:~$ ncks -v XLAT,XLONG "$coordFile" coord.nc
 foo@bar:~$ nccopy -4 coord.nc coord_new.nc
 foo@bar:~$ ncatted -O -a FieldType,XLAT,d,, coord_new.nc
