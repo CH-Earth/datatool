@@ -176,7 +176,7 @@ generate_netcdf () {
   ## add coordinate variables: XLAT and XLONG
   ncks -A -v XLONG,XLAT "$coordFileSubset" "${fTempDir}/${fName}${fExt}" 
   ## set time axes
-  cdo -f nc4c -z zip_1 -r settaxis,"$fDate","$fTime",1hour "${fTempDir}/${fName}${fExt}" "${fTempDir}/${fName}_taxis.nc"; 
+  cdo -s -f nc4c -z zip_1 -r settaxis,"$fDate","$fTime",1hour "${fTempDir}/${fName}${fExt}" "${fTempDir}/${fName}_taxis.nc"; 
   ## rename the `description` attribute
   ncrename -O -a .description,long_name "${fTempDir}/${fName}_taxis.nc" -o "${fOutDir}/${fName}.nc"
 }
