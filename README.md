@@ -25,7 +25,7 @@ Script options:
   -p, --prefix=STR			Prefix  prepended to the output files
   -c, --cache=DIR			Path of the cache directory; [optional]
   -V, --version				Show version
-  -h, --help				Show this screen and exitcript options:
+  -h, --help				Show this screen and exit
 ```
 # Available Datasets
 |#|Dataset                   |Time Scale                      |DOI                      |Description          |
