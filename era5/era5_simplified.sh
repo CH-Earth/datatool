@@ -44,7 +44,7 @@ short_usage() {
 
 
 # argument parsing using getopt - WORKS ONLY ON LINUX BY DEFAULT
-parsedArguments=$(getopt -a -n extract-dataset -o i:v:o:s:e:t:l:n:p:c: --long dataset-dir:,variables:,output-dir:,start-date:,end-date:,time-scale:,lat-lims:,lon-lims:,prefix:,cache:, -- "$@")
+parsedArguments=$(getopt -a -n extract-dataset -o i:v:o:s:e:t:l:n:p:c:m: --long dataset-dir:,variables:,output-dir:,start-date:,end-date:,time-scale:,lat-lims:,lon-lims:,prefix:,cache:,ensemble: -- "$@")
 validArguments=$?
 if [ "$validArguments" != "0" ]; then
   short_usage;
@@ -72,6 +72,7 @@ do
     -n | --lon-lims)      lonLims="$2"         ; shift 2 ;; # required
     -p | --prefix)	  prefix="$2"	       ; shift 2 ;; # optional
     -c | --cache)	  cache="$2"	       ; shift 2 ;; # required
+    -m | --ensemble)      ensemble="$2"        ; shift 2 ;; # redundant - added for compatibility
 
     # -- means the end of the arguments; drop this, and break out of the while loop
     --) shift; break ;;
@@ -82,6 +83,12 @@ do
       short_usage; exit 1 ;;
   esac
 done
+
+# check if $ensemble is provided
+if [[ -n "$ensemble" ]]; then
+  echo "ERROR $(basename $0): redundant argument (ensemble) provided";
+  exit 1;
+fi
 
 # check the prefix of not set
 if [[ -z $prefix ]]; then
@@ -132,7 +139,7 @@ lims_to_float () { IFS=',' read -ra l <<< $@; f_arr=(); for i in "${l[@]}"; do f
 # Data Processing
 # ===============
 # display info
-echo "$(basename $0): processing ECMWF ERA5 (1950-2020)..."
+echo "$(basename $0): processing ECMWF ERA5..."
 
 # make the output directory
 echo "$(basename $0): creating output directory under $outputDir"
@@ -154,9 +161,10 @@ while [[ "$toDateUnix" -le "$endDateUnix" ]]; do
   file="${fileStruct}_${toDateFormatted}.nc" # current file name
 
   # extracting variables from the files and spatial subsetting
-  cdo -s -L -sellonlatbox,"$lonLims","$latLims" \
-      -selvar,"$variables" \
-      "${datasetDir}/${file}" "${outputDir}/${prefix}${file}"
+  ncks -O -v "$variables" \
+          -d latitude,"$(lims_to_float "$latLims")" \
+          -d longitude,"$(lims_to_float "$lonLims")" \
+          "${datasetDir}/${file}" "${outputDir}/${prefix}${file}"
 
   [ $( jobs | wc -l ) -ge $( nproc ) ] && wait # forking shell processes
 
