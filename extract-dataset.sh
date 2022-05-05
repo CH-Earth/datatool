@@ -66,7 +66,7 @@ Script options:
   -j, --submit-job			Submit the data extraction process as a job
 					on the SLURM system
   -p, --prefix=STR			Prefix  prepended to the output files
-  -c, --cache=DIR			Path of the cache directory
+  -c, --cache=DIR			Path of the cache directory [optional]
   -V, --version				Show version
   -h, --help				Show this screen
 
@@ -157,7 +157,7 @@ if [[ -z $timeScale ]]; then
 fi
 # default value for cache path if not provided as an argument
 if [[ -z $cache ]]; then
-  cache="$HOME/.temp_gwfdata_$(date +"%N")"
+  cache="$HOME/scratch/.temp_gwfdata_$(date +"%N")"
 fi
 
 # put necessary arguments in an array - just to make things more legible
@@ -193,21 +193,23 @@ call_processing_func () {
 
   # evaluate the script file using the arguments provided
   if [[ "${funcArgs[jobSubmission]}" == true ]]; then
+    # Create a temporary directory for keeping job logs
+    mkdir -p "$HOME/scratch/.gdt_logs"
     # SLURM batch file
     sbatch <<- EOF
 	#!/bin/bash
 
 	#SBATCH --account=rpp-kshook
 	#SBATCH --time=4:00:00
-	#SBATCH --cpus-per-task=1
+	#SBATCH --cpus-per-task=2
 	#SBATCH --mem=4GB
 	#SBATCH --job-name=GWF_${script}
-	#SBATCH --error=$HOME/GWF_job_id_%j_err.txt
-	#SBATCH --output=$HOME/GWF_job_id_%j.txt
+	#SBATCH --error=$HOME/scratch/.gdt_logs/GWF_job_id_%j_err.txt
+	#SBATCH --output=$HOME/scratch/.gdt_logs/GWF_job_id_%j.txt
 
 	srun ${scriptRun}
 	EOF
-    echo "$(basename $0): job submission details are printed under ${HOME}"
+    echo "$(basename $0): job submission details are printed under ${HOME}/scratch/.gdt_logs"
   else
     eval "$scriptRun"
   fi

@@ -22,7 +22,7 @@ Script options:
   -j, --submit-job			Submit the data extraction process as a job
 					on the SLURM system
   -p, --prefix=STR			Prefix  prepended to the output files
-  -c, --cache=DIR			Path of the cache directory
+  -c, --cache=DIR			Path of the cache directory [optional]
   -V, --version				Show version
   -h, --help				Show this screen
 
@@ -30,7 +30,7 @@ Script options:
 # Available Datasets
 |#|Dataset                   |Time Scale                      |DOI                      |Description          |
 |-|--------------------------|--------------------------------|-------------------------|---------------------|
-|1|WRF-CONUS I (control)     |Hourly (Oct 2000 - Dec 2013)    |10.1007/s00382-016-3327-9|[link](conus_i)      |                                                     |
+|1|WRF-CONUS I (control)     |Hourly (Oct 2000 - Dec 2013)    |10.1007/s00382-016-3327-9|[link](conus_i)      |
 |2|WRF-CONUS II (control)[^1]|Hourly (Jan 1995 - Dec 2015)    |10.5065/49SN-8E08        |[link](conus_ii)     |
 |3|ERA5[^2]                  |Hourly (Jan 1950 - Dec 2020)    |10.24381/cds.adbb2d47 and [link](https://cds.climate.copernicus.eu/cdsapp#!/dataset/reanalysis-era5-single-levels-preliminary-back-extension?tab=overview)|[link](era5)|
 |4|RDRS v2.1                 |Hourly (Jan 1980 - Dec 2018)    |10.5194/hess-25-4917-2021|[link](rdrs)         |
@@ -55,7 +55,6 @@ foo@bar:~$ ./extract-dataset.sh  --dataset=CONUS1 \
                                  --lat-lims=49,51  \
                                  --lon-lims=-117,-115 \
                                  --variable=T2,PREC_ACC_NC,Q2,ACSWDNB,ACLWDNB,U10,V10,PSFC \
-                                 --cache="$HOME/scratch/.temp_gwfdata2" \
                                  --prefix="conus_i";
 ```
 
@@ -71,7 +70,6 @@ foo@bar:~$ for year in {2001..2012}; \
                                      --lat-lims=49,51  \
                                      --lon-lims=-117,-115 \
                                      --variable=T2,PREC_ACC_NC,Q2,ACSWDNB,ACLWDNB,U10,V10,PSFC \
-                                     --cache="$HOME/scratch/.temp_gwfdata2" \
                                      --prefix="conus_i" \
                                      -j; done;
 ```

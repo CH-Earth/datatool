@@ -178,7 +178,8 @@ generate_netcdf () {
   ## set time axes
   cdo -s -f nc4c -z zip_1 -r settaxis,"$fDate","$fTime",1hour "${fTempDir}/${fName}${fExt}" "${fTempDir}/${fName}_taxis.nc"; 
   ## rename the `description` attribute
-  ncrename -O -a .description,long_name "${fTempDir}/${fName}_taxis.nc" -o "${fOutDir}/${fName}.nc"
+  # ncrename -O -a .description,long_name "${fTempDir}/${fName}_taxis.nc" -o "${fOutDir}/${fName}.nc"
+  mv "${fTempDir}/${fName}_taxis.nc" -o "${fOutDir}/${fName}.nc"
 }
 
 
@@ -504,7 +505,9 @@ for yr in $yearsRange; do
   esac
 done
 
-rm -r $cacheDir # removing the temporary directory
+mkdir "$HOME/empty_dir"
+rsync -aP --delete "$HOME/empty_dir/" "$cacheDir"
+rm -r "$HOME/empty_dir" # removing the temporary directory
 echo "$(basename $0): temporary files from $cacheDir are removed."
 echo "$(basename $0): results are produced under $outputDir."
 
