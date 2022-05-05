@@ -9,7 +9,7 @@ Script options:
   -d, --dataset				Meteorological forcing dataset of interest
                                         currently available options are:
                                         'CONUSI';'ERA5';'CONUSII';'RDRS';
-                                        'CanRCM4-WFDEI-GEM-CaPA';
+                                        'canrcm4-wfdei-gem-capa';
   -i, --dataset-dir=DIR			The source path of the dataset file(s)
   -v, --variable=var1[,var2[...]]	Variables to process
   -o, --output-dir=DIR			Writes processed files to DIR
@@ -18,14 +18,14 @@ Script options:
   -l, --lat-lims=REAL,REAL		Latitude's upper and lower bounds
   -n, --lon-lims=REAL,REAL		Longitude's upper and lower bounds
   -m, --ensemble=STR                    The comma separated ensemble members values
-                                        Leave empty to extract all ensemble members
-  -j, --submit-job			Submit the data extraction process as a job
-					on the SLURM system
+                                        Leave empty to extract all ensemble members;
+                                        [optional]
+  -j, --submit-job			Submit the data extraction process as a job;
+					on the SLURM system; [optional]
   -p, --prefix=STR			Prefix  prepended to the output files
-  -c, --cache=DIR			Path of the cache directory [optional]
+  -c, --cache=DIR			Path of the cache directory; [optional]
   -V, --version				Show version
-  -h, --help				Show this screen
-
+  -h, --help				Show this screen and exitcript options:
 ```
 # Available Datasets
 |#|Dataset                   |Time Scale                      |DOI                      |Description          |
