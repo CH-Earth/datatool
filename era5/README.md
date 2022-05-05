@@ -4,11 +4,11 @@ In this file, the details of the dataset is explained.
 ## Location of Dataset Files
 The global `ERA5` dataset is located under the following directory accessible from Compute Canada (CC) Graham Cluster:
 ```
-/project/6008034/CompHydCore/climateForcingData/ERA5/ERA5_for_SUMMA/2_merged_data
+/project/rpp-kshook/CompHydCore/climateForcingData/ERA5/ERA5_for_SUMMA/2_merged_data
 ```
 and the structure of the dataset hourly files is as following:
 ```console
-/project/6008034/CompHydCore/climateForcingData/ERA5/ERA5_for_SUMMA/2_merged_data
+/project/rpp-kshook/CompHydCore/climateForcingData/ERA5/ERA5_for_SUMMA/2_merged_data
 ├── ERA5_merged_195001.nc
 ├── ERA5_merged_%y%m.nc
 ├── .
@@ -29,7 +29,7 @@ The NetCDF files of the dataset contain 7 variables needed to force hydrological
 ```console
 foo@bar:~$ module load cdo/2.0.4
 foo@bar:~$ module load nco/5.0.6
-foo@bar:~$ ncdump -h  /project/6008034/CompHydCore/climateForcingData/ERA5/ERA5_for_SUMMA/2_merged_data/ERA5_merged_195001.nc
+foo@bar:~$ ncdump -h  /project/rpp-kshook/CompHydCore/climateForcingData/ERA5/ERA5_for_SUMMA/2_merged_data/ERA5_merged_195001.nc
 ```
 
 ## Spatial Extent
