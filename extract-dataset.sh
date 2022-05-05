@@ -202,7 +202,7 @@ call_processing_func () {
 
 	#SBATCH --account=rpp-kshook
 	#SBATCH --time=4:00:00
-	#SBATCH --cpus-per-task=2
+	#SBATCH --cpus-per-task=4
 	#SBATCH --mem=4GB
 	#SBATCH --job-name=GWF_${script}
 	#SBATCH --error=$HOME/scratch/.gdt_logs/GWF_job_id_%j_err.txt
