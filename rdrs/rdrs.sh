@@ -98,8 +98,8 @@ fi
 # ==========================
 # Necessary Global Variables
 # ==========================
-# the structure of file names is as follows: "ERA5_merged_YYYYMM.nc"
-rdrsFormat="%Y%m%d" # era5 file date format
+# the structure of file names is as follows: "YYYYMMDD12.nc"
+rdrsFormat="%Y%m%d" # rdrs file date format
 exportFormat="%Y%m%d" # exported file date format
 fileStruct="" # source dataset files' prefix constant
 
@@ -170,7 +170,7 @@ for yr in $yearsRange; do
   # extract variables from the forcing data files
   while [[ "$toDateUnix" -le "$endPointUnix" ]]; do
     # date manipulations
-    toDateFormatted=$(date --date "$toDate" +"$rdrsFormat") # current timestamp formatted to conform to CONUSI naming convention
+    toDateFormatted=$(date --date "$toDate" +"$rdrsFormat") # current timestamp formatted to conform to RDRS naming convention
 
     # creating file name
     file="${toDateFormatted}12.nc" # current file name
