@@ -36,7 +36,7 @@ echo "The current directory is: $(pwd)"
 for year in {1995..2015}; do
   for month in {1..12}; do
     begin_month="$(date --date="$year-$month-01" +"%Y-%m-%d")";
-    end_month="$(date --date="$year-$month-01 +1month -1hour" +"%Y-%m-%d")";
+    end_month="$(date --date="$year-$month-01 1month -1day" +"%Y-%m-%d")";
 
     ./extract-dataset.sh  --dataset=CONUS2 \
       --dataset-dir="/project/rpp-kshook/Model_Output/wrf-conus/CONUSII/hist" \

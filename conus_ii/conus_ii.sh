@@ -85,29 +85,37 @@ do
   esac
 done
 
-# check if $ensemble if provided
+# check if $ensemble is provided
 if [[ -n "$ensemble" ]]; then
   echo "ERROR $(basename $0): redundant argument (ensemble) provided";
   exit 1;
 fi
 
 # hard-coding the address of the co-ordinate NetCDF files
-coordFile="$(pwd)/assets/coord_XLAT_XLONG_conus_ii.nc"
+# containing XLAT and XLONG variables each having dimensions
+# of "south_north" and "west_east".
+coordMainFile="/project/rpp-kshook/Model_Output/wrf-conus/CONUSII/hist/wrf04km_coord.nc"
+coordEssFile="$(pwd)/assets/coord_XLAT_XLONG_conus_ii.nc"
+latVar="south_north"
+lonVar="west_east"
 
 # The structure of file names is as follows: "wrf2d_d01_YYYY-MM-DD_HH:MM:SS" (no file extension)
 format="%Y-%m-%d_%H:%M:%S"
-fileStruct="wrf2d_d01"
 tarFormat="%Y%m%d"
+fileStruct="wrf2d_d01"
 tarFileStruct="wrf2d_conusii"
+coordIdxScript="$(pwd)/assets/coord_wrf_idx.ncl"
 
 
 # ===================
 # Necessary Functions
 # ===================
 # Modules below available on Compute Canada (CC) Graham Cluster Server
-module load cdo/2.0.4
-module load nco/5.0.6
-
+load_core_modules () {
+    module -q load cdo/2.0.4;
+    module -q load nco/5.0.6;
+}
+load_core_modules # load necessary modules
 
 #######################################
 # useful one-liners
@@ -167,14 +175,13 @@ generate_netcdf () {
   fi
 
   # necessary netCDF operations
-  ## add coordinate variables: only XLAT & XLONG
-  ncks -A -v XLONG,XLAT "$coordFile" "${fTempDir}/${fName}${fExt}" 
+  ## add coordinate variables: XLAT and XLONG
+  ncks -A -v XLONG,XLAT "$coordFileSubset" "${fTempDir}/${fName}${fExt}" 
   ## set time axes
-  cdo -f nc4c -z zip_1 -r settaxis,"$fDate","$fTime",1hour "${fTempDir}/${fName}${fExt}" "${fTempDir}/${fName}_taxis.nc"; 
+  cdo -s -f nc4c -z zip_1 -r settaxis,"$fDate","$fTime",1hour "${fTempDir}/${fName}${fExt}" "${fTempDir}/${fName}_taxis.nc"; 
   ## rename the `description` attribute
-  ncrename -a .description,long_name "${fTempDir}/${fName}_taxis.nc"
-  ## spatial extent
-  cdo sellonlatbox,"$lonLims","$latLims" "${fTempDir}/${fName}_taxis.nc" "${fOutDir}/${fName}.nc"
+  # ncrename -O -a .description,long_name "${fTempDir}/${fName}_taxis.nc" -o "${fOutDir}/${fName}.nc"
+  mv "${fTempDir}/${fName}_taxis.nc" "${fOutDir}/${fName}.nc"
 }
 
 
@@ -364,6 +371,28 @@ toDate=$startDate
 toDateUnix=$(date --date="$startDate" "+%s") # first date in unix EPOCH time
 endDateUnix=$(date --date="$endDate" "+%s") # end date in unix EPOCH time
 
+# extract the associated indices corresponding to latLims and lonLims
+module -q load ncl/6.6.2
+## min and max of latitude and longitude limits
+minLat=$(echo $latLims | cut -d ',' -f 1)
+maxLat=$(echo $latLims | cut -d ',' -f 2)
+minLon=$(echo $lonLims | cut -d ',' -f 1)
+maxLon=$(echo $lonLims | cut -d ',' -f 2)
+## extract coord
+coordIdx="$(ncl -nQ 'coord_file='\"$coordMainFile\" 'minlat='"$minLat" 'maxlat='"$maxLat" 'minlon='"$minLon" 'maxlon='"$maxLon" "$coordIdxScript")"
+lonLimsIdx="$(echo $coordIdx | cut -d ' ' -f 1)"
+latLimsIdx="$(echo $coordIdx | cut -d ' ' -f 2)"
+module -q unload ncl/6.6.2
+load_core_modules
+
+# produce subsetted $coordFile as well
+mkdir -p "$cacheDir"
+coordFileSubset="${cacheDir}/coordFileSubset.nc"
+ncks -v "XLAT,XLONG" \
+     -d "$latVar","$latLimsIdx" \
+     -d "$lonVar","$lonLimsIdx" \
+     "$coordEssFile" "$coordFileSubset"
+
 # for each year (folder) do the following calculations
 for yr in $yearsRange; do
 
@@ -383,29 +412,31 @@ for yr in $yearsRange; do
   while [[ "$toDateUnix" -le "$endPointUnix" ]]; do
     # date manipulations
     toDateFormatted=$(date --date "$toDate" "+$tarFormat") # current timestamp formatted to conform to CONUSII naming convention
-
+    
     # creating file name
     file="${tarFileStruct}_${toDateFormatted}.tar" # current file name
 
-    # extracting variables from the files
-    echo "----DEBUG----"
-    echo "file is: "$datasetDir/$yr/$file""
+    # untar files one day at a time
     tar --strip-components=6 -xf "$datasetDir/$yr/$file" -C "$cacheDir/$yr/"
-    tarFiles="$(tar -tf $HOME/scratch/workflow/1995/wrf2d_conusii_19950101.tar)"
-    IFS=' ' read -ra tarFiles <<< $(echo $tarFiles)
-    
-    echo "tar file contents are:"
-    echo "${tarFiles[@]}"
 
+    # parse tar file contents
+    tarFiles="$(tar -tf $datasetDir/$yr/$file)"
+    IFS=' ' read -ra tarFiles <<< $(echo $tarFiles)
+
+    # extracting variables from the files and spatial subsetting
     for f in "${tarFiles[@]}"; do
-      f2=($(echo $f | rev | cut -d '/' -f 1 | rev))
-      echo "file being ncks'd is: $f2"
-      ncks -O -v "$variables" "$cacheDir/$yr/$f2" "$cacheDir/$yr/$f2" # extracting $variables
+      f2="$(echo $f | rev | cut -d '/' -f 1 | rev)"
+
+      ncks -O -v "$variables" \
+           -d "$latVar","$latLimsIdx" \
+           -d "$lonVar","$lonLimsIdx" \
+           "$cacheDir/$yr/$f2" "$cacheDir/$yr/$f2" & # extracting $variables
+      [ $( jobs | wc -l ) -ge $( nproc ) ] && wait
     done
 
     # increment time-step by one unit
     toDate=$(date --date "$toDate 1day") # current time-step
-    toDateUnix=$(date --date="$toDate" +"%s") # current timestamp in unix EPOCH time
+    toDateUnix=$(date --date="$toDate" "+%s") # current timestamp in unix EPOCH time
   done
 
   # go to the next year if necessary
@@ -487,7 +518,10 @@ for yr in $yearsRange; do
   esac
 done
 
-rm -r $cacheDir # removing the temporary directory
+mkdir "$HOME/empty_dir"
+rsync -aP --delete "$HOME/empty_dir/" "$cacheDir"
+rm -r "$HOME/empty_dir"
+rm -r "$cacheDir"
 echo "$(basename $0): temporary files from $cacheDir are removed."
 echo "$(basename $0): results are produced under $outputDir."
 
