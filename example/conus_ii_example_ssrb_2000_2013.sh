@@ -33,8 +33,8 @@ echo "The current directory is: $(pwd)"
 
 # due to the nature of the dataset, it would be
 # better to submit jobs on a monthly basis
-for year in {2001..2013}; do
-  for month in {1..11}; do
+for year in {1995..2015}; do
+  for month in {1..12}; do
     begin_month="$(date --date="$year-$month-01" +"%Y-%m-%d")";
     end_month="$(date --date="$year-$month-01 +1month -1hour" +"%Y-%m-%d")";
 
