@@ -57,26 +57,13 @@ foo@bar:~$ ./extract-dataset.sh  --dataset=CONUS1 \
                                  --variable=T2,PREC_ACC_NC,Q2,ACSWDNB,ACLWDNB,U10,V10,PSFC \
                                  --prefix="conus_i";
 ```
-
-:warning: For time scales longer than a year, it is recommened to submit separate annual jobs. For example:
-
-```console
-foo@bar:~$ for year in {2001..2012}; \
-            do ./extract-dataset.sh  --dataset=CONUS1 \
-                                     --dataset-dir="/project/rpp-kshook/Model_Output/WRF/CONUS/CTRL" \
-                                     --output-dir="$HOME/scratch/conus_i_output/" \
-                                     --start-date="$year" \
-                                     --end-date="$(($year+1))" \
-                                     --lat-lims=49,51  \
-                                     --lon-lims=-117,-115 \
-                                     --variable=T2,PREC_ACC_NC,Q2,ACSWDNB,ACLWDNB,U10,V10,PSFC \
-                                     --prefix="conus_i" \
-                                     -j; done;
-```
-The details of each job is printed under the `$HOME` directory of your CC Graham account.
+:warning: It is recommended to submit the time-series of interest in chunks. See the [examples](./examples) directory for real-world examples for each dataset. Since each dataset has its own complexity, various chunk configurations are recommended.
 
 # New Datasets
 If you are considering any new dataset to be added to the GWF repository, and subsequently the associated scripts added here, you can contact [Kasra Keshavarz](mailto:kasra.keshavarz@usask.ca). Or, you can make a [Pull Request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request) on this repository with your own script.
+
+# Support
+Please contact [Kasra Keshavarz](mailto:kasra.keshavarz@usask.ca) for any questions or comments.
 
 # License
 Global Water Futures (GWF) Meteorological Data Processing Workflow<br>
