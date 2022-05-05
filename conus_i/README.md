@@ -5,11 +5,11 @@ In this file, the details of the dataset is explained.
 ## Location of Dataset Files
 The `WRF-CONUSI` simulation outputs are located under the following directory accessible from Compute Canada (CC) Graham Cluster:
 ```
-/project/6008034/Model_Output/WRF/CONUS/CTRL/
+/project/rpp-kshook/Model_Output/WRF/CONUS/CTRL/
 ```
 and the structure of the dataset hourly files is as following:
 ```console
-/project/6008034/Model_Output/WRF/CONUS/CTRL/
+/project/rpp-kshook/Model_Output/WRF/CONUS/CTRL/
 ├── 2000
 │   ├── wrf2d_d01_2000-10-01_00:00:00
 │   ├── wrf2d_d01_2000-10-01_01:00:00
@@ -44,7 +44,7 @@ and the structure of the dataset hourly files is as following:
 ### Coordinate Variables
 The coordinate variables of the `WRF-CONUSI` simulations are located outside of the main dataset files. The NetCDF file containing the coordinate varibles could be found at the following:
 ```console
-/project/6008034/Model_Output/WRF/CONUS/CTRL/coord.nc
+/project/rpp-kshook/Model_Output/WRF/CONUS/CTRL/coord.nc
 ```
 However, upon many trials by the author, the variables were not concatenated with the main NetCDF files easily. A workaround has been provided to add at least two necessary coordinate variables, i.e., `XLAT` and `XLONG`, to the WRF simulation files. These two coordinates are enough to work with almost all of the meteorological variables included in the dataset. The following scripts are used on Compute Canada (CC) Graham Cluster to produce the substitute NetCDF file containing coordinate variables:
 ```console
@@ -84,7 +84,7 @@ The NetCDF files of the dataset contain 281 variables. You may see a list of var
 ```console
 foo@bar:~$ module load cdo/2.0.4
 foo@bar:~$ module load nco/5.0.6
-foo@bar:~$ ncdump -h  /project/6008034/Model_Output/WRF/CONUS/CTRL/2000/wrf2d_d01_2000-10-01_00:00:00
+foo@bar:~$ ncdump -h  /project/rpp-kshook/Model_Output/WRF/CONUS/CTRL/2000/wrf2d_d01_2000-10-01_00:00:00
 ```
 
 ## Spatial Extent
