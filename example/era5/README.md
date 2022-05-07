@@ -2,7 +2,7 @@
 
 ## log in node
 
-For quick subsetting of a small domain and perhaps few days, a user can use the log in node example as follow:
+For quick subsetting of a domain and perhaps few days, a user can use the log in node example as follow:
 
 ```
 ./extract-dataset.sh  --dataset=ERA5 \
@@ -51,4 +51,11 @@ for year in {1980..2019}; do
 done
 ```
 
-**WARNING**: It is the user duty to make sure that all the job are sucessfully finished and the files are created.
+**⚠ WARNING**: It is the user duty to make sure that all the job are sucessfully finished and the files are created.
+
+A user can check the status of completed or failed job. For example it can be checked if the job IDs related to subsetting are completed. For example we can search for FAILED jobs from yesterday to now while checking job id or job name:
+```
+sacct --starttime $(date --date="1 days ago" '+%Y-%m-%d') --format=User,JobID,Jobname%50,partition,state,time,start,end,elapsed,MaxRss,MaxVMSize,nnodes,ncpus,nodelist%50 | grep FAILED > jobs.txt
+```
+date --date="1 days ago"
+
