@@ -67,7 +67,7 @@ do
     -o | --output-dir)    outputDir="$2"       ; shift 2 ;; # required
     -s | --start-date)    startDate="$2"       ; shift 2 ;; # required
     -e | --end-date)      endDate="$2"         ; shift 2 ;; # required
-    -t | --time-scale)    timeScale="$2"       ; shift 2 ;; # required
+    -t | --time-scale)    timeScale="$2"       ; shift 2 ;; # redundant - added for compatibility
     -l | --lat-lims)      latLims="$2"         ; shift 2 ;; # required
     -n | --lon-lims)      lonLims="$2"         ; shift 2 ;; # required
     -p | --prefix)	  prefix="$2"	       ; shift 2 ;; # optional
