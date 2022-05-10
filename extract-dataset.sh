@@ -24,8 +24,7 @@
 # Credits and contributions
 # =========================
 # 1) Parts of the code are taken from https://www.shellscript.sh/tips/getopt/index.html
-# 2) Dr. Zhenhua Li provided scripts to extract and process CONUS I & II datasets
-# 3) Parts of the code are taken from https://stackoverflow.com/a/17557904/5188208
+# 2) Parts of the code are taken from https://stackoverflow.com/a/17557904/5188208
 
 
 # ================
