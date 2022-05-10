@@ -163,6 +163,11 @@ if [[ -z $parallel ]]; then
   parallel=true
 fi
 
+# email withought job submission not allowed
+if [[ -n $email && -z $jubSubmission ]]; then
+  echo "$(basename $0): Email is not supported wihtout job submission;"
+  echo "$(basename $0): Use '-j' option for a job submission."
+
 
 # ===========================
 # Quasi-parallel requirements
