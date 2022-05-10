@@ -119,8 +119,8 @@ do
     -n | --lon-lims)      lonLims="$2"         ; shift 2 ;; # required
     -m | --ensemble)      ensemble="$2"        ; shift 2 ;; # optional
     -k | --no-chunk)      parallel=false       ; shift 2 ;; # optional
-    -p | --prefix)	      prefixStr="$2"       ; shift 2 ;; # required
-    -c | --cache)	      cache="$2"	       ; shift 2 ;; # optional
+    -p | --prefix)	  prefixStr="$2"       ; shift 2 ;; # required
+    -c | --cache)	  cache="$2"	       ; shift 2 ;; # optional
 
     # -- means the end of the arguments; drop this, and break out of the while loop
     --) shift; break ;;
@@ -270,7 +270,7 @@ EOF
 	#SBATCH --error=$HOME/scratch/.gdt_logs/GWF_%A-%a_err.txt
 	#SBATCH --output=$HOME/scratch/.gdt_logs/GWF_%A-%a.txt
 	#SBATCH --mail-user=$email
-	#SBATCH --mail-type=BEING,END,FAIL
+	#SBATCH --mail-type=BEGIN,END,FAIL
 
 	$(declare -p startDateArr)
 	$(declare -p endDateArr)
