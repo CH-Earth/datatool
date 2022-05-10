@@ -3,7 +3,7 @@ This repository contains scripts to process necessary forcing data from various 
 
 ```console
 Usage:
-  ./extract-dataset.sh [options...]
+  extract-dataset [options...]
 
 Script options:
   -d, --dataset				Meteorological forcing dataset of interest
@@ -17,13 +17,14 @@ Script options:
   -e, --end-date=DATE			The end date of the forcing data
   -l, --lat-lims=REAL,REAL		Latitude's upper and lower bounds
   -n, --lon-lims=REAL,REAL		Longitude's upper and lower bounds
-  -m, --ensemble=STR                    The comma separated ensemble members values
-                                        Leave empty to extract all ensemble members;
-                                        [optional]
-  -j, --submit-job			Submit the data extraction process as a job;
-					on the SLURM system; [optional]
+  -m, --ensemble=ens1,[ens2[...]]	Ensemble members to process, optional
+  					Leave empty to extract all ensemble members;
+  -j, --submit-job			Submit the data extraction process as a job
+					on the SLURM system; optional
+  -k, --no-chunk			No parallelization, recommended for small domains
   -p, --prefix=STR			Prefix  prepended to the output files
-  -c, --cache=DIR			Path of the cache directory; [optional]
+  -c, --cache=DIR			Path of the cache directory; optional
+  -E, --email=STR			E-mail when job starts, ends, and finishes; optional
   -V, --version				Show version
   -h, --help				Show this screen and exit
 ```
@@ -60,10 +61,10 @@ foo@bar:~$ ./extract-dataset.sh  --dataset=CONUS1 \
 :warning: It is recommended to submit the time-series of interest in chunks. See the [example](./example) directory for real-world examples for each dataset. Since each dataset has its own complexity, various chunk configurations are recommended.
 
 # New Datasets
-If you are considering any new dataset to be added to the GWF repository, and subsequently the associated scripts added here, you can contact [Kasra Keshavarz](mailto:kasra.keshavarz@usask.ca). Or, you can make a [Pull Request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request) on this repository with your own script.
+If you are considering any new dataset to be added to the GWF repository, and subsequently the associated scripts added here, you can open a new ticket on the **Issues** tab of the current repository. Or, you can make a [Pull Request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request) on this repository with your own script.
 
 # Support
-Please contact [Kasra Keshavarz](mailto:kasra.keshavarz@usask.ca) for any questions or comments.
+Please open a new ticket on the **Issues** tab of the current repository in case of any problem.
 
 # License
 Global Water Futures (GWF) Meteorological Data Processing Workflow<br>
