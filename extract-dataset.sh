@@ -34,12 +34,6 @@
 # 1) All variables are camelCased;
 
 
-# ================
-# Global variables
-# ================
-VER="0.1.0-rc1"
-
-
 # ==============
 # Help functions
 # ==============
@@ -61,18 +55,19 @@ Script options:
   -e, --end-date=DATE			The end date of the forcing data
   -l, --lat-lims=REAL,REAL		Latitude's upper and lower bounds
   -n, --lon-lims=REAL,REAL		Longitude's upper and lower bounds
-  -m, --ensemble=STR                    The comma separated ensemble members values
-                                        Leave empty to extract all ensemble members;
-                                        [optional]
-  -j, --submit-job			Submit the data extraction process as a job;
-					on the SLURM system; [optional]
+  -m, --ensemble=ens1,[ens2[...]]	Ensemble members to process, optional
+  					Leave empty to extract all ensemble members;
+  -j, --submit-job			Submit the data extraction process as a job
+					on the SLURM system; optional
+  -k, --no-chunk			No parallelization, recommended for small domains
   -p, --prefix=STR			Prefix  prepended to the output files
-  -c, --cache=DIR			Path of the cache directory; [optional]
+  -c, --cache=DIR			Path of the cache directory; optional
+  -E, --email=STR			E-mail when job starts, ends, and finishes; optional
   -V, --version				Show version
   -h, --help				Show this screen and exit
 
-Email bug reports, questions, discussions to <kasra.keshavarz AT usask DOT ca>
-and/or open an issue at https://github.com/kasra-keshavarz/gwf-forcing-data/issues" >&1;
+For bug reports, questions, discussions open an issue
+at https://github.com/kasra-keshavarz/gwf-forcing-data/issues" >&1;
 
   exit 0;
 }
@@ -82,7 +77,7 @@ short_usage () {
 }
 
 version () {
-  echo "$(basename $0): version $VER";
+  echo "$(basename $0): version $(cat $(dirname $0)/VERSION)";
   exit 0;
 }
 
@@ -91,7 +86,7 @@ version () {
 # Parsing input arguments
 # =======================
 # argument parsing using getopt - WORKS ONLY ON LINUX BY DEFAULT
-parsedArguments=$(getopt -a -n extract-dataset -o jhVd:i:v:o:s:e:t:l:n:p:c:m: --long submit-job,help,version,dataset:,dataset-dir:,variable:,output-dir:,start-date:,end-date:,time-scale:,lat-lims:,lon-lims:,prefix:,cache:,ensemble: -- "$@")
+parsedArguments=$(getopt -a -n extract-dataset -o jhVE:d:i:v:o:s:e:t:l:n:p:c:m:k: --long submit-job,help,version,email:,dataset:,dataset-dir:,variable:,output-dir:,start-date:,end-date:,time-scale:,lat-lims:,lon-lims:,prefix:,cache:,ensemble:no-chunk: -- "$@")
 validArguments=$?
 # check if there is no valid options
 if [ "$validArguments" != "0" ]; then
@@ -111,8 +106,9 @@ while :
 do
   case "$1" in
     -h | --help)          usage                ; shift   ;; # optional
-    -V | --version)	      version	           ; shift   ;; # optional
+    -V | --version)	  version	       ; shift   ;; # optional
     -j | --submit-job)    jobSubmission=true   ; shift   ;; # optional
+    -E | --email)	  email="$2"	       ; shift 2 ;; # optional
     -i | --dataset-dir)   datasetDir="$2"      ; shift 2 ;; # required
     -d | --dataset)       dataset="$2"         ; shift 2 ;; # required
     -v | --variable)	  variables="$2"       ; shift 2 ;; # required
@@ -122,9 +118,10 @@ do
     -t | --time-scale)    timeScale="$2"       ; shift 2 ;; # required
     -l | --lat-lims)      latLims="$2"         ; shift 2 ;; # required
     -n | --lon-lims)      lonLims="$2"         ; shift 2 ;; # required
+    -m | --ensemble)      ensemble="$2"        ; shift 2 ;; # optional
+    -k | --no-chunk)      parallel=false       ; shift 2 ;; # optional
     -p | --prefix)	      prefixStr="$2"       ; shift 2 ;; # required
     -c | --cache)	      cache="$2"	       ; shift 2 ;; # optional
-    -m | --ensemble)      ensemble="$2"        ; shift 2 ;; # optional
 
     # -- means the end of the arguments; drop this, and break out of the while loop
     --) shift; break ;;
@@ -156,61 +153,140 @@ fi
 if [[ -z $timeScale ]]; then
   timeScale="M"
 fi
+
 # default value for cache path if not provided as an argument
 if [[ -z $cache ]]; then
   cache="$HOME/scratch/.temp_gwfdata_$(date +"%N")"
 fi
 
-# put necessary arguments in an array - just to make things more legible
-# these variables are global anyways...
+# default value for parallelization
+if [[ -z $parallel ]]; then
+  parallel=true
+fi
+
+
+# ===========================
+# Quasi-parallel requirements
+# ===========================
+# necessary arrays
+startDateArr=() # start dates array
+endDateArr=()   # end dates array
+
+# necessary one-liner functions
+unix_epoch () { date --date="$@" +"%s"; } # unix EPOCH command
+format_date () { date --date="$1" +"$2"; } # format date
+
+# default date format
+dateFormat="%Y-%m-%d %H:%M:%S"
+
+chunk_dates () {
+  # local variables
+  local toDate="$startDate"
+  local tStep="$1"
+  local midDate
+  local toDateEnd
+
+  # if no chunking
+  if [[ "$parallel" == "false" ]]; then
+    startDateArr+=("$(format_date "$startDate" "$dateFormat")")
+    endDateArr+=("$(format_date "$endDate" "$dateFormat")")
+    return # exit the function
+
+  # if chunking
+  elif [[ "$parallel" == "true" ]]; then
+
+    while [[ "$(unix_epoch "$toDate")" -le "$(unix_epoch "$endDate")" ]]; do
+      midDate="$(format_date "$toDate" "%Y-%m-01")"
+      toDateEnd="$(format_date "$midDate $tStep -1hour" "$dateFormat")"
+
+      # considering last month if not fully being a $tStep
+      if [[ "$(unix_epoch "$toDateEnd")" -ge "$(unix_epoch "$endDate")" ]]; then
+        startDateArr+=("$(format_date "$toDate" "$dateFormat")")
+        endDateArr+=("$(format_date "$endDate" "$dateFormat")")
+        break # break the while loop
+      fi
+
+      startDateArr+=("$(format_date "$toDate" "$dateFormat")")
+      endDateArr+=("$(format_date "$toDateEnd" "$dateFormat")")
+
+      toDate=$(date --date="$midDate $tStep")
+    done
+  fi
+}
+
+
+# ======================
+# Necessary preparations
+# ======================
+# put necessary arguments in an array - just for legibility
 declare -A funcArgs=([jobSubmission]="$jobSubmission" \
 		     [datasetDir]="$datasetDir" \
-             [variables]="$variables" \
+		     [variables]="$variables" \
 		     [outputDir]="$outputDir" \
+		     [timeScale]="$timeScale" \
 		     [startDate]="$startDate" \
 		     [endDate]="$endDate" \
-		     [timeScale]="$timeScale" \
 		     [latLims]="$latLims" \
 		     [lonLims]="$lonLims" \
 		     [prefixStr]="$prefixStr" \
 		     [cache]="$cache" \
-             [ensemble]="$ensemble" \
+		     [ensemble]="$ensemble" \
 		    );
+
 
 # =================================
 # Template data processing function
 # =================================
 call_processing_func () {
 
-  # extract the script name
-  local script="$1"
+  local script="$1" # script local path
+  local chunkTStep="$2" # chunking time-frame periods
+
+  local scriptName=$(echo $script | cut -d '/' -f 2) # script/dataset name
 
   # prepare a script in string format
   # all processing script files must follow same input argument standard
   local scriptRun
   read -rd '' scriptRun <<- EOF
-	bash ./${script} -i "${funcArgs[datasetDir]}" -v "${funcArgs[variables]}" -o "${funcArgs[outputDir]}" -s "${funcArgs[startDate]}" -e "${funcArgs[endDate]}" -t "${funcArgs[timeScale]}" -l "${funcArgs[latLims]}" -n "${funcArgs[lonLims]}" -p "${funcArgs[prefixStr]}" -c "${funcArgs[cache]}" -m "${funcArgs[ensemble]}";
-	EOF
+	bash ${script} --dataset-dir="${funcArgs[datasetDir]}" --variable="${funcArgs[variables]}" --output-dir="${funcArgs[outputDir]}" --start-date="${funcArgs[startDate]}" --end-date="${funcArgs[endDate]}" --time-scale="${funcArgs[timeScale]}" --lat-lims="${funcArgs[latLims]}" --lon-lims="${funcArgs[lonLims]}" --prefix="${funcArgs[prefixStr]}" --cache="${funcArgs[cache]}" --ensemble="${funcArgs[ensemble]}"
+EOF
 
   # evaluate the script file using the arguments provided
   if [[ "${funcArgs[jobSubmission]}" == true ]]; then
+    # chunk time-frame
+    chunk_dates "$chunkTStep"
+    local dateArrLen="$((${#startDateArr[@]}-1))"  # or $endDateArr
     # Create a temporary directory for keeping job logs
     mkdir -p "$HOME/scratch/.gdt_logs"
     # SLURM batch file
     sbatch <<- EOF
 	#!/bin/bash
-
-	#SBATCH --account=rpp-kshook
-	#SBATCH --time=4:00:00
+	#SBATCH --array=0-$dateArrLen
 	#SBATCH --cpus-per-task=4
-	#SBATCH --mem=4GB
-	#SBATCH --job-name=GWF_${script}
-	#SBATCH --error=$HOME/scratch/.gdt_logs/GWF_job_id_%j_err.txt
-	#SBATCH --output=$HOME/scratch/.gdt_logs/GWF_job_id_%j.txt
+	#SBATCH --nodes=1
+	#SBATCH --account=rpp-kshook
+	#SBATCH --time=04:00:00
+	#SBATCH --mem=2GB
+	#SBATCH --job-name=GWF_${scriptName}
+	#SBATCH --error=$HOME/scratch/.gdt_logs/GWF_%A-%a_err.txt
+	#SBATCH --output=$HOME/scratch/.gdt_logs/GWF_%A-%a.txt
+	#SBATCH --mail-user=$email
+	#SBATCH --mail-type=BEING,END,FAIL
 
-	srun ${scriptRun}
+	$(declare -p startDateArr)
+	$(declare -p endDateArr)
+	tBegin="\${startDateArr[\${SLURM_ARRAY_TASK_ID}]}"
+	tEnd="\${endDateArr[\${SLURM_ARRAY_TASK_ID}]}"
+
+	echo "${scriptName}.sh: #\${SLURM_ARRAY_TASK_ID} chunk submitted."
+	echo "${scriptName}.sh: Chunk start date is \$tBegin"
+	echo "${scriptName}.sh: Chunk end date is   \$tEnd"
+	
+	srun ${scriptRun} --start-date="\$tBegin" --end-date="\$tEnd" --cache="${cache}-\${SLURM_ARRAY_TASK_ID}"
 	EOF
+    # echo message
     echo "$(basename $0): job submission details are printed under ${HOME}/scratch/.gdt_logs"
+ 
   else
     eval "$scriptRun"
   fi
@@ -224,29 +300,33 @@ call_processing_func () {
 case "${dataset,,}" in
   # NCAR-GWF CONUSI
   "conus1" | "conusi" | "conus_1" | "conus_i" | "conus 1" | "conus i" | "conus-1" | "conus-i")
-    call_processing_func "./conus_i/conus_i.sh"
+    call_processing_func "./conus_i/conus_i.sh" "3month"
     ;;
 
   # NCAR-GWF CONUSII
   "conus2" | "conusii" | "conus_2" | "conus_ii" | "conus 2" | "conus ii" | "conus-2" | "conus-ii")
-    call_processing_func "./conus_ii/conus_ii.sh"
+    call_processing_func "./conus_ii/conus_ii.sh" "1month"
     ;;
 
   # ECMWF ERA5
   "era_5" | "era5" | "era-5" | "era 5")
-    call_processing_func "./era5/era5_simplified.sh"
-    # call_processing_func "./era5/era5.sh" # including timeScale option
+    call_processing_func "./era5/era5_simplified.sh" "2year"
     ;;
   
   # ECCC RDRS 
   "rdrs" | "rdrsv2.1")
-    call_processing_func "./rdrs/rdrs.sh"
+    call_processing_func "./rdrs/rdrs.sh" "1year"
     ;;
 
   # CanRCM4-WFDEI-GEM-CaPA
   "canrcm4-wfdei-gem-capa" | "canrcm4_wfdei_gem_capa")
     # adding ensemble argument
-    call_processing_func "./canrcm4_wfdei_gem_capa/canrcm4_wfdei_gem_capa.sh"
+    if [[ "$parallel" == true ]]; then
+      echo "$(basename $0): Warning! Parallel processing is not supported for CanRCM4-WFDEI-GEM-CaPA dataset;"
+      echo "$(basename $0): For quasi-parallel processing, consider submitting individual jobs for each ensemble member;"
+      echo "$(basename $0): Continuing with serial processing of the dataset."
+    fi
+    call_processing_func "./canrcm4_wfdei_gem_capa/canrcm4_wfdei_gem_capa.sh" 
     ;;
 
   # dataset not included above
