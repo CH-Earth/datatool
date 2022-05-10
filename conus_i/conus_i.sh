@@ -179,7 +179,7 @@ generate_netcdf () {
   cdo -s -f nc4c -z zip_1 -r settaxis,"$fDate","$fTime",1hour "${fTempDir}/${fName}${fExt}" "${fTempDir}/${fName}_taxis.nc"; 
   ## rename the `description` attribute
   # ncrename -O -a .description,long_name "${fTempDir}/${fName}_taxis.nc" -o "${fOutDir}/${fName}.nc"
-  mv "${fTempDir}/${fName}_taxis.nc" -o "${fOutDir}/${fName}.nc"
+  mv "${fTempDir}/${fName}_taxis.nc" "${fOutDir}/${fName}.nc"
 }
 
 
