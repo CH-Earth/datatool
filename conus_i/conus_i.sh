@@ -386,10 +386,15 @@ load_core_modules
 # produce subsetted $coordFile as well
 mkdir -p "$cacheDir"
 coordFileSubset="${cacheDir}/coordFileSubset.nc"
-ncks -v "XLAT,XLONG" \
-     -d "$latVar","$latLimsIdx" \
-     -d "$lonVar","$lonLimsIdx" \
-     "$coordEssFile" "$coordFileSubset"
+# if subsetted coordinate file does not exist, make one
+if [[ -f "$coordFileSubset" ]]; then
+  :
+else
+  ncks -v "XLAT,XLONG" \
+       -d "$latVar","$latLimsIdx" \
+       -d "$lonVar","$lonLimsIdx" \
+       "$coordEssFile" "$coordFileSubset" || true
+fi
 
 # for each year (folder) do the following calculations
 for yr in $yearsRange; do
