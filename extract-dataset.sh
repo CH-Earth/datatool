@@ -299,22 +299,22 @@ EOF
 case "${dataset,,}" in
   # NCAR-GWF CONUSI
   "conus1" | "conusi" | "conus_1" | "conus_i" | "conus 1" | "conus i" | "conus-1" | "conus-i")
-    call_processing_func "./conus_i/conus_i.sh" "3month"
+    call_processing_func "$(dirname $0)/conus_i/conus_i.sh" "3month"
     ;;
 
   # NCAR-GWF CONUSII
   "conus2" | "conusii" | "conus_2" | "conus_ii" | "conus 2" | "conus ii" | "conus-2" | "conus-ii")
-    call_processing_func "./conus_ii/conus_ii.sh" "1month"
+    call_processing_func "$(dirname $0)/conus_ii/conus_ii.sh" "1month"
     ;;
 
   # ECMWF ERA5
   "era_5" | "era5" | "era-5" | "era 5")
-    call_processing_func "./era5/era5_simplified.sh" "2year"
+    call_processing_func "$(dirname $0)/era5/era5_simplified.sh" "2year"
     ;;
   
   # ECCC RDRS 
   "rdrs" | "rdrsv2.1")
-    call_processing_func "./rdrs/rdrs.sh" "1year"
+    call_processing_func "$(dirname $0)/rdrs/rdrs.sh" "1year"
     ;;
 
   # CanRCM4-WFDEI-GEM-CaPA
@@ -325,7 +325,7 @@ case "${dataset,,}" in
       echo "$(basename $0): For quasi-parallel processing, consider submitting individual jobs for each ensemble member;"
       echo "$(basename $0): Continuing with serial processing of the dataset."
     fi
-    call_processing_func "./canrcm4_wfdei_gem_capa/canrcm4_wfdei_gem_capa.sh" 
+    call_processing_func "$(dirname $0)/canrcm4_wfdei_gem_capa/canrcm4_wfdei_gem_capa.sh" 
     ;;
 
   # dataset not included above
