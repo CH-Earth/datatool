@@ -525,8 +525,8 @@ done
 
 mkdir "$HOME/empty_dir"
 echo "$(basename $0): deleting temporary files from $cacheDir"
-#rsync -aP --delete "$HOME/empty_dir/" "$cacheDir"
-#rm -r "$cacheDir"
+rsync -aP --delete "$HOME/empty_dir/" "$cacheDir"
+rm -r "$cacheDir"
 echo "$(basename $0): temporary files from $cacheDir are removed"
 echo "$(basename $0): results are produced under $outputDir"
 
