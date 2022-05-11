@@ -95,6 +95,17 @@ if [[ -z $prefix ]]; then
   prefix="data"
 fi
 
+
+# =====================
+# Necessary Assumptions
+# =====================
+# TZ to be set to UTC to avoid invalid dates due to Daylight Saving
+alias date='TZ=UTC date'
+
+# expand aliases for the one stated above
+shopt -s expand_aliases
+
+
 # ==========================
 # Necessary Global Variables
 # ==========================
@@ -186,6 +197,9 @@ for yr in $yearsRange; do
     toDate="$(date --date "$toDate 1day")" # current time-step
     toDateUnix="$(unix_epoch "$toDate")" # current timestamp in unix EPOCH time
   done
+
+  # wait to make sure the while loop is finished
+  wait
 
   # go to the next year if necessary
   if [[ "$toDateUnix" == "$endOfCurrentYearUnix" ]]; then
