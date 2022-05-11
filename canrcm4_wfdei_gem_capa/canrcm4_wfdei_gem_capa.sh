@@ -98,6 +98,17 @@ if [[ -z $prefix ]]; then
   prefix="data"
 fi
 
+
+# =====================
+# Necessary Assumptions
+# =====================
+# TZ to be set to UTC to avoid invalid dates due to Daylight Saving
+alias date='TZ=UTC date'
+
+# expand aliases for the one stated above
+shopt -s expand_aliases
+
+
 # ==========================
 # Necessary Global Variables
 # ==========================
@@ -169,6 +180,9 @@ for member in "${ensembleArr[@]}"; do
             -d "$timeVar","$startDateFormated","$endDateFormated" \
             "$datasetDir/$member/${var}_${member}_${fileStruct}" "$outputDir/$member/${prefix}${var}_${member}_z1_${startYear}-${endYear}.Feb29.nc4"
   done
+
+  # wait to make sure the for loop is finished
+  wait
 
 done
 
