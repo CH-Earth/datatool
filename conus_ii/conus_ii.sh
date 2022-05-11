@@ -91,6 +91,10 @@ if [[ -n "$ensemble" ]]; then
   exit 1;
 fi
 
+# =====================
+# Necessary Assumptions
+# =====================
+
 # hard-coding the address of the co-ordinate NetCDF files
 # containing XLAT and XLONG variables each having dimensions
 # of "south_north" and "west_east".
@@ -105,6 +109,12 @@ tarFormat="%Y%m%d"
 fileStruct="wrf2d_d01"
 tarFileStruct="wrf2d_conusii"
 coordIdxScript="$(pwd)/assets/coord_wrf_idx.ncl"
+
+# TZ to be set to UTC to avoid invalid dates due to Daylight Saving
+alias date='TZ=UTC date'
+
+# expand aliases for the one stated above
+shopt -s expand_aliases
 
 
 # ===================
@@ -442,6 +452,9 @@ for yr in $yearsRange; do
     toDate=$(date --date "$toDate 1day") # current time-step
     toDateUnix=$(date --date="$toDate" "+%s") # current timestamp in unix EPOCH time
   done
+
+  # wait to make sure the while loop is finished
+  wait
 
   # go to the next year if necessary
   if [[ "$toDateUnix" == "$endOfCurrentYearUnix" ]]; then 
