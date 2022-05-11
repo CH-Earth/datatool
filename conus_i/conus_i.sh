@@ -91,6 +91,11 @@ if [[ -n "$ensemble" ]]; then
   exit 1;
 fi
 
+
+# =====================
+# Necessary Assumptions
+# =====================
+
 # hard-coding the address of the co-ordinate NetCDF files
 # containing XLAT and XLONG variables each having dimensions
 # of "south_north" and "west_east".
@@ -104,6 +109,11 @@ format="%Y-%m-%d_%H:%M:%S"
 fileStruct="wrf2d_d01"
 coordIdxScript="$(pwd)/assets/coord_wrf_idx.ncl"
 
+# TZ to be set to UTC to avoid invalid dates due to Daylight Saving
+alias date='TZ=UTC date'
+
+# expand aliases for the one stated above
+shopt -s expand_aliases
 
 # ===================
 # Necessary Functions
@@ -179,7 +189,7 @@ generate_netcdf () {
   cdo -s -f nc4c -z zip_1 -r settaxis,"$fDate","$fTime",1hour "${fTempDir}/${fName}${fExt}" "${fTempDir}/${fName}_taxis.nc"; 
   ## rename the `description` attribute
   # ncrename -O -a .description,long_name "${fTempDir}/${fName}_taxis.nc" -o "${fOutDir}/${fName}.nc"
-  mv "${fTempDir}/${fName}_taxis.nc" "${fOutDir}/${fName}.nc"
+  mv "${fTempDir}/${fName}_taxis.nc" "${fOutDir}/${prefix}${fName}.nc"
 }
 
 
@@ -288,7 +298,7 @@ date_match_idx () {
 #######################################
 concat_files () {
   # defining local variables
-  local fName="$1"	    # output file name
+  local fName="$1"	# output file name
   local fTempDir="$2"	# temporary directory
   shift 2               # shift arguments by 2 positions
   local filesArr=("$@") # array of file names
@@ -431,6 +441,9 @@ for yr in $yearsRange; do
     toDateUnix=$(date --date="$toDate" "+%s") # current timestamp in unix EPOCH time
   done
 
+  # wait to make sure the while loop is finished
+  wait
+
   # go to the next year if necessary
   if [[ "$toDateUnix" == "$endOfCurrentYearUnix" ]]; then 
     toDate=$(date --date "$toDate 1hour")
@@ -511,8 +524,9 @@ for yr in $yearsRange; do
 done
 
 mkdir "$HOME/empty_dir"
-rsync -aP --delete "$HOME/empty_dir/" "$cacheDir"
-rm -r "$cacheDir"
-echo "$(basename $0): temporary files from $cacheDir are removed."
-echo "$(basename $0): results are produced under $outputDir."
+echo "$(basename $0): deleting temporary files from $cacheDir"
+#rsync -aP --delete "$HOME/empty_dir/" "$cacheDir"
+#rm -r "$cacheDir"
+echo "$(basename $0): temporary files from $cacheDir are removed"
+echo "$(basename $0): results are produced under $outputDir"
 
