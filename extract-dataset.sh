@@ -50,18 +50,18 @@ Script options:
   -i, --dataset-dir=DIR			The source path of the dataset file(s)
   -v, --variable=var1[,var2[...]]	Variables to process
   -o, --output-dir=DIR			Writes processed files to DIR
-  -s, --start-date=DATE			The start date of the forcing data
-  -e, --end-date=DATE			The end date of the forcing data
+  -s, --start-date=DATE			The start date of the data
+  -e, --end-date=DATE			The end date of the data
   -l, --lat-lims=REAL,REAL		Latitude's upper and lower bounds
   -n, --lon-lims=REAL,REAL		Longitude's upper and lower bounds
-  -m, --ensemble=ens1,[ens2[...]]	Ensemble members to process, optional
-  					Leave empty to extract all ensemble members;
+  -m, --ensemble=ens1,[ens2[...]]	Ensemble members to process; optional
+  					Leave empty to extract all ensemble members
   -j, --submit-job			Submit the data extraction process as a job
 					on the SLURM system; optional
   -k, --no-chunk			No parallelization, recommended for small domains
   -p, --prefix=STR			Prefix  prepended to the output files
   -c, --cache=DIR			Path of the cache directory; optional
-  -E, --email=STR			E-mail when job starts, ends, and finishes; optional
+  -E, --email=user@example.com		E-mail user when job starts, ends, and finishes; optional
   -V, --version				Show version
   -h, --help				Show this screen and exit
 
@@ -81,11 +81,21 @@ version () {
 }
 
 
+# =====================
+# Necessary Assumptions
+# =====================
+# TZ to be set to UTC to avoid invalid dates due to Daylight Saving
+alias date='TZ=UTC date'
+
+# expand aliases for the one stated above
+shopt -s expand_aliases
+
+
 # =======================
 # Parsing input arguments
 # =======================
 # argument parsing using getopt - WORKS ONLY ON LINUX BY DEFAULT
-parsedArguments=$(getopt -a -n extract-dataset -o jhVE:d:i:v:o:s:e:t:l:n:p:c:m:k: --long submit-job,help,version,email:,dataset:,dataset-dir:,variable:,output-dir:,start-date:,end-date:,time-scale:,lat-lims:,lon-lims:,prefix:,cache:,ensemble:no-chunk: -- "$@")
+parsedArguments=$(getopt -a -n extract-dataset -o jhVE:d:i:v:o:s:e:t:l:n:p:c:m:k --long submit-job,help,version,email:,dataset:,dataset-dir:,variable:,output-dir:,start-date:,end-date:,time-scale:,lat-lims:,lon-lims:,prefix:,cache:,ensemble:,no-chunk -- "$@")
 validArguments=$?
 # check if there is no valid options
 if [ "$validArguments" != "0" ]; then
@@ -118,7 +128,7 @@ do
     -l | --lat-lims)      latLims="$2"         ; shift 2 ;; # required
     -n | --lon-lims)      lonLims="$2"         ; shift 2 ;; # required
     -m | --ensemble)      ensemble="$2"        ; shift 2 ;; # optional
-    -k | --no-chunk)      parallel=false       ; shift 2 ;; # optional
+    -k | --no-chunk)      parallel=false       ; shift   ;; # optional
     -p | --prefix)	  prefixStr="$2"       ; shift 2 ;; # required
     -c | --cache)	  cache="$2"	       ; shift 2 ;; # optional
 
@@ -164,9 +174,10 @@ if [[ -z $parallel ]]; then
 fi
 
 # email withought job submission not allowed
-if [[ -n $email && -z $jubSubmission ]]; then
+if [[ -n $email ]] && [[ -z $jobSubmission ]]; then
   echo "$(basename $0): Email is not supported wihtout job submission;"
-  echo "$(basename $0): Use '-j' option for a job submission."
+  echo "$(basename $0): Continuing without email notification..."
+fi
 
 
 # ===========================
@@ -253,7 +264,7 @@ call_processing_func () {
   local scriptRun
   read -rd '' scriptRun <<- EOF
 	bash ${script} --dataset-dir="${funcArgs[datasetDir]}" --variable="${funcArgs[variables]}" --output-dir="${funcArgs[outputDir]}" --start-date="${funcArgs[startDate]}" --end-date="${funcArgs[endDate]}" --time-scale="${funcArgs[timeScale]}" --lat-lims="${funcArgs[latLims]}" --lon-lims="${funcArgs[lonLims]}" --prefix="${funcArgs[prefixStr]}" --cache="${funcArgs[cache]}" --ensemble="${funcArgs[ensemble]}"
-EOF
+	EOF
 
   # evaluate the script file using the arguments provided
   if [[ "${funcArgs[jobSubmission]}" == true ]]; then
