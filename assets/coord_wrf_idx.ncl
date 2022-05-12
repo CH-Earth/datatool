@@ -28,8 +28,8 @@
 
 ;---coordinate variable path and and name must be entered as input arguments
   a    = addfile(coord_file,"r")
-  xlat = a->XLAT(0,:,:)
-  xlon = a->XLONG(0,:,:)
+  glat2d = a->XLAT(0,:,:)
+  glon2d = a->XLONG(0,:,:)
 
 ;---variable names below should be defined as input arguments
 ;  minlat
@@ -44,13 +44,13 @@
 
 ;---Get xy indexes, and then use these to get lat/lon values back again.
   opt    = True
-  loc    = wrf_user_ll_to_xy(a,(/minlon,maxlon/),(/minlat,maxlat/),opt)
+  loc    = region_ind (glat2d, glon2d, minlat, maxlat, minlon, maxlon)
 
 ;---print the following box of data: [minlonidx, maxlonidx, minlatidx, maxlatidx]
-  minlonidx = loc(0,0)
-  maxlonidx = loc(0,1)
-  minlatidx = loc(1,0)
-  maxlatidx = loc(1,1)
+  minlonidx = loc(2)
+  maxlonidx = loc(3)
+  minlatidx = loc(0)
+  maxlatidx = loc(1)
   print(minlonidx+","+maxlonidx)
   print(minlatidx+","+maxlatidx)
 ;---END
