@@ -31,29 +31,16 @@
 cd ..
 echo "The current directory is: $(pwd)"
 
-# First, submitting for 1980 to 2017 on an annual basis
-for year in {1980..2017}; do
-  ./extract-dataset.sh  --dataset=RDRS \
-    --dataset-dir="/project/rpp-kshook/Model_Output/RDRSv2.1" \
-    --output-dir="$HOME/scratch/rdrs_output/" \
-    --start-date="${year}-01-01" \
-    --end-date="${year}-12-31" \
-    --lat-lims=49,54  \
-    --lon-lims=-120,-98 \
-    --variable="RDRS_v2.1_P_P0_SFC,RDRS_v2.1_P_HU_1.5m,RDRS_v2.1_P_TT_1.5m,RDRS_v2.1_P_UVC_10m,RDRS_v2.1_A_PR0_SFC,RDRS_v2.1_P_FB_SFC,RDRS_v2.1_P_FI_SFC" \
-    --prefix="rdrsv2.1_" \
-    -j;
-done
-
-# Second, submitting for 2018 alone
+# chunking done on an 'annual' basis
 ./extract-dataset.sh  --dataset=RDRS \
   --dataset-dir="/project/rpp-kshook/Model_Output/RDRSv2.1" \
   --output-dir="$HOME/scratch/rdrs_output/" \
-  --start-date="2018-01-01" \
+  --start-date="1980-01-01" \
   --end-date="2018-12-30" \
-  --lat-lims=49,54 \
+  --lat-lims=49,54  \
   --lon-lims=-120,-98 \
   --variable="RDRS_v2.1_P_P0_SFC,RDRS_v2.1_P_HU_1.5m,RDRS_v2.1_P_TT_1.5m,RDRS_v2.1_P_UVC_10m,RDRS_v2.1_A_PR0_SFC,RDRS_v2.1_P_FB_SFC,RDRS_v2.1_P_FI_SFC" \
   --prefix="rdrsv2.1_" \
+  --email="youremail@company.ca" \
   -j;
 

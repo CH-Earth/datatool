@@ -41,6 +41,7 @@ echo "The current directory is: $(pwd)"
   --lon-lims=-120,-98 \
   --variable="pr,hus,wind" \
   --prefix="canrcm4_" \
-  --ensemble="r8i2p1r1,r8i2p1r3"
+  --ensemble="r8i2p1r1,r8i2p1r3" \
+  --email="youremail@company.ca" \
   -j;
 

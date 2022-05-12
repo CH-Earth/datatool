@@ -31,17 +31,16 @@
 cd ..
 echo "The current directory is: $(pwd)"
 
-# First, submitting for 1980 to 2020 on an annual basis
-for year in {1980..2019}; do
-  ./extract-dataset.sh  --dataset=ERA5 \
-    --dataset-dir="/project/rpp-kshook/CompHydCore/climateForcingData/ERA5/ERA5_for_SUMMA/2_merged_data" \
-    --output-dir="$HOME/scratch/era5_output/" \
-    --start-date="${year}-01-01" \
-    --end-date="${year}-12-31" \
-    --lat-lims=49,54 \
-    --lon-lims=-120,-98 \
-    --variable="airpres,pptrate,spechum,windspd,airtemp,SWRadAtm,LWRadAtm" \
-    --prefix="era5_" \
-    -j;
-done
+# chunking done on a '6-month' basis
+./extract-dataset.sh  --dataset=ERA5 \
+  --dataset-dir="/project/rpp-kshook/CompHydCore/climateForcingData/ERA5/ERA5_for_SUMMA/2_merged_data" \
+  --output-dir="$HOME/scratch/era5_output/" \
+  --start-date="1980-01-01" \
+  --end-date="2020-12-31" \
+  --lat-lims=49,54 \
+  --lon-lims=-120,-98 \
+  --variable="airpres,pptrate,spechum,windspd,airtemp,SWRadAtm,LWRadAtm" \
+  --prefix="era5_" \
+  --email="youremail@company.ca" \
+  -j;
 

@@ -31,23 +31,16 @@
 cd ..
 echo "The current directory is: $(pwd)"
 
-# due to the nature of the dataset, it would be
-# better to submit jobs on a monthly basis
-for year in {1995..2015}; do
-  for month in {1..12}; do
-    begin_month="$(date --date="$year-$month-01" +"%Y-%m-%d")";
-    end_month="$(date --date="$year-$month-01 1month -1day" +"%Y-%m-%d")";
-
-    ./extract-dataset.sh  --dataset=CONUS2 \
-      --dataset-dir="/project/rpp-kshook/Model_Output/wrf-conus/CONUSII/hist" \
-      --output-dir="$HOME/scratch/conus_ii_output/" \
-      --start-date="$begin_month" \
-      --end-date="$end_month" \
-      --lat-lims=49,54 \
-      --lon-lims=-120,-98 \
-      --variable="T2,PREC_ACC_NC,Q2,ACSWDNB,ACLWDNB,U10,V10,PSFC" \
-      --prefix="conus_ii" \
-      -j;
-  done
-done
+# chunking is done on 'each month' automatically
+./extract-dataset.sh  --dataset=CONUS2 \
+  --dataset-dir="/project/rpp-kshook/Model_Output/wrf-conus/CONUSII/hist" \
+  --output-dir="$HOME/scratch/conus_ii_output/" \
+  --start-date="1995-01-01 00:00:00" \
+  --end-date="2015-12-31 23:00:00" \
+  --lat-lims=49,54 \
+  --lon-lims=-120,-98 \
+  --variable="T2,PREC_ACC_NC,Q2,ACSWDNB,ACLWDNB,U10,V10,PSFC" \
+  --prefix="conus_ii" \
+  --email="youremail@company.ca" \
+  -j;
 
