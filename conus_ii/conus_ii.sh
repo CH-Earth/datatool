@@ -191,7 +191,7 @@ generate_netcdf () {
   cdo -s -f nc4c -z zip_1 -r settaxis,"$fDate","$fTime",1hour "${fTempDir}/${fName}${fExt}" "${fTempDir}/${fName}_taxis.nc"; 
   ## rename the `description` attribute
   # ncrename -O -a .description,long_name "${fTempDir}/${fName}_taxis.nc" -o "${fOutDir}/${fName}.nc"
-  mv "${fTempDir}/${fName}_taxis.nc" "${fOutDir}/${fName}.nc"
+  mv "${fTempDir}/${fName}_taxis.nc" "${fOutDir}/${prefix}${fName}.nc"
 }
 
 
@@ -466,6 +466,9 @@ for yr in $yearsRange; do
 
   # data files for the current year with extracted $variables
   files=($cacheDir/$yr/*)
+  # sorting files to make sure the time-series is correct
+  IFS=$'\n' files=($(sort <<<"${files[*]}")); unset IFS
+
 
   # check the $timeScale variable
   case "${timeScale,,}" in
