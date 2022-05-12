@@ -91,7 +91,7 @@ foo@bar:~$ ncdump -h  /project/rpp-kshook/Model_Output/WRF/CONUS/CTRL/2000/wrf2d
 The spatial extent of the `WRF-CONUSI` is on latitutes from `18.13629` to `57.91813` and longitudes from `-139.0548` to `-56.94519`.
 
 ## Temporal Extent
-As is obvious from the nomenclature of the dataset files, the time-steps are hourly covering from the October 2000 to December 2013.
+As is obvious from the nomenclature of the dataset files, the time-steps are hourly covering from the October 2000 to September 2013.
 
 # Short Description on `WRF-CONUSI` Variables
 In most hydrological modelling applications, usually 7 variables are needed detailed as following: 1) specific humidity at 2 meters, 2) surface pressure, 3) air temperature at 2 meters, 4) wind speed at 10 meters, 5) precipitation, 6) downward short wave radiation, and 7) downward long wave radiation. These variables are available through `WRF-CONUSI` dataset and their details are described in the table below:
