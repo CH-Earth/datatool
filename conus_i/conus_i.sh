@@ -27,6 +27,7 @@
 # 3. Dr. Shervan Gharari produced the netCDF file containing XLAT and XLONG
 #    coordinate variables put under /assets/coord_XLAT_XLONG_conus_i.nc.
 # 4. Kasra Keshavarz has written the following script to process WRF-CONUSI files.
+# 5. Sorting workflow is taken from the following link; https://stackoverflow.com/a/11789688/5188208
 
 # ================
 # General comments
@@ -454,6 +455,8 @@ for yr in $yearsRange; do
 
   # data files for the current year with extracted $variables
   files=($cacheDir/$yr/*)
+  # sorting files to make sure the time-series is correct
+  IFS=$'\n' files=($(sort <<<"${files[*]}")); unset IFS
 
   # check the $timeScale variable
   case "${timeScale,,}" in
