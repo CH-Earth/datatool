@@ -1,10 +1,8 @@
 #!/bin/bash
-# Global Water Futures (GWF) Meteorological Data Processing Workflow
-# Copyright (C) 2022, Global Water Futures (GWF), University of Saskatchewan
+# Meteorological Data Processing Workflow
+# Copyright (C) 2022, University of Saskatchewan
 #
-# This file is part of GWF Meteorological Data Processing Workflow
-#
-# For more information see: https://gwf.usask.ca/
+# This file is part of Meteorological Data Processing Workflow
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -26,7 +24,6 @@
 # 2. Dr. Zhenhua Li provided scripts to extract and process CONUSII datasets
 # 3. Dr. Shervan Gharari produced the netCDF file containing XLAT and XLONG
 #    coordinate variables put under /assets/coord_XLAT_XLONG_conus_i.nc.
-# 4. Kasra Keshavarz has written the following script to process WRF-CONUSII files.
 
 # ================
 # General comments

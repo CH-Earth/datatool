@@ -1,10 +1,8 @@
 #!/bin/bash
-# Global Water Futures (GWF) Meteorological Data Processing Workflow
-# Copyright (C) 2022, Global Water Futures (GWF), University of Saskatchewan
+# Meteorological Data Processing Workflow
+# Copyright (C) 2022, University of Saskatchewan
 #
-# This file is part of GWF Meteorological Data Processing Workflow
-#
-# For more information see: https://gwf.usask.ca/
+# This file is part of Meteorological Data Processing Workflow
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -23,7 +21,7 @@
 # Credits and contributions
 # =========================
 # 1. Parts of the code are taken from https://www.shellscript.sh/tips/getopt/index.html
-# 2. Dr. Quoqiang Tang downloaded, pre-processed, and relevant associated scripts.
+# 2. Dr. Quoqiang Tang downloaded, pre-processed, and produced relevant associated scripts.
 
 
 # ================

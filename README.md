@@ -46,8 +46,8 @@ As an example, follow the code block below. Please remember that you MUST have a
 
 ```console
 foo@bar:~$ git clone https://github.com/kasra-keshavarz/gwfdatatool # clone the repository
-foo@bar:~$ cd ./gwf-focring-data/bash/ # always move to the repository's directory
-foo@bar:~$ ./extract-dataset.sh -h # to view the usage message
+foo@bar:~$ cd ./gwfdatatool/ # always move to the repository's directory
+foo@bar:~$ ./extract-dataset.sh -h # view the usage message
 foo@bar:~$ ./extract-dataset.sh  --dataset=CONUS1 \
                                  --dataset-dir="/project/rpp-kshook/Model_Output/WRF/CONUS/CTRL" \
                                  --output-dir="$HOME/scratch/conus_i_output/" \
@@ -61,14 +61,14 @@ foo@bar:~$ ./extract-dataset.sh  --dataset=CONUS1 \
 :warning: It is recommended to submit the time-series of interest in chunks. See the [example](./example) directory for real-world examples for each dataset. Since each dataset has its own complexity, various chunk configurations are recommended.
 
 # New Datasets
-If you are considering any new dataset to be added to the GWF repository, and subsequently the associated scripts added here, you can open a new ticket on the **Issues** tab of the current repository. Or, you can make a [Pull Request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request) on this repository with your own script.
+If you are considering any new dataset to be added to the data repository, and subsequently the associated scripts added here, you can open a new ticket on the **Issues** tab of the current repository. Or, you can make a [Pull Request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request) on this repository with your own script.
 
 # Support
 Please open a new ticket on the **Issues** tab of the current repository in case of any problem.
 
 # License
-Global Water Futures (GWF) Meteorological Data Processing Workflow<br>
-Copyright (C) 2022, Global Water Futures (GWF), University of Saskatchewan
+Meteorological Data Processing Workflow<br>
+Copyright (C) 2022, University of Saskatchewan
 
 For more information see: https://gwf.usask.ca/
 

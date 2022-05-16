@@ -337,9 +337,9 @@ case "${dataset,,}" in
   "canrcm4-wfdei-gem-capa" | "canrcm4_wfdei_gem_capa")
     # adding ensemble argument
     if [[ "$parallel" == true ]]; then
-      echo "$(basename $0): Warning! Parallel processing is not supported for CanRCM4-WFDEI-GEM-CaPA dataset;"
+      echo "$(basename $0): Warning: Parallel processing is not supported for CanRCM4-WFDEI-GEM-CaPA dataset;"
       echo "$(basename $0): For quasi-parallel processing, consider submitting individual jobs for each ensemble member;"
-      echo "$(basename $0): Continuing with serial processing of the dataset."
+      echo "$(basename $0): Continuing with serial processing of the requested domain."
     fi
     call_processing_func "$(dirname $0)/canrcm4_wfdei_gem_capa/canrcm4_wfdei_gem_capa.sh" 
     ;;
