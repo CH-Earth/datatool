@@ -442,16 +442,13 @@ for yr in $yearsRange; do
            -d "$latVar","$latLimsIdx" \
            -d "$lonVar","$lonLimsIdx" \
            "$cacheDir/$yr/$f2" "$cacheDir/$yr/$f2" & # extracting $variables
-      [ $( jobs | wc -l ) -ge $( nproc ) ] && wait
+    
     done
 
     # increment time-step by one unit
     toDate=$(date --date "$toDate 1day") # current time-step
     toDateUnix=$(date --date="$toDate" "+%s") # current timestamp in unix EPOCH time
   done
-
-  # wait to make sure the while loop is finished
-  wait
 
   # go to the next year if necessary
   if [[ "$toDateUnix" == "$endOfCurrentYearUnix" ]]; then 
