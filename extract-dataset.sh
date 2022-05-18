@@ -164,8 +164,10 @@ if [[ -z $timeScale ]]; then
 fi
 
 # default value for cache path if not provided as an argument
-if [[ -z $cache ]]; then
-  cache="$HOME/scratch/.temp_gwfdata_$(date +"%N")"
+if [[ -z $cache ]] && [[ -n $jobSubmission ]]; then
+  cache="$HOME/scratch/.temp_data_jobid"
+elif [[ -z $cache ]]; then
+  cache="$HOME/scratch/.temp_data_$(date +"%N")"
 fi
 
 # default value for parallelization
@@ -297,7 +299,7 @@ call_processing_func () {
 	echo "${scriptName}.sh: Chunk start date is \$tBegin"
 	echo "${scriptName}.sh: Chunk end date is   \$tEnd"
 	
-	srun ${scriptRun} --start-date="\$tBegin" --end-date="\$tEnd" --cache="${cache}-\${SLURM_ARRAY_TASK_ID}"
+	srun ${scriptRun} --start-date="\$tBegin" --end-date="\$tEnd" --cache="${cache}-\${SLURM_ARRAY_JOB_ID}-\${SLURM_ARRAY_TASK_ID}"
 	EOF
     # echo message
     echo "$(basename $0): job submission details are printed under ${HOME}/scratch/.gdt_logs"
