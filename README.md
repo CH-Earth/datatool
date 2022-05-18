@@ -45,8 +45,8 @@ Script options:
 As an example, follow the code block below. Please remember that you MUST have access to Graham cluster with Compute Canada (CC) and have access to `CONUS I` model outputs. Also, remember to generate a [Personal Access Token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) with GitHub in advance. Enter the following codes in your Graham shell as a test case:
 
 ```console
-foo@bar:~$ git clone https://github.com/kasra-keshavarz/gwfdatatool # clone the repository
-foo@bar:~$ cd ./gwfdatatool/ # always move to the repository's directory
+foo@bar:~$ git clone https://github.com/kasra-keshavarz/datatool # clone the repository
+foo@bar:~$ cd ./datatool/ # always move to the repository's directory
 foo@bar:~$ ./extract-dataset.sh -h # view the usage message
 foo@bar:~$ ./extract-dataset.sh  --dataset=CONUS1 \
                                  --dataset-dir="/project/rpp-kshook/Model_Output/WRF/CONUS/CTRL" \
