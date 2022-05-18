@@ -438,10 +438,14 @@ for yr in $yearsRange; do
     for f in "${tarFiles[@]}"; do
       f2="$(echo $f | rev | cut -d '/' -f 1 | rev)"
 
-      ncks -O -v "$variables" \
+      until ncks -O -v "$variables" \
            -d "$latVar","$latLimsIdx" \
            -d "$lonVar","$lonLimsIdx" \
-           "$cacheDir/$yr/$f2" "$cacheDir/$yr/$f2" & # extracting $variables
+           "$cacheDir/$yr/$f2" "$cacheDir/$yr/$f2"; do
+
+	   echo "$(basename $0): Process killed: restarting process" >$2
+	   sleep 5;
+      done
     
     done
 
