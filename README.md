@@ -69,9 +69,7 @@ Please open a new ticket on the **Issues** tab of the current repository in case
 
 # License
 Meteorological Data Processing Workflow<br>
-Copyright (C) 2022, University of Saskatchewan
-
-For more information see: https://gwf.usask.ca/
+Copyright (C) 2022, University of Saskatchewan<br>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
