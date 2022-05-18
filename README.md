@@ -58,6 +58,8 @@ foo@bar:~$ ./extract-dataset.sh  --dataset=CONUS1 \
                                  --variable=T2,PREC_ACC_NC,Q2,ACSWDNB,ACLWDNB,U10,V10,PSFC \
                                  --prefix="conus_i";
 ```
+See the [example](./example) directory for real-world scripts for each meteorological dataset included in this repository.
+
 
 # New Datasets
 If you are considering any new dataset to be added to the data repository, and subsequently the associated scripts added here, you can open a new ticket on the **Issues** tab of the current repository. Or, you can make a [Pull Request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request) on this repository with your own script.
