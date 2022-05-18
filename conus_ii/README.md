@@ -2,8 +2,7 @@
 
 In this file, the details of the dataset is explained.
 
-:warning: It must be noted that the `WRF-CONUSII` dataset are in `.tar` format and the script untars the files automatically. For this specific dataset, considering submitting separate monthly jobs.
-
+:warning: It must be noted that the `WRF-CONUSII` dataset are in `.tar` format and the script untars the files automatically. 
 ## Location of Dataset Files
 The `WRF-CONUSII` simulation outputs are located under the following directory accessible from Compute Canada (CC) Graham Cluster:
 ```
