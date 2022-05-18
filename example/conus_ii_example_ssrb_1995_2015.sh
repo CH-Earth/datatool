@@ -18,9 +18,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# This is a simple example to extract WRF-CONUSI data for the 
+# This is a simple example to extract WRF-CONUSII data for the 
 # South Saskatchewan River Basin (SSRB) approximate extents
-# from Oct 2010 to Dec 2013.
+# from Jan 1995 to Dec 2015.
 
 # As is mentioned on the main webpage of the repository, it is
 # recommended to submit annual jobs for this dataset.
