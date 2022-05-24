@@ -64,7 +64,7 @@ Script options:
   -h, --help				Show this screen and exit
 
 For bug reports, questions, discussions open an issue
-at https://github.com/kasra-keshavarz/gwf-forcing-data/issues" >&1;
+at https://github.com/kasra-keshavarz/datatool/issues" >&1;
 
   exit 0;
 }
