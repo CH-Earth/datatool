@@ -35,7 +35,7 @@
 # Help functions
 # ==============
 usage () {
-  echo "Global Water Futures (GWF) Forcing Data Processing Script
+  echo "Meteorological Data Processing Script
 
 Usage:
   $(basename $0) [options...]
