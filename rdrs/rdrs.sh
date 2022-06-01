@@ -41,7 +41,7 @@ short_usage() {
 
 
 # argument parsing using getopt - WORKS ONLY ON LINUX BY DEFAULT
-parsedArguments=$(getopt -a -n extract-dataset -o i:v:o:s:e:t:l:n:p:c:m: --long dataset-dir:,variables:,output-dir:,start-date:,end-date:,time-scale:,lat-lims:,lon-lims:,prefix:,cache:,ensemble: -- "$@")
+parsedArguments=$(getopt -a -n extract-dataset -o i:v:o:s:e:t:l:n:p:c:m: --long dataset-dir:,variable:,output-dir:,start-date:,end-date:,time-scale:,lat-lims:,lon-lims:,prefix:,cache:,ensemble: -- "$@")
 validArguments=$?
 if [ "$validArguments" != "0" ]; then
   short_usage;
@@ -60,7 +60,7 @@ while :
 do
   case "$1" in
     -i | --dataset-dir)   datasetDir="$2"      ; shift 2 ;; # required
-    -v | --variables)     variables="$2"       ; shift 2 ;; # required
+    -v | --variable)      variables="$2"       ; shift 2 ;; # required
     -o | --output-dir)    outputDir="$2"       ; shift 2 ;; # required
     -s | --start-date)    startDate="$2"       ; shift 2 ;; # required
     -e | --end-date)      endDate="$2"         ; shift 2 ;; # required
