@@ -153,6 +153,8 @@ echo "$(basename $0): processing ECCC RDRSv2.1..."
 # make the output directory
 echo "$(basename $0): creating output directory under $outputDir"
 mkdir -p "$outputDir"
+echo "$(basename $0): creating cache directory under $cache"
+mkdir -p "$cache"
 
 # define necessary dates
 startYear=$(date --date="$startDate" +"%Y") # start year (first folder)
