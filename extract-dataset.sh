@@ -315,7 +315,7 @@ call_processing_func () {
 case "${dataset,,}" in
   # NCAR-GWF CONUSI
   "conus1" | "conusi" | "conus_1" | "conus_i" | "conus 1" | "conus i" | "conus-1" | "conus-i")
-    call_processing_func "$(dirname $0)/conus_i/conus_i.sh" "3month"
+    call_processing_func "$(dirname $0)/conus_i/conus_i.sh" "3months"
     ;;
 
   # NCAR-GWF CONUSII
@@ -325,12 +325,12 @@ case "${dataset,,}" in
 
   # ECMWF ERA5
   "era_5" | "era5" | "era-5" | "era 5")
-    call_processing_func "$(dirname $0)/era5/era5_simplified.sh" "2year"
+    call_processing_func "$(dirname $0)/era5/era5_simplified.sh" "2years"
     ;;
   
   # ECCC RDRS 
   "rdrs" | "rdrsv2.1")
-    call_processing_func "$(dirname $0)/rdrs/rdrs.sh" "1year"
+    call_processing_func "$(dirname $0)/rdrs/rdrs.sh" "6months"
     ;;
 
   # CanRCM4-WFDEI-GEM-CaPA

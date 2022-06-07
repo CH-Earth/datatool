@@ -166,6 +166,7 @@ endDateUnix="$(unix_epoch "$endDate")"
 for yr in $yearsRange; do
   # creating yearly directory
   mkdir -p "$outputDir/$yr" # making the output directory
+  mkdir -p "$cache/$yr" # making the cache directory
 
   # setting the end point, either the end of current year, or the $endDate
   endOfCurrentYearUnix=$(date --date="$yr-01-01 +1year -1day" "+%s") # last time-step of the current year
@@ -182,11 +183,14 @@ for yr in $yearsRange; do
 
     # creating file name
     file="${toDateFormatted}12.nc" # current file name
+    
+    # change lon values so the extents are from ~-180 to 0
+    ncap2 -s 'where(lon>0) lon=lon-306' "${datasetDir}/${yr}/${file}" "${cache}/${yr}/${file}"
 
     # extracting variables from the files and spatial subsetting
-    cdo -s -L -sellonlatbox,"$lonLims","$latLims" \
+    cdo -z zip -s -L -sellonlatbox,"$lonLims","$latLims" \
         -selvar,"$variables" \
-        "${datasetDir}/${yr}/${file}" "${outputDir}/${yr}/${prefix}${file}"
+        "${cache}/${yr}/${file}" "${outputDir}/${yr}/${prefix}${file}"
 
     [ $( jobs | wc -l ) -ge $( nproc ) ] && wait # forking shell processes
 
@@ -205,6 +209,10 @@ for yr in $yearsRange; do
 
 done
 
-
-echo "$(basename $0): results are produced under $outputDir."
+mkdir "$HOME/empty_dir"
+echo "$(basename $0): deleting temporary files from $cacheDir"
+rsync -aP --delete "$HOME/empty_dir/" "$cacheDir"
+rm -r "$cacheDir"
+echo "$(basename $0): temporary files from $cacheDir are removed"
+echo "$(basename $0): results are produced under $outputDir"
 
