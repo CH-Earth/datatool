@@ -187,7 +187,7 @@ for yr in $yearsRange; do
     file="${toDateFormatted}12.nc" # current file name
     
     # change lon values so the extents are from ~-180 to 0
-    ncap2 -s 'where(lon>0) lon=lon-306' "${datasetDir}/${yr}/${file}" "${cache}/${yr}/${file}"
+    ncap2 -s 'where(lon>0) lon=lon-360' "${datasetDir}/${yr}/${file}" "${cache}/${yr}/${file}"
 
     # extracting variables from the files and spatial subsetting
     cdo -z zip -s -L -sellonlatbox,"$lonLims","$latLims" \
