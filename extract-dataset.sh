@@ -142,22 +142,6 @@ do
   esac
 done
 
-# check mandatory arguments whether provided
-if [[ -z "${datasetDir}" ]] || \
-   [[ -z "${dataset}"    ]] || \
-   [[ -z "${variables}"  ]] || \
-   [[ -z "${outputDir}"  ]] || \
-   [[ -z "${startDate}"  ]] || \
-   [[ -z "${endDate}"    ]] || \
-   [[ -z "${latLims}"    ]] || \
-   [[ -z "${lonLims}"    ]] || \
-   [[ -z "${prefixStr}"  ]]; then
-
-   echo "$(basename $0): mandatory option(s) missing.";
-   short_usage;
-   exit 1;
-fi
-
 # default value for timeScale if not provided as an argument
 if [[ -z $timeScale ]]; then
   timeScale="M"
@@ -190,6 +174,22 @@ if [[ -n $shapefile ]]; then
   latLims="${shapefileExtents[2]},${shapefileExtents[5]}"
   lonLims="${shapefileExtents[1]},${shapefileExtents[4]}"
   module -q unload gdal;
+fi
+
+# check mandatory arguments whether provided
+if [[ -z "${datasetDir}" ]] || \
+   [[ -z "${dataset}"    ]] || \
+   [[ -z "${variables}"  ]] || \
+   [[ -z "${outputDir}"  ]] || \
+   [[ -z "${startDate}"  ]] || \
+   [[ -z "${endDate}"    ]] || \
+   [[ -z "${latLims}"    ]] || \
+   [[ -z "${lonLims}"    ]] || \
+   [[ -z "${prefixStr}"  ]]; then
+
+   echo "$(basename $0): mandatory option(s) missing.";
+   short_usage;
+   exit 1;
 fi
 
 
