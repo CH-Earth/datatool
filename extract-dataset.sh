@@ -52,6 +52,7 @@ Script options:
   -e, --end-date=DATE			The end date of the data
   -l, --lat-lims=REAL,REAL		Latitude's upper and lower bounds
   -n, --lon-lims=REAL,REAL		Longitude's upper and lower bounds
+  -a, --shape-file=PATH			Path to the ESRI shapefile, optional
   -m, --ensemble=ens1,[ens2[...]]	Ensemble members to process; optional
   					Leave empty to extract all ensemble members
   -j, --submit-job			Submit the data extraction process as a job
@@ -93,7 +94,7 @@ shopt -s expand_aliases
 # Parsing input arguments
 # =======================
 # argument parsing using getopt - WORKS ONLY ON LINUX BY DEFAULT
-parsedArguments=$(getopt -a -n extract-dataset -o jhVE:d:i:v:o:s:e:t:l:n:p:c:m:k --long submit-job,help,version,email:,dataset:,dataset-dir:,variable:,output-dir:,start-date:,end-date:,time-scale:,lat-lims:,lon-lims:,prefix:,cache:,ensemble:,no-chunk -- "$@")
+parsedArguments=$(getopt -a -n extract-dataset -o jhVE:d:i:v:o:s:e:t:l:n:p:c:m:ka: --long submit-job,help,version,email:,dataset:,dataset-dir:,variable:,output-dir:,start-date:,end-date:,time-scale:,lat-lims:,lon-lims:,prefix:,cache:,ensemble:,no-chunk,shape-file: -- "$@")
 validArguments=$?
 # check if there is no valid options
 if [ "$validArguments" != "0" ]; then
@@ -129,6 +130,7 @@ do
     -k | --no-chunk)      parallel=false       ; shift   ;; # optional
     -p | --prefix)	  prefixStr="$2"       ; shift 2 ;; # required
     -c | --cache)	  cache="$2"	       ; shift 2 ;; # optional
+    -a | --shape-file)    shapefile="$2"       ; shift 2 ;; # optional
 
     # -- means the end of the arguments; drop this, and break out of the while loop
     --) shift; break ;;
@@ -177,6 +179,17 @@ fi
 if [[ -n $email ]] && [[ -z $jobSubmission ]]; then
   echo "$(basename $0): Email is not supported wihtout job submission;"
   echo "$(basename $0): Continuing without email notification..."
+fi
+
+# if shapefile is provided extract the extents from it
+if [[ -n $shapefile ]]; then
+  module -q load gdal;
+  echo "$(basename $0): Extracting spatial limits from the provided shapefile"
+  IFS=' ' read -ra shapefileExtents <<< "$(ogrinfo -so -al "$shapefile" | sed 's/[),(]//g' | grep Extent)"
+  # define $latLims and $lonLims from $shapefileExtents
+  latLims="${shapefileExtents[2]},${shapefileExtents[5]}"
+  lonLims="${shapefileExtents[1]},${shapefileExtents[4]}"
+  module -q unload gdal;
 fi
 
 
