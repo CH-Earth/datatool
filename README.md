@@ -4,7 +4,6 @@ This repository contains scripts to process necessary forcing data from various 
 ```console
 Usage:
   extract-dataset [options...]
-
 Script options:
   -d, --dataset				Meteorological forcing dataset of interest
                                         currently available options are:
@@ -13,20 +12,22 @@ Script options:
   -i, --dataset-dir=DIR			The source path of the dataset file(s)
   -v, --variable=var1[,var2[...]]	Variables to process
   -o, --output-dir=DIR			Writes processed files to DIR
-  -s, --start-date=DATE			The start date of the forcing data
-  -e, --end-date=DATE			The end date of the forcing data
+  -s, --start-date=DATE			The start date of the data
+  -e, --end-date=DATE			The end date of the data
   -l, --lat-lims=REAL,REAL		Latitude's upper and lower bounds
   -n, --lon-lims=REAL,REAL		Longitude's upper and lower bounds
-  -m, --ensemble=ens1,[ens2[...]]	Ensemble members to process, optional
-  					Leave empty to extract all ensemble members;
+  -a, --shape-file=PATH			Path to the ESRI shapefile, optional
+  -m, --ensemble=ens1,[ens2[...]]	Ensemble members to process; optional
+  					Leave empty to extract all ensemble members
   -j, --submit-job			Submit the data extraction process as a job
 					on the SLURM system; optional
   -k, --no-chunk			No parallelization, recommended for small domains
   -p, --prefix=STR			Prefix  prepended to the output files
   -c, --cache=DIR			Path of the cache directory; optional
-  -E, --email=STR			E-mail when job starts, ends, and finishes; optional
+  -E, --email=user@example.com		E-mail user when job starts, ends, and finishes; optional
   -V, --version				Show version
   -h, --help				Show this screen and exit
+
 ```
 # Available Datasets
 |#|Dataset                   |Time Scale                      |DOI                      |Description          |
