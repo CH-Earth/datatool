@@ -170,7 +170,6 @@ if [[ -n $shapefile ]]; then
   # load GDAL module
   module -q load gdal;
   # extract the shapefile extent
-  echo "$(basename $0): Extracting spatial limits from the provided shapefile"
   IFS=' ' read -ra shapefileExtents <<< "$(ogrinfo -so -al "$shapefile" | sed 's/[),(]//g' | grep Extent)"
   # transform the extents in case they are not in EPSG:4326
   IFS=':' read -ra sourceProj4 <<< "$(gdalsrsinfo $shapefile | grep -e "PROJ.4")" # source Proj4 value
