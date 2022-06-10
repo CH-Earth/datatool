@@ -167,12 +167,19 @@ fi
 
 # if shapefile is provided extract the extents from it
 if [[ -n $shapefile ]]; then
+  # load GDAL module
   module -q load gdal;
+  # extract the shapefile extent
   echo "$(basename $0): Extracting spatial limits from the provided shapefile"
   IFS=' ' read -ra shapefileExtents <<< "$(ogrinfo -so -al "$shapefile" | sed 's/[),(]//g' | grep Extent)"
+  # transform the extents in case they are not in EPSG:4326
+  IFS=':' read -ra sourceProj4 <<< "$(gdalsrsinfo $shapefile | grep -e "PROJ.4")" # source Proj4 value
+  # transform limits and assing to variables
+  IFS=' ' read -ra leftBottomLims <<< $(echo "${shapefileExtents[@]:1:2}" | gdaltransform -s_srs "${sourceProj4[1]}" -t_srs EPSG:4326 -output_xy)
+  IFS=' ' read -ra rightTopLims <<< $(echo "${shapefileExtents[@]:4:5}" | gdaltransform -s_srs "${sourceProj4[1]}" -t_srs EPSG:4326 -output_xy)
   # define $latLims and $lonLims from $shapefileExtents
-  latLims="${shapefileExtents[2]},${shapefileExtents[5]}"
-  lonLims="${shapefileExtents[1]},${shapefileExtents[4]}"
+  latLims="${leftBottomLims[0]},${rightTopLims[0]}"
+  lonLims="${leftBottomLims[1]},${rightTopLims[1]}"
   module -q unload gdal;
 fi
 
