@@ -212,9 +212,9 @@ for yr in $yearsRange; do
 done
 
 mkdir "$HOME/empty_dir"
-echo "$(basename $0): deleting temporary files from $cacheDir"
-rsync -aP --delete "$HOME/empty_dir/" "$cacheDir"
+echo "$(basename $0): deleting temporary files from $cache"
+rsync -aP --delete "$HOME/empty_dir/" "$cache"
 rm -r "$cacheDir"
-echo "$(basename $0): temporary files from $cacheDir are removed"
+echo "$(basename $0): temporary files from $cache are removed"
 echo "$(basename $0): results are produced under $outputDir"
 
