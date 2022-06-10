@@ -177,8 +177,8 @@ if [[ -n $shapefile ]]; then
   IFS=' ' read -ra leftBottomLims <<< $(echo "${shapefileExtents[@]:1:2}" | gdaltransform -s_srs "${sourceProj4[1]}" -t_srs EPSG:4326 -output_xy)
   IFS=' ' read -ra rightTopLims <<< $(echo "${shapefileExtents[@]:4:5}" | gdaltransform -s_srs "${sourceProj4[1]}" -t_srs EPSG:4326 -output_xy)
   # define $latLims and $lonLims from $shapefileExtents
-  latLims="${leftBottomLims[0]},${rightTopLims[0]}"
-  lonLims="${leftBottomLims[1]},${rightTopLims[1]}"
+  lonLims="${leftBottomLims[0]},${rightTopLims[0]}"
+  latLims="${leftBottomLims[1]},${rightTopLims[1]}"
   module -q unload gdal;
 fi
 
