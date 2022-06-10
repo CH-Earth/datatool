@@ -16,7 +16,7 @@ Script options:
   -e, --end-date=DATE			The end date of the data
   -l, --lat-lims=REAL,REAL		Latitude's upper and lower bounds
   -n, --lon-lims=REAL,REAL		Longitude's upper and lower bounds
-  -a, --shape-file=PATH			Path to the ESRI shapefile, optional
+  -a, --shape-file=PATH			Path to the ESRI shapefile; optional
   -m, --ensemble=ens1,[ens2[...]]	Ensemble members to process; optional
   					Leave empty to extract all ensemble members
   -j, --submit-job			Submit the data extraction process as a job
