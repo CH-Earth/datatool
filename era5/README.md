@@ -45,7 +45,7 @@ In most hydrological modelling applications, usually 7 variables are needed deta
 |---------------------|-------------------|------------------|------------|-----|-----------------|--------------------|
 |surface pressure     |airpres            |sp                |134         |Pa   |ps               |                    |
 |specific humidity @2m|spechum            |q                 |133         |kg/kg|huss             |                    |
-|air tempreature @2m  |airtemp            |t                 |130         |k    |tas              |                    |
+|air temperature      |airtemp            |t                 |130         |k    |tas              |                    |
 |wind speed @10m      |windspd            |u,v               |131,132     |m/s  |wspd             |WIND=SQRT(u<sup>2</sup>+v<sup>2</sup>)|
 |precipitation        |pptrate            |mtpr              |235055      |mm/hr|                 |mean total precipitation rate|
 |short wave radiation |SWRadAtm           |msdwswrf          |235035      |W m-2|rsds             |                    |
