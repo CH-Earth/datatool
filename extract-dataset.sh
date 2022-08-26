@@ -358,9 +358,20 @@ case "${dataset,,}" in
     if [[ "$parallel" == true ]]; then
       echo "$(basename $0): Warning: Parallel processing is not supported for CanRCM4-WFDEI-GEM-CaPA dataset;"
       echo "$(basename $0): For quasi-parallel processing, consider submitting individual jobs for each ensemble member;"
-      echo "$(basename $0): Continuing with serial processing of the requested domain."
+      echo "$(basename $0): Continuing with serial processing of the requested spatial and temporal domain."
     fi
     call_processing_func "$(dirname $0)/canrcm4_wfdei_gem_capa/canrcm4_wfdei_gem_capa.sh" 
+    ;;
+  
+  # WFDEI-GEM-CaPA
+  "wfdei-gem-capa" | "wfdei_gem_capa" | "wfdei-gem_capa" | "wfdei_gem-capa")
+    # adding the non-parallel argument
+    if [[ "$parallel" == true ]]; then
+      echo "$(basename $0): Warning: Parallel processing is not supported for WFDEI-GEM-CaPA dataset;"
+      echo "$(basename $0): For quasi-parallel processing, consider submitting individual jobs for each variable;"
+      echo "$(basename $0): Continuing with serial processing of the requested spatial and temporal domain."
+    fi
+    call_processing_func "$(dirname $0)/wfdei_gem_capa/wfdei_gem_capa.sh"
     ;;
 
   # dataset not included above
