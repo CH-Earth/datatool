@@ -2,7 +2,7 @@
 In this file, the details of the dataset is explained.
 
 ## Location of Dataset Files
-The `CanRCM4-WFDEI-GEM-CaPA` dataset is located under the following directory accessible from Compute Canada (CC) Graham Cluster:
+The `CanRCM4-WFDEI-GEM-CaPA` dataset is located under the following directory accessible from Digital Alliance of Canada (formerly Compute Canada) Graham cluster:
 ```
 /project/rpp-kshook/Model_Output/280_CanRCM4_Cor_WFDEI-GEM-CaPA
 ```
@@ -74,16 +74,18 @@ Each NetCDF file belongs to a single variable. The list of variables included in
 The spatial extent of the dataset is on latitutes from `31.0625` to `71.9375` and longitudes from `-149.9375` to `-50.0625` covering North America. The resolution is 0.125 degrees. 
 
 ## Temporal Extent
-The time-steps are hourly covering from `January 1951` to `December 2100`.
+The time-steps are 3-hourly covering from `January 1951` to `December 2100`.
 
 ## Short Description on Dataset Variables
-In most hydrological modelling applications, usually 7 variables are needed detailed as following: 1) specific humidity at 1.5 (or 2) meters, 2) surface pressure, 3) air temperature at 1.5 (or 2) meters, 4) wind speed at 10 meters, 5) precipitation, 6) downward short wave radiation, and 7) downward long wave radiation. These variables are available through `RDRS` v2.1 dataset and their details are described in the table below:
+In most hydrological modelling applications, usually 7 variables are needed detailed as following: 1) specific humidity at the Lowest Model Level (sigma=0.995), 2) surface pressure, 3) air temperature at the Lowest Model Level, 4) wind speed at the Lowest Model Level (sigma=0.995), 5) precipitation, 6) downward short wave radiation, and 7) downward long wave radiation. These variables are available through `CanRCM4-WFDEI-GEM-CaPA` dataset and their details are described in the table below:
+
 |Variable Name         |Dataset Variable   |Unit |IPCC abbreviation|Comments              |
 |----------------------|-------------------|-----|-----------------|----------------------|
-|surface pressure      |ps                 |Pa   |ps               |                      |
-|specific humidity@1.5m|hus                |1    |huss             |                      |
-|air tempreature @1.5m |ta                 |K    |tas              |                      |
-|wind speed @10m       |wind               |m/s  |wspd             |Wind Modulus at Lowest Model Level (sigma=0.995)|
-|precipitation         |pr                 |mm/hr|                 |                      |
+|surface pressure      |ps                 |Pa   |ps               |surface pressure      |
+|specific humidity@1.5m|hus                |1    |huss             |Specific Humidity at Lowest Model Level (sigma=0.995)|
+|air tempreature @1.5m |ta                 |K    |tas              |Air Temperature at Lowest Model Level (sigma=0.995)|
+|wind speed @10m       |wind               |m s-1|wspd             |Wind Modulus at Lowest Model Level (sigma=0.995)|
+|precipitation         |pr                 |kg m-2 s-1|            |precipitation flux    |
 |short wave radiation  |rsds               |W m-2|rsds             |Surface Downwelling Shortwave Flux|
 |long wave radiation   |lsds               |W m-2|rlds             |Surface Downwelling Longwave Flux|
+
