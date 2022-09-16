@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# This is a simple example to extract CanRCM4 data for the 
+# This is a simple example to extract WFDEI-GEM-CaPA data for the 
 # South Saskatchewan River Basin (SSRB) approximate extents
 # from Jan 1980 to Dec 2020.
 
@@ -30,16 +30,15 @@ cd ..
 echo "The current directory is: $(pwd)"
 
 # First, submitting wihtout disaggregation
-./extract-dataset.sh  --dataset="canrcm4_wfdei_gem_capa" \
-  --dataset-dir="/project/rpp-kshook/Model_Output/280_CanRCM4_Cor_WFDEI-GEM-CaPA" \
-  --output-dir="$HOME/scratch/canrcm4_output/" \
+./extract-dataset.sh  --dataset="wfdei_gem_capa" \
+  --dataset-dir="/project/rpp-kshook/Model_Output/181_WFDEI-GEM-CaPA_1979-2016" \
+  --output-dir="$HOME/scratch/wfdei_gem_capa_output/" \
   --start-date="1980-01-01 00:00:00" \
-  --end-date="2020-12-31 21:00:00" \
+  --end-date="2015-12-31 21:00:00" \
   --lat-lims=49,54 \
   --lon-lims=-120,-98 \
   --variable="pr,hus,wind" \
-  --prefix="canrcm4_" \
-  --ensemble="r8i2p1r1,r8i2p1r3" \
+  --prefix="wfdei_" \
   --email="youremail@company.ca" \
   -j;
 
