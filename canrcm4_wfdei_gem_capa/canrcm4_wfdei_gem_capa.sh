@@ -110,8 +110,7 @@ shopt -s expand_aliases
 # ==========================
 # Necessary Global Variables
 # ==========================
-# the structure of file names is as follows: "ERA5_merged_YYYYMM.nc"
-format="%Y-%m-%dT%H:%M:%S" # era5 file date format
+format="%Y-%m-%dT%H:%M:%S" #  date format
 fileStruct="z1_1951-2100.Feb29.nc4" # source dataset files' suffix constant
 
 latVar="lat"
