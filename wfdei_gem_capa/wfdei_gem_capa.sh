@@ -139,7 +139,7 @@ unix_epoch () { date --date="$@" +"%s"; }
 check_real () { if [[ "$1" == *'.'* ]]; then echo 'float'; else echo 'int'; fi; }
 
 #convert to float if the number is 'int'
-to_float () { if [[ $(check_real $1) == 'int' ]]; then printf "%.1f" "$1"; echo; else printf "$1"; echo; fi; }
+to_float () { if [[ $(check_real $1) == 'int' ]]; then printf "%.1f" "$1"; echo; else printf "%.5f" "$1"; echo; fi; }
 
 #join array element by the specified delimiter
 join_by () { local IFS="$1"; shift; echo "$*"; }
