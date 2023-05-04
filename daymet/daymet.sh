@@ -109,17 +109,21 @@ shopt -s expand_aliases
 # ==========================
 # the structure of file names is as follows: "YYYYMMDD12.nc"
 daymetDateFormat="%Y" # Daymet dataset date format
-daymetExportDateFormat="%Y%m%d" # exporting date format
-fileStruct="daymet_v4_daily" # source dataset files' prefix constant
+daymetPrefixString="daymet_v4_daily" # source dataset files' prefix constant
 
 # domains of the dataset files
 domains=("na", "pr", "hi") #na: North America, pr: Peurto Rico, hi: Hawaii
 
+# spatial 2-dimentional variable included in the dataset netCDF files
 latVar="lat" # latitude variable
 lonVar="lon" # longitude variable
 
+# spatial dimension names included in the dataset netCDF files
 latDim="y" # latitude dimension
 lonDim="x" # longitude dimension
+
+# spatial extraction script address
+coordIdxScript="$(dirname $0)/../assets/coord_daymet_idx.ncl"
 
 
 # ===================
@@ -179,11 +183,56 @@ delim_min () { IFS=', ' read -r -a l <<< "$@"; printf "%s\n" "${l[@]}" | sort -n
 delim_max () { IFS=', ' read -r -a l <<< "$@"; printf "%s\n" "${l[@]}" | sort -n | tail -n1; }
 
 
+#######################################
+# compare float values using basic
+# calculator, i.e., `bc`
+#
+# Arguments:
+#   1: -> firstNum: first int/float
+#   2: -> SecondNum: second int/float
+#   3: -> operator: comparison operator
+#######################################
+bc_compare () {
+  # local variables
+  local firstNum=$1
+  local secondNum=$2
+  local operator=$3
+
+  # implement the comparison
+  echo "$(bc <<< "$firstNum $operator $secondNum")"
+}
+
+#######################################
+# print the full path of the `n`th file
+# given the $parentDir and $wildcard
+# variables
+#
+# Arguments:
+#   1: -> parentDir: parent directory
+#   2: -> wildcard: wildcard to use in 
+#		    listing files
+#   3: -> nth: nth file to return
+#######################################
+nth_file () {
+  # local variables
+  local parentDir=$1
+  local wildcard=$2
+  local nth=$3
+
+  local fileList
+  
+  # listing files
+  fileList=($parentDir/*${wildcard}*)
+  # printing nth file
+  echo "${fileList[$nth]}"
+}
+
+
 # ===============
 # Data Processing
 # ===============
 # display info
-echo "$(basename $0): processing daymetv4 dataset..."
+echo "$(basename $0): processing daymet v4 dataset..."
 
 # make the output directory
 echo "$(basename $0): creating output directory under $outputDir"
@@ -197,55 +246,98 @@ toDate="$startDate"
 toDateUnix="$(unix_epoch "$toDate")"
 endDateUnix="$(unix_epoch "$endDate")"
 
-for yr in $yearsRange; do
-  # creating yearly directory
-  mkdir -p "$outputDir/$yr" # making the output directory
-  mkdir -p "$cache/$yr" # making the cache directory
+# create empty arrays for included domains and spatial limits
+domainsCovered=() # domain strings
+domainsLatIdx=() # latitude index
+domainLonIdx=() # longitude index
 
-  # setting the end point, either the end of current year, or the $endDate
-  endOfCurrentYearUnix=$(date --date="$yr-01-01 +1year -1day" "+%s") # last time-step of the current year
-  if [[ $endOfCurrentYearUnix -le $endDateUnix ]]; then
-    endPointUnix=$endOfCurrentYearUnix
-  else
-    endPointUnix=$endDateUnix
-  fi
+# parse the upper and lower bounds of a given spatial limit
+minLat=$(echo $latLims | cut -d ',' -f 1)
+maxLat=$(echo $latLims | cut -d ',' -f 2)
+minLon=$(echo $lonLims | cut -d ',' -f 1)
+maxLon=$(echo $lonLims | cut -d ',' -f 2)
 
-  # extract variables from the forcing data files
-  while [[ "$toDateUnix" -le "$endPointUnix" ]]; do
-    # date manipulations
-    toDateFormatted=$(date --date "$toDate" +"$rdrsFormat") # current timestamp formatted to conform to RDRS naming convention
+# load NCL module
+load_ncl_module
 
-    # creating file name
-    file="${toDateFormatted}12.nc" # current file name
+# extract domains that are included in the given spatial limits
+for domain in ${domains[@]}; do
+  # select a representative file (2nd) for each domain
+  domainFile=$(nth_file $datasetDir $domain 2) 
+
+  # check if the input spatial limits overlap with that of domain files
+  if [[ $(bc_compare "$(delim_min $latLims)" "$(ncmax $domainFile $latVar)" "<=") -eq 1 ]] && \
+     [[ $(bc_compare "$(delim_min $lonLims)" "$(ncmax $domainFile $lonVar)" "<=") -eq 1 ]] && \
+     [[ $(bc_compare "$(delim_max $latLims)" "$(ncmin $domainFile $latVar)" ">=") -eq 1 ]] && \
+     [[ $(bc_compare "$(delim_max $lonLims)" "$(ncmin $domainFile $lonVar)" ">=") -eq 1 ]]; then
+
+    # extract the associated indices corresponding to latLims and lonLims
+    coordIdx="$(ncl -nQ 'coord_file='\"$domainFile\" 'minlat='"$minLat" 'maxlat='"$maxLat" 'minlon='"$minLon" 'maxlon='"$maxLon" "$coordIdxScript")"
     
-    # change lon values so the extents are from ~-180 to 0
-    ncap2 -s 'where(lon>0) lon=lon-360' "${datasetDir}/${yr}/${file}" "${cache}/${yr}/${file}"
+    # if spatial index out-of-bound, i.e., 'ERROR' is return
+    if [[ "${coordIdx}" == "ERROR" ]]; then
+      continue 2 # to the next iteration of the `domains` for loop
+    else
+      # add covered domains
+      domainsCovered+=($domain)
 
-    # extracting variables from the files and spatial subsetting
-    cdo -z zip -s -L -sellonlatbox,"$lonLims","$latLims" \
-        -selvar,"$variables" \
-        "${cache}/${yr}/${file}" "${outputDir}/${yr}/${prefix}${file}"
+      # parse the output index for latitude and longitude
+      lonLimsIdx+="$(echo $coordIdx | cut -d ' ' -f 1)"
+      latLimsIdx+="$(echo $coordIdx | cut -d ' ' -f 2)"
 
-    [ $( jobs | wc -l ) -ge $( nproc ) ] && wait # forking shell processes
-
-    # increment time-step by one unit
-    toDate="$(date --date "$toDate 1day")" # current time-step
-    toDateUnix="$(unix_epoch "$toDate")" # current timestamp in unix EPOCH time
-  done
-
-  # wait to make sure the while loop is finished
-  wait
-
-  # go to the next year if necessary
-  if [[ "$toDateUnix" == "$endOfCurrentYearUnix" ]]; then
-    toDate=$(date --date "$toDate 1day")
+      # add the limits to the relevant arrays
+      domainsLatIdx+=("${latLimsIdx}")
+      domainsLonIdx+=("${lonLimsIdx}")
+    fi
   fi
+done
+
+# unload NCl module
+unload_ncl_module
+
+# load core modules again
+load_core_modules
+
+# make array of variable names
+IFS=',' read -ra variablesArr <<< "$(echo "$variables")"
+
+# extract files given the time-series extents
+while [[ "$toDateUnix" -le "$endDateUnix" ]]; do
+
+  # date manipulations
+  toDateFormatted=$(date --date "$toDate" +"$daymetDateFormat") # current timestamp formatted to conform to RDRS naming convention
+
+  # for each overlapped domain
+  for idx in $(seq 1 $(bc <<< "${#domainsCovered[@]} - 1"i)); do
+
+    # for each variable
+    for var in ${variablesArr[@]}; do
+
+      # generating file name
+      file="${daymetPrefixString}_${domainsCovered[$idx]}_${var}_${toDateFormatted}.nc"
+
+      # extract $file
+      ncks -O -d "$latDim","${domainLatIdx[$idx]}" \
+              -d "$lonDim","${domainLonIdx[$idx]}" \
+	      "${datasetDir}/${file}" "${outputDir}/${prefix}${file}"
+
+    done # for var
+
+  done # for domain
+
+  # increment time-step by one unit
+  toDate="$(date --date "$toDate 1year")" # current time-step
+  toDateUnix="$(unix_epoch "$toDate")" # current timestamp in unix EPOCH time
 
 done
 
+# wait to assure the `while` loop is done
+wait
+
+# finalizing the workflow
 mkdir "$HOME/empty_dir"
 echo "$(basename $0): deleting temporary files from $cache"
-rsync -aP --delete "$HOME/empty_dir/" "$cache"
+#rsync -aP --delete "$HOME/empty_dir/" "$cache"
 rm -r "$cache"
 echo "$(basename $0): temporary files from $cache are removed"
 echo "$(basename $0): results are produced under $outputDir"
