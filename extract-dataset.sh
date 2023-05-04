@@ -374,6 +374,11 @@ case "${dataset,,}" in
     call_processing_func "$(dirname $0)/wfdei_gem_capa/wfdei_gem_capa.sh"
     ;;
 
+  # Daymet dataset
+  "daymet" | "Daymet" )
+    call_processing_func "$(dirname $0)/daymet/daymet.sh" "5years"
+    ;;
+
   # dataset not included above
   *)
     echo "$(basename $0): missing/unknown dataset";
