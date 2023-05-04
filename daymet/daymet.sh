@@ -108,21 +108,43 @@ shopt -s expand_aliases
 # Necessary Global Variables
 # ==========================
 # the structure of file names is as follows: "YYYYMMDD12.nc"
-rdrsFormat="%Y%m%d" # rdrs file date format
-exportFormat="%Y%m%d" # exported file date format
-fileStruct="" # source dataset files' prefix constant
+daymetDateFormat="%Y" # Daymet dataset date format
+daymetExportDateFormat="%Y%m%d" # exporting date format
+fileStruct="daymet_v4_daily" # source dataset files' prefix constant
 
-latVar="rlat"
-lonVar="rlon"
+# domains of the dataset files
+domains=("na", "pr", "hi") #na: North America, pr: Peurto Rico, hi: Hawaii
+
+latVar="lat" # latitude variable
+lonVar="lon" # longitude variable
+
+latDim="y" # latitude dimension
+lonDim="x" # longitude dimension
+
 
 # ===================
 # Necessary Functions
 # ===================
 # Modules below available on Compute Canada (CC) Graham Cluster Server
+## core modules
 load_core_modules () {
-    module -q load cdo/2.0.4
-    module -q load nco/5.0.6
+  module -q load cdo/2.0.4
+  module -q load nco/5.0.6
 }
+unload_core_modules () {
+  # WARNING: DO NOT USE IF YOU ARE NOT SURE HOW TO URE IT
+  module -q unload cdo/2.0.4
+  module -q unload nco/5.0.6
+}
+## ncl modules
+load_ncl_module () {
+  module -q load ncl/6.6.2
+}
+unload_ncl_module () {
+  module -q unload ncl/6.6.2
+}
+
+# loading core modules for the script
 load_core_modules
 
 
@@ -144,24 +166,33 @@ join_by () { local IFS="$1"; shift; echo "$*"; }
 #to_float the latLims and lonLims, real numbers delimited by ','
 lims_to_float () { IFS=',' read -ra l <<< $@; f_arr=(); for i in "${l[@]}"; do f_arr+=($(to_float $i)); done; echo $(join_by , "${f_arr[@]}"); }
 
+#maximum of a variable in a netcdf file
+ncmax () { ncap2 -O -C -v -s "foo=${1}.max();print(foo)" ${2} $cache/foo.nc | cut -f 3- -d ' ' ; }
+
+#minimum of a variable in a netcdf file
+ncmin () { ncap2 -O -C -v -s "foo=${1}.min();print(foo)" ${2} $cache/foo.nc | cut -f 3- -d ' ' ; }
+
+#minimum of comma delimited string
+delim_min () { IFS=', ' read -r -a l <<< "$@"; printf "%s\n" "${l[@]}" | sort -n | head -n1; }
+
+#maximum of comma delimited string
+delim_max () { IFS=', ' read -r -a l <<< "$@"; printf "%s\n" "${l[@]}" | sort -n | tail -n1; }
+
 
 # ===============
 # Data Processing
 # ===============
 # display info
-echo "$(basename $0): processing ECCC RDRSv2.1..."
+echo "$(basename $0): processing daymetv4 dataset..."
 
 # make the output directory
 echo "$(basename $0): creating output directory under $outputDir"
 mkdir -p "$outputDir"
+
 echo "$(basename $0): creating cache directory under $cache"
 mkdir -p "$cache"
 
 # define necessary dates
-startYear=$(date --date="$startDate" +"%Y") # start year (first folder)
-endYear=$(date --date="$endDate" +"%Y") # end year (last folder)
-yearsRange=$(seq $startYear $endYear)
-
 toDate="$startDate"
 toDateUnix="$(unix_epoch "$toDate")"
 endDateUnix="$(unix_epoch "$endDate")"
