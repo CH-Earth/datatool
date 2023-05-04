@@ -103,6 +103,8 @@ alias date='TZ=UTC date'
 # expand aliases for the one stated above
 shopt -s expand_aliases
 
+# create $cache directory
+mkdir -p $cache
 
 # ==========================
 # Necessary Global Variables
@@ -112,7 +114,7 @@ daymetDateFormat="%Y" # Daymet dataset date format
 daymetPrefixString="daymet_v4_daily" # source dataset files' prefix constant
 
 # domains of the dataset files
-domains=("na", "pr", "hi") #na: North America, pr: Peurto Rico, hi: Hawaii
+domains=("na" "pr" "hi") #na: North America, pr: Peurto Rico, hi: Hawaii
 
 # spatial 2-dimentional variable included in the dataset netCDF files
 latVar="lat" # latitude variable
@@ -171,10 +173,10 @@ join_by () { local IFS="$1"; shift; echo "$*"; }
 lims_to_float () { IFS=',' read -ra l <<< $@; f_arr=(); for i in "${l[@]}"; do f_arr+=($(to_float $i)); done; echo $(join_by , "${f_arr[@]}"); }
 
 #maximum of a variable in a netcdf file
-ncmax () { ncap2 -O -C -v -s "foo=${1}.max();print(foo)" ${2} $cache/foo.nc | cut -f 3- -d ' ' ; }
+ncmax () { ncap2 -O -C -v -s "foo=${2}.max();print(foo)" ${1} "$cache/max_$(basename $1)" | cut -f 3- -d ' ' ; }
 
 #minimum of a variable in a netcdf file
-ncmin () { ncap2 -O -C -v -s "foo=${1}.min();print(foo)" ${2} $cache/foo.nc | cut -f 3- -d ' ' ; }
+ncmin () { ncap2 -O -C -v -s "foo=${2}.min();print(foo)" ${1} "$cache/min_$(basename $1)" | cut -f 3- -d ' ' ; }
 
 #minimum of comma delimited string
 delim_min () { IFS=', ' read -r -a l <<< "$@"; printf "%s\n" "${l[@]}" | sort -n | head -n1; }
@@ -263,7 +265,7 @@ load_ncl_module
 # extract domains that are included in the given spatial limits
 for domain in ${domains[@]}; do
   # select a representative file (2nd) for each domain
-  domainFile=$(nth_file $datasetDir $domain 2) 
+  domainFile=$(nth_file $datasetDir $domain 2)
 
   # check if the input spatial limits overlap with that of domain files
   if [[ $(bc_compare "$(delim_min $latLims)" "$(ncmax $domainFile $latVar)" "<=") -eq 1 ]] && \
@@ -292,6 +294,13 @@ for domain in ${domains[@]}; do
   fi
 done
 
+# check if $domainsCovered is empty
+if [[ "${#domainsCovered[@]}" -eq 0 ]]; then
+  echo -n "$(log_date)$(basename $0): ERROR! The input spatial limits do not "
+  echo "overlap with the dataset covered area. Try other extents."
+  exit 1;
+fi
+
 # unload NCl module
 unload_ncl_module
 
@@ -301,6 +310,9 @@ load_core_modules
 # make array of variable names
 IFS=',' read -ra variablesArr <<< "$(echo "$variables")"
 
+# status update
+echo "$(log_date)$(basename $0): extracting daymet v4 netCDF files..."
+
 # extract files given the time-series extents
 while [[ "$toDateUnix" -le "$endDateUnix" ]]; do
 
@@ -308,7 +320,7 @@ while [[ "$toDateUnix" -le "$endDateUnix" ]]; do
   toDateFormatted=$(date --date "$toDate" +"$daymetDateFormat") # current timestamp formatted to conform to RDRS naming convention
 
   # for each overlapped domain
-  for idx in $(seq 1 $(bc <<< "${#domainsCovered[@]} - 1"i)); do
+  for idx in $(seq 0 $(bc <<< "${#domainsCovered[@]} - 1")); do
 
     # for each variable
     for var in ${variablesArr[@]}; do
@@ -317,13 +329,13 @@ while [[ "$toDateUnix" -le "$endDateUnix" ]]; do
       file="${daymetPrefixString}_${domainsCovered[$idx]}_${var}_${toDateFormatted}.nc"
 
       # extract $file
-      ncks -O -d "$latDim","${domainLatIdx[$idx]}" \
-              -d "$lonDim","${domainLonIdx[$idx]}" \
+      ncks -O -d "$latDim","${domainsLatIdx[$idx]}" \
+              -d "$lonDim","${domainsLonIdx[$idx]}" \
 	      "${datasetDir}/${file}" "${outputDir}/${prefix}${file}"
 
     done # for var
 
-  done # for domain
+  done # for domain's index
 
   # increment time-step by one unit
   toDate="$(date --date "$toDate 1year")" # current time-step
