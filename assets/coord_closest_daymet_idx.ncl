@@ -48,21 +48,19 @@
 ;  print("minlon: "+minlon)
 ;  print("maxlon: "+maxlon)
 
+;---building arrays for getind_latlon2d () function
+  lat = (/ minlat, maxlat /)
+  lon = (/ minlon, maxlon /)
+
 ;---Get xy indexes, and then use these to get lat/lon values back again.
   opt    = True
-  loc    = region_ind (glat2d, glon2d, minlat, maxlat, minlon, maxlon)
+  loc    = getind_latlon2d (glat2d, glon2d, lat, lon)
 
-;---print ERROR and exit of spatial index are out of range
-  if (.not. all(loc)) then
-    print("ERROR")
-    exit
-  end if
-
-;---print the following box of data: [minlonidx, maxlonidx, minlatidx, maxlatidx]
-  minlonidx = loc(2)
-  maxlonidx = loc(3)
-  minlatidx = loc(0)
-  maxlatidx = loc(1)
+;---print the following array: [minlonidx, maxlonidx, minlatidx, maxlatidx]
+  minlonidx = min(loc(:, 1)) 
+  maxlonidx = max(loc(:, 1))
+  minlatidx = min(loc(:, 0))
+  maxlatidx = max(loc(:, 0))
   print(minlonidx+","+maxlonidx)
   print(minlatidx+","+maxlatidx)
 ;---END

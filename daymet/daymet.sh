@@ -126,7 +126,7 @@ lonDim="x" # longitude dimension
 
 # spatial extraction script address
 coordIdxScript="$(dirname $0)/../assets/coord_daymet_idx.ncl"
-
+coordClosestIdxScript="$(dirname $0)/../assets/coord_closest_daymet_idx.ncl"
 
 # ===================
 # Necessary Functions
@@ -281,20 +281,21 @@ for domain in ${domains[@]}; do
     
     # if spatial index out-of-bound, i.e., 'ERROR' is return
     if [[ "${coordIdx}" == "ERROR" ]]; then
-      continue 2 # to the next iteration of the `domains` for loop
-    else
-      # add covered domains
-      domainsCovered+=($domain)
-
-      # parse the output index for latitude and longitude
-      lonLimsIdx+="$(echo $coordIdx | cut -d ' ' -f 1)"
-      latLimsIdx+="$(echo $coordIdx | cut -d ' ' -f 2)"
-
-      # add the limits to the relevant arrays
-      domainsLatIdx+=("${latLimsIdx}")
-      domainsLonIdx+=("${lonLimsIdx}")
+      # extract the closest index values
+      coordIdx="$(ncl -nQ 'coord_file='\"$domainFile\" 'minlat='"$minLat" 'maxlat='"$maxLat" 'minlon='"$minLon" 'maxlon='"$maxLon" "$coordClosestIdxScript")"
     fi
-  fi
+
+    # add covered domains
+    domainsCovered+=($domain)
+
+    # parse the output index for latitude and longitude
+    lonLimsIdx+="$(echo $coordIdx | cut -d ' ' -f 1)"
+    latLimsIdx+="$(echo $coordIdx | cut -d ' ' -f 2)"
+
+    # add the limits to the relevant arrays
+    domainsLatIdx+=("${latLimsIdx}")
+    domainsLonIdx+=("${lonLimsIdx}")
+    fi
 done
 
 # check if $domainsCovered is empty
@@ -337,7 +338,6 @@ while [[ "$toDateUnix" -le "$endDateUnix" ]]; do
 	      "${datasetDir}/${file}" "${outputDir}/${prefix}${file}"
 
     done # for var
-
   done # for domain's index
 
   # increment time-step by one unit
