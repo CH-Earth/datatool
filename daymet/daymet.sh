@@ -157,6 +157,9 @@ load_core_modules
 #######################################
 # useful one-liners
 #######################################
+# log date format
+log_date () { echo "($(date +"%Y-%m-%d %H:%M:%S")) "; }
+
 #calcualte Unix EPOCH time in seconds from 1970-01-01 00:00:00
 unix_epoch () { date --date="$@" +"%s"; }
 
@@ -234,13 +237,13 @@ nth_file () {
 # Data Processing
 # ===============
 # display info
-echo "$(basename $0): processing daymet v4 dataset..."
+echo "$(log_date)$(basename $0): processing daymet v4 dataset..."
 
 # make the output directory
-echo "$(basename $0): creating output directory under $outputDir"
+echo "$(log_date)$(basename $0): creating output directory under $outputDir"
 mkdir -p "$outputDir"
 
-echo "$(basename $0): creating cache directory under $cache"
+echo "$(log_date)$(basename $0): creating cache directory under $cache"
 mkdir -p "$cache"
 
 # define necessary dates
@@ -316,8 +319,8 @@ echo "$(log_date)$(basename $0): extracting daymet v4 netCDF files..."
 # extract files given the time-series extents
 while [[ "$toDateUnix" -le "$endDateUnix" ]]; do
 
-  # date manipulations
-  toDateFormatted=$(date --date "$toDate" +"$daymetDateFormat") # current timestamp formatted to conform to RDRS naming convention
+  # date format adjustment 
+  toDateFormatted=$(date --date "$toDate" +"$daymetDateFormat") 
 
   # for each overlapped domain
   for idx in $(seq 0 $(bc <<< "${#domainsCovered[@]} - 1")); do
