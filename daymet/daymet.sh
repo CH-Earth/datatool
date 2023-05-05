@@ -113,8 +113,8 @@ mkdir -p $cache
 daymetDateFormat="%Y" # Daymet dataset date format
 daymetPrefixString="daymet_v4_daily" # source dataset files' prefix constant
 
-# domains of the dataset files
-domains=("na" "pr" "hi") #na: North America, pr: Peurto Rico, hi: Hawaii
+# domains of the dataset files - for now, only "na" domain
+domains=("na") #na: North America, pr: Peurto Rico, hi: Hawaii
 
 # spatial 2-dimentional variable included in the dataset netCDF files
 latVar="lat" # latitude variable
@@ -278,7 +278,7 @@ for domain in ${domains[@]}; do
 
     # extract the associated indices corresponding to latLims and lonLims
     coordIdx="$(ncl -nQ 'coord_file='\"$domainFile\" 'minlat='"$minLat" 'maxlat='"$maxLat" 'minlon='"$minLon" 'maxlon='"$maxLon" "$coordIdxScript")"
-    
+ 
     # if spatial index out-of-bound, i.e., 'ERROR' is return
     if [[ "${coordIdx}" == "ERROR" ]]; then
       # extract the closest index values
