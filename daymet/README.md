@@ -68,9 +68,9 @@ The spatial resolutaion of `Daymet` gridded data is 1 $km$. The model files are 
 The time-steps are daily and the temporal extent for each domain is listed in the following table:
 |Number		|Domain		|Time-step interval	|Start date	|End date	|
 |:-------------:|:-------------:|:---------------------:|:-------------:|:-------------:|
-|1		|`na`		|daily			|1980-01-01	|2022-12-31	|
-|2		|`pr`		|daily			|1950-01-01	|2022-12-31	|
-|3		|`hi`		|daily			|1980-01-01	|2022-12-31	|
+|1		|`na`		|daily			|`1980-01-01`	|`2022-12-31`	|
+|2		|`pr`		|daily			|`1950-01-01`	|`2022-12-31`	|
+|3		|`hi`		|daily			|`1980-01-01`	|`2022-12-31`	|
 
 Also, "[t]he Daymet calendar is based on a standard calendar year. All Daymet years have 1 - 365 days, including leap years. For leap years, the Daymet database includes leap day. Values for December 31 are discarded from leap years to maintain a 365-day year."
 
@@ -79,15 +79,15 @@ Also, "[t]he Daymet calendar is based on a standard calendar year. All Daymet ye
 ## Short Description on `Daymet` Variables
 The variables currently available through the `Daymet` dataset and their details are described in the table below, taken from the [source](https://daymet.ornl.gov/overview):
 
-|Variable Name		|`daymet` Variable	|Unit	|Comments								|
-|-----------------------|-----------------------|-------|-----------------------------------------------------------------------|
-|day length		|dayl			|s/day	|Duration of the daylight period in seconds per day. This calculation is based on the period of the day during which the sun is above a hypothetical flat horizon|
-|precipitation		|prcp			|mm/day	|Daily total precipitation in millimeters per day, sum of all forms converted to water-equivalent. Precipitation occurrence on any given day may be ascertained.|
-|shortwave rdiation	|srad			|W/m2	|Incident shortwave radiation flux density in watts per square meter, taken as an average over the daylight period of the day. NOTE: Daily total radiation (MJ/m2/day) can be calculated as follows: ((srad (W/m2) * dayl (s/day)) / l,000,000)|
-|snow water equivalent	|swe			|kg/m2	|Snow water equivalent in kilograms per square meter. The amount of water contained within the snowpack.|
-|maximum air temperature|tmax			|deg C	|Daily maximum 2-meter air temperature in degrees Celsius.|
-|minimum air temperature|tmin			|deg C	|Daily minimum 2-meter air temperature in degrees Celsius.|
-|water vapor pressure	|vp			|Pa	|Water vapor pressure in pascals. Daily average partial pressure of water vapor.|
+|Variable Name		|`daymet` Variable	|Unit		|Comments								|
+|-----------------------|-----------------------|---------------|-----------------------------------------------------------------------|
+|day length		|`dayl`			|`s/day`	|Duration of the daylight period in seconds per day. This calculation is based on the period of the day during which the sun is above a hypothetical flat horizon|
+|precipitation		|`prcp`			|`mm/day`	|Daily total precipitation in millimeters per day, sum of all forms converted to water-equivalent. Precipitation occurrence on any given day may be ascertained.|
+|shortwave rdiation	|`srad`			|`W/m2`		|Incident shortwave radiation flux density in watts per square meter, taken as an average over the daylight period of the day. NOTE: Daily total radiation `(MJ/m2/day)` can be calculated as follows: `((srad (W/m2) * dayl (s/day)) / l,000,000)`|
+|snow water equivalent	|`swe `  		|`kg/m2`	|Snow water equivalent in kilograms per square meter. The amount of water contained within the snowpack.|
+|maximum air temperature|`tmax`			|`deg C`	|Daily maximum 2-meter air temperature in degrees Celsius.|
+|minimum air temperature|`tmin`			|`deg C`	|Daily minimum 2-meter air temperature in degrees Celsius.|
+|water vapor pressure	|`vp`	  		|`Pa`		|Water vapor pressure in pascals. Daily average partial pressure of water vapor.|
 
 For a complete catalog of the dataset, see [here](https://daymet.ornl.gov/overview).
 
