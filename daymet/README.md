@@ -58,9 +58,9 @@ The NetCDF files of the dataset contain 7 variables. You may see a list of varia
 The spatial resolutaion of `Daymet` gridded data is 1 $km$. The model files are divided between three different domains: 1) North American (na), 2) Peurto Rico (pr), and 3) Hawaii (hi). Each domains spatial extents are printed in the following table:
 |Number		|Domain		|Latitude extents		|Longitude extents		|
 |:-------------:|:-------------:|:-----------------------------:|:-----------------------------:|
-|1		|`na`		| +6.08° to +83.79°		| -180° to +180°		|
-|2		|`pr`		| +16.85° to +19.93°		| -67.97° to -64.13°		|
-|3		|`hi`		| +17.96° to +23.51°		| -160.30° to -154.78°		|
+|1		|`na`		| `+6.08`° to `+83.79`°		| -180° to +180°		|
+|2		|`pr`		| `+16.85`° to `+19.93`°	| -67.97° to -64.13°		|
+|3		|`hi`		| `+17.96`° to `+23.51`°	| -160.30° to -154.78°		|
 
 :warning: As mentioned previously, only the `na` domain is considered in the subsetting process of `datatool`.
 
