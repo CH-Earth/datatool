@@ -79,7 +79,7 @@ Also, "[t]he Daymet calendar is based on a standard calendar year. All Daymet ye
 ## Short Description on `Daymet` Variables
 The variables currently available through the `Daymet` dataset and their details are described in the table below, taken from the [source](https://daymet.ornl.gov/overview):
 
-|Variable Name		|`daymet` Variable	|Unit		|Comments								|
+|Variable Name		|`Daymet` Variable	|Unit		|Comments								|
 |-----------------------|-----------------------|---------------|-----------------------------------------------------------------------|
 |day length		|`dayl`			|`s/day`	|Duration of the daylight period in seconds per day. This calculation is based on the period of the day during which the sun is above a hypothetical flat horizon|
 |precipitation		|`prcp`			|`mm/day`	|Daily total precipitation in millimeters per day, sum of all forms converted to water-equivalent. Precipitation occurrence on any given day may be ascertained.|
