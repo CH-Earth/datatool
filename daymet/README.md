@@ -1,7 +1,7 @@
 # `Daymet` dataset 
 In this file, the details of the dataset is explained.
 
-:warning: the dataset files are divided between three different spatial domains: 1) North America (`na`), 2) Peurto Rico (`pr`), and 3) Hawaii (`hi`). For the moment, only the `na` domain is considered in `datatool`. 
+:warning: the dataset files are divided between three different spatial domains: 1) North America (na), 2) Peurto Rico (pr), and 3) Hawaii (hi). For the moment, only the `na` domain is considered in `datatool`. 
 
 ## Location of Dataset Files
 The global `Daymet` dataset is located under the following directory accessible from Digital Research Alliance of Canada (DRA) Graham cluster:
@@ -47,7 +47,7 @@ and the structure of the dataset hourly files is as following:
 ## Coordinate Variables and Time-stamps
 
 ### Coordinate Variables
-The coordinate variables of the `Daymet` simulations are `lon` and `lat` representing the longitude and latitude points, respectively. The coordinate system is 2-dimensional and follows a Lambert Conformal Conic coordinate system.
+The coordinate variables of the `Daymet` simulations are `lon` and `lat` representing the longitude and latitude points, respectively. The coordinate system is 2-dimensional and follows a Lambert Conformal Conic projection system.
 ### Time-stamps
 The time-stamps are included in the original files.
 
