@@ -43,8 +43,6 @@ Usage:
 Script options:
   -d, --dataset				Meteorological forcing dataset of interest
                                         currently available options are:
-                                        'CONUSI';'ERA5';'CONUSII';'RDRS';
-                                        'canrcm4-wfdei-gem-capa';
   -i, --dataset-dir=DIR			The source path of the dataset file(s)
   -v, --variable=var1[,var2[...]]	Variables to process
   -o, --output-dir=DIR			Writes processed files to DIR
@@ -63,6 +61,25 @@ Script options:
   -E, --email=user@example.com		E-mail user when job starts, ends, and finishes; optional
   -V, --version				Show version
   -h, --help				Show this screen and exit
+
+
+Currently, the following meteorological datasets are
+available for processing:
+
+  1.  NCAR-GWF WRF CONUS I (DOI: 10.1007/s00382-016-3327-9)
+  2.  NCAR-GWF WRF CONUS II (DOI: 10.5065/49SN-8E08)
+  3.  ECMWF ERA5 (DOI: 10.24381/cds.adbb2d47)
+  4.  ECCC RDRSv2.1 (DOI: 10.5194/hess-25-4917-2021)
+  5.  CCRN CanRCM4-WFDEI-GEM-CaPA (DOI: 10.5194/essd-12-629-2020)
+  6.  WFDEI-GEM-CaPA (DOI: 10.20383/101.0111)
+  7.  ORNL Daymet (DOI: 10.3334/ORNLDAAC/2129)
+  8.  BCC-CSM2-MR (DOI: TBD)
+  9.  CNRM-CM6-1 (DOI: TBD)
+  10. EC-Earth3-Veg (DOI: TBD)
+  11. GFDL-CM4 (DOI: TBD)
+  12. GFDL-ESM4 (DOI: TBD)
+  13. IPSL-CM6A-LR (DOI: TBD)
+  14. MRI-ESM2-0 (DOI: TBD)
 
 For bug reports, questions, discussions open an issue
 at https://github.com/kasra-keshavarz/datatool/issues" >&1;
@@ -207,12 +224,42 @@ startDateArr=() # start dates array
 endDateArr=()   # end dates array
 
 # necessary one-liner functions
-unix_epoch () { date --date="$@" +"%s"; } # unix EPOCH command
+unix_epoch () { date --date="$@" +"%s"; } # unix EPOCH date value 
 format_date () { date --date="$1" +"$2"; } # format date
 
 # default date format
 dateFormat="%Y-%m-%d %H:%M:%S"
 
+
+#######################################
+# Chunking dates based on given time-
+# steps
+#
+# Globals:
+#   startDate: start date of the
+#	       subsetting process
+#   parallel: true by default, false if 
+#	      --no-chunk is activated
+#   startDateArr: array of chunked
+#		  start dates
+#   endDateArr: array of chunked end
+#		dates
+#   startDate: start date of the
+#	       process
+#   endDate: end date of the process
+#   dateFormat: default date format
+#		for manipulations
+#   
+#
+# Arguments:
+#   1: -> tStep: string of time-step
+#	  	 intervals for chunks
+#
+# Outputs:
+#   startDateArray and endDateArray
+#   will be filled for each chunk of
+#   date for further processing
+#######################################
 chunk_dates () {
   # local variables
   local toDate="$startDate"
@@ -301,9 +348,9 @@ call_processing_func () {
 	#SBATCH --account=rpp-kshook
 	#SBATCH --time=04:00:00
 	#SBATCH --mem=8GB
-	#SBATCH --job-name=GWF_${scriptName}
-	#SBATCH --error=$HOME/scratch/.gdt_logs/GWF_%A-%a_err.txt
-	#SBATCH --output=$HOME/scratch/.gdt_logs/GWF_%A-%a.txt
+	#SBATCH --job-name=DATA_${scriptName}
+	#SBATCH --error=$HOME/scratch/.datatool_logs/data_%A-%a_err.txt
+	#SBATCH --output=$HOME/scratch/.datatool_logs/data_%A-%a.txt
 	#SBATCH --mail-user=$email
 	#SBATCH --mail-type=BEGIN,END,FAIL
 
@@ -315,7 +362,7 @@ call_processing_func () {
 	echo "${scriptName}.sh: #\${SLURM_ARRAY_TASK_ID} chunk submitted."
 	echo "${scriptName}.sh: Chunk start date is \$tBegin"
 	echo "${scriptName}.sh: Chunk end date is   \$tEnd"
-	
+
 	srun ${scriptRun} --start-date="\$tBegin" --end-date="\$tEnd" --cache="${cache}-\${SLURM_ARRAY_JOB_ID}-\${SLURM_ARRAY_TASK_ID}"
 	EOF
     # echo message
@@ -377,6 +424,11 @@ case "${dataset,,}" in
   # Daymet dataset
   "daymet" | "Daymet" )
     call_processing_func "$(dirname $0)/daymet/daymet.sh" "5years"
+    ;;
+
+  # BCC-CSM2-MR
+  "bcc" | "bcc_csm2_mr" | "bcc-csm2-mr" )
+    call_processing_func "$(dirname $0)/bcc-csm2-mr/bcc-csm2-mr.sh" "20years"
     ;;
 
   # dataset not included above
