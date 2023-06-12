@@ -319,57 +319,81 @@ declare -A funcArgs=([jobSubmission]="$jobSubmission" \
 # Template data processing function
 # =================================
 call_processing_func () {
-
+  # input arguments
   local script="$1" # script local path
   local chunkTStep="$2" # chunking time-frame periods
-
+  
+  # local variables
   local scriptName=$(echo $script | cut -d '/' -f 2) # script/dataset name
-
-  # prepare a script in string format
-  # all processing script files must follow same input argument standard
-  local scriptRun
-  read -rd '' scriptRun <<- EOF
-	bash ${script} --dataset-dir="${funcArgs[datasetDir]}" --variable="${funcArgs[variables]}" --output-dir="${funcArgs[outputDir]}" --start-date="${funcArgs[startDate]}" --end-date="${funcArgs[endDate]}" --time-scale="${funcArgs[timeScale]}" --lat-lims="${funcArgs[latLims]}" --lon-lims="${funcArgs[lonLims]}" --prefix="${funcArgs[prefixStr]}" --cache="${funcArgs[cache]}" --ensemble="${funcArgs[ensemble]}"
-	EOF
+  local logDir="$HOME/.datatool/" # local directory for logs
+  local jobArrLen
 
   # evaluate the script file using the arguments provided
   if [[ "${funcArgs[jobSubmission]}" == true ]]; then
-    # chunk time-frame
+    # chunk time-frame and ensembles
     chunk_dates "$chunkTStep"
-    local dateArrLen="$((${#startDateArr[@]}-1))"  # or $endDateArr
+    chunk_ensemble "$ensemble"
+
+    # length of total elements to iterate
+    jobArrLen=$(( ${#startDateArr[@]} * ${#ensembleArr[@]} ))  # or $endDateArr
+
     # Create a temporary directory for keeping job logs
-    mkdir -p "$HOME/scratch/.gdt_logs"
-    # SLURM batch file
+    mkdir -p "${logDir}"
+    
+    # parallel run via SLURM job arrays 
     sbatch <<- EOF
 	#!/bin/bash
-	#SBATCH --array=0-$dateArrLen
+	#SBATCH --array=0-$jobArrLen
 	#SBATCH --cpus-per-task=4
 	#SBATCH --nodes=1
 	#SBATCH --account=rpp-kshook
 	#SBATCH --time=04:00:00
 	#SBATCH --mem=8GB
 	#SBATCH --job-name=DATA_${scriptName}
-	#SBATCH --error=$HOME/scratch/.datatool_logs/data_%A-%a_err.txt
-	#SBATCH --output=$HOME/scratch/.datatool_logs/data_%A-%a.txt
+	#SBATCH --error=$logDir/data_%A-%a_err.txt
+	#SBATCH --output=$logDir/data_%A-%a.txt
 	#SBATCH --mail-user=$email
 	#SBATCH --mail-type=BEGIN,END,FAIL
-
+	
+	# defining chunked date arrays
 	$(declare -p startDateArr)
 	$(declare -p endDateArr)
-	tBegin="\${startDateArr[\${SLURM_ARRAY_TASK_ID}]}"
-	tEnd="\${endDateArr[\${SLURM_ARRAY_TASK_ID}]}"
 
-	echo "${scriptName}.sh: #\${SLURM_ARRAY_TASK_ID} chunk submitted."
+	# defining indices
+	idx=$(( \${SLURM_ARRAY_JOB_ID} - 1 ))
+	dateIdx=$(( idx / ${#ensembleArr[@]} ))
+	ensembleIdx=$(( idx % ${#ensembleArr[@]} ))
+
+	# indexing date and ensemble arrays 
+	tBegin="\${startDateArr[\${dateIdx}]}"
+	tEnd="\${endDateArr[\${dateIdx}]}"
+	member="\${ensembleArr[\${ensembleIdx}]}"
+
+	echo "${scriptName}.sh: #\${SLURM_ARRAY_TASK_ID} chunk submitted"
 	echo "${scriptName}.sh: Chunk start date is \$tBegin"
 	echo "${scriptName}.sh: Chunk end date is   \$tEnd"
+	if [[ -n $member ]]; then
+	  echo "${scriptName}.sh: Ensemble member is \$member"
+	fi
 
-	srun ${scriptRun} --start-date="\$tBegin" --end-date="\$tEnd" --cache="${cache}-\${SLURM_ARRAY_JOB_ID}-\${SLURM_ARRAY_TASK_ID}"
+	srun ${scriptRun} --start-date="\$tBegin" --end-date="\$tEnd" --cache="${cache}-\${SLURM_ARRAY_JOB_ID}-\${SLURM_ARRAY_TASK_ID}" --ensemble="${member}"
 	EOF
     # echo message
-    echo "$(basename $0): job submission details are printed under ${HOME}/scratch/.gdt_logs"
- 
+    echo "$(basename $0): job submission details are printed under $logDir"
+
+  # serial run
   else
-    eval "$scriptRun"
+    bash ${script} --dataset-dir="${funcArgs[datasetDir]}" \
+    		   --variable="${funcArgs[variables]}" \
+		   --output-dir="${funcArgs[outputDir]}" \
+		   --start-date="${funcArgs[startDate]}" \
+		   --end-date="${funcArgs[endDate]}" \
+		   --time-scale="${funcArgs[timeScale]}" \
+		   --lat-lims="${funcArgs[latLims]}" \
+		   --lon-lims="${funcArgs[lonLims]}" \
+		   --prefix="${funcArgs[prefixStr]}" \
+		   --cache="${funcArgs[cache]}" \
+		   --ensemble="${funcArgs[ensemble]}"
   fi
 }
 
