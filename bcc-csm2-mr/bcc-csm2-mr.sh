@@ -156,7 +156,11 @@ mkdir -p "$outputDir"
 if [[ -n "$ensemble" ]]; then
   IFS=',' read -ra ensembleArr <<< "$(echo "$ensemble")" # comma separated input
 else
-  IFS=' ' read -ra ensembleArr <<< $(echo $(cd $datasetDir && ls -d */ | cut -d '/' -f 1))
+  # if nothing has been entred, throw an error and exit
+  echo "$(log_date)$(basename $0): ERROR! --ensemble argument does not" \
+  "have valid value(s)"
+  # exit the script
+  exit 1;
 fi
 
 # define necessary dates
@@ -180,7 +184,7 @@ for member in "${ensembleArr[@]}"; do
   	 -d "$lonVar",$(lims_to_float "$lonLims") \
   	 -v "$variables" \
   	 "$datasetDir/${filePrefix}_${member}_${fileSuffix}_${yr}.nc" \
-  	 "$outputDir/${prefix}_${filePrefix}_${member}_${varStr}_${yr}.nc"
+  	 "$outputDir/${prefix}${filePrefix}_${member}_${varStr}_${yr}.nc"
   done
 
   # wait to assure the `for` loop is finished
