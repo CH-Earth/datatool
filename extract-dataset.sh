@@ -1,6 +1,7 @@
 #!/bin/bash
 # Meteorological Data Processing Workflow
 # Copyright (C) 2022, University of Saskatchewan
+# Copyright (C) 2023, University of Calgary
 #
 # This file is part of Meteorological Data Processing Workflow
 #
@@ -295,6 +296,38 @@ chunk_dates () {
   fi
 }
 
+#######################################
+# Chunking ensemble members in array
+# elements
+#
+# Arguments:
+#   1: -> esnemble: comma-separated 
+#	  values of ensemble members
+#
+# Outputs:
+#   Global ensembleArr array containing
+#   individual members names or an
+#   empty array if '--ensemble'
+#   argument was not applicable
+#######################################
+chunk_ensemble () {
+  # local variables
+  local value="$1"
+
+  # make global 'ensembleArr' array
+  IFS=',' read -ra ensembleArr <<< "$(echo "$value")"
+  
+  # check to see if the '--ensemble'
+  # argument was applicable
+  if [[ "${#ensembleArr[@]}" -gt 0 ]]; then
+    :
+  else
+    # make an empty array for datasets that
+    # do not have any ensemble members
+    ensembleArr=("")
+  fi
+}
+
 
 # ======================
 # Necessary preparations
@@ -315,32 +348,50 @@ declare -A funcArgs=([jobSubmission]="$jobSubmission" \
 		    );
 
 
-# =================================
-# Template data processing function
-# =================================
+# ========================
+# Data processing function
+# ========================
 call_processing_func () {
-  # input arguments
-  local script="$1" # script local path
+  # input arguments as local variables
+  scriptFile="$1" # script local path
   local chunkTStep="$2" # chunking time-frame periods
-  
+
   # local variables
-  local scriptName=$(echo $script | cut -d '/' -f 2) # script/dataset name
+  local scriptName=$(echo $scriptFile | cut -d '/' -f 2) # script/dataset name
   local logDir="$HOME/.datatool/" # local directory for logs
   local jobArrLen
+
+  # make the $logDir if haven't been created yet
+  mkdir -p $logDir
+
+  # typical script to run for all sub-modules
+  local script=$(cat <<- EOF 
+	bash ${scriptFile} \
+	--dataset-dir="${funcArgs[datasetDir]}" \
+	--variable="${funcArgs[variables]}" \
+	--output-dir="${funcArgs[outputDir]}" \
+	--start-date="${funcArgs[startDate]}" \
+	--end-date="${funcArgs[endDate]}" \
+	--time-scale="${funcArgs[timeScale]}" \
+	--lat-lims="${funcArgs[latLims]}" \
+	--lon-lims="${funcArgs[lonLims]}" \
+	--prefix="${funcArgs[prefixStr]}" \
+	--cache="${funcArgs[cache]}" \
+	--ensemble="${funcArgs[ensemble]}"
+	EOF
+  )
 
   # evaluate the script file using the arguments provided
   if [[ "${funcArgs[jobSubmission]}" == true ]]; then
     # chunk time-frame and ensembles
     chunk_dates "$chunkTStep"
-    chunk_ensemble "$ensemble"
+    chunk_ensemble "$ensemble" # 'ensemble' is a global variable
 
-    # length of total elements to iterate
-    jobArrLen=$(( ${#startDateArr[@]} * ${#ensembleArr[@]} ))  # or $endDateArr
+    # length of total number of tasks and indices 
+    taskLen=$(( ${#startDateArr[@]} * ${#ensembleArr[@]} ))
+    jobArrLen=$(( $taskLen - 1 ))
 
-    # Create a temporary directory for keeping job logs
-    mkdir -p "${logDir}"
-    
-    # parallel run via SLURM job arrays 
+    # parallel run 
     sbatch <<- EOF
 	#!/bin/bash
 	#SBATCH --array=0-$jobArrLen
@@ -348,52 +399,39 @@ call_processing_func () {
 	#SBATCH --nodes=1
 	#SBATCH --account=rpp-kshook
 	#SBATCH --time=04:00:00
-	#SBATCH --mem=8GB
+	#SBATCH --mem=8192M
 	#SBATCH --job-name=DATA_${scriptName}
-	#SBATCH --error=$logDir/data_%A-%a_err.txt
-	#SBATCH --output=$logDir/data_%A-%a.txt
+	#SBATCH --error=$logDir/datatool_%A-%a_err.txt
+	#SBATCH --output=$logDir/datatool_%A-%a.txt
 	#SBATCH --mail-user=$email
 	#SBATCH --mail-type=BEGIN,END,FAIL
 	
-	# defining chunked date arrays
 	$(declare -p startDateArr)
 	$(declare -p endDateArr)
-
-	# defining indices
-	idx=$(( \${SLURM_ARRAY_JOB_ID} - 1 ))
-	dateIdx=$(( idx / ${#ensembleArr[@]} ))
-	ensembleIdx=$(( idx % ${#ensembleArr[@]} ))
-
-	# indexing date and ensemble arrays 
-	tBegin="\${startDateArr[\${dateIdx}]}"
-	tEnd="\${endDateArr[\${dateIdx}]}"
-	member="\${ensembleArr[\${ensembleIdx}]}"
-
-	echo "${scriptName}.sh: #\${SLURM_ARRAY_TASK_ID} chunk submitted"
+	$(declare -p ensembleArr)
+	
+	idxDate="\$(( \${SLURM_ARRAY_TASK_ID} % \${#startDateArr[@]}  ))"
+	idxMember="\$(( \${SLURM_ARRAY_TASK_ID} / \${#startDateArr[@]}  ))"
+	
+	tBegin="\${startDateArr[\${idxDate}]}"
+	tEnd="\${endDateArr[\${idxDate}]}"
+	member="\${ensembleArr[\${idxMember}]}"
+	
+	echo "${scriptName}.sh: #\${SLURM_ARRAY_TASK_ID} chunk submitted."
 	echo "${scriptName}.sh: Chunk start date is \$tBegin"
 	echo "${scriptName}.sh: Chunk end date is   \$tEnd"
-	if [[ -n $member ]]; then
-	  echo "${scriptName}.sh: Ensemble member is \$member"
+	if [[ -n \${member} ]]; then
+	  echo "${scriptName}.sh: Ensemble member is  \$member"
 	fi
-
-	srun ${scriptRun} --start-date="\$tBegin" --end-date="\$tEnd" --cache="${cache}-\${SLURM_ARRAY_JOB_ID}-\${SLURM_ARRAY_TASK_ID}" --ensemble="${member}"
+	
+	srun ${script} --start-date="\$tBegin" --end-date="\$tEnd" --cache="${cache}-\${SLURM_ARRAY_JOB_ID}-\${SLURM_ARRAY_TASK_ID}" --ensemble="\${member}"
 	EOF
-    # echo message
+
     echo "$(basename $0): job submission details are printed under $logDir"
 
   # serial run
   else
-    bash ${script} --dataset-dir="${funcArgs[datasetDir]}" \
-    		   --variable="${funcArgs[variables]}" \
-		   --output-dir="${funcArgs[outputDir]}" \
-		   --start-date="${funcArgs[startDate]}" \
-		   --end-date="${funcArgs[endDate]}" \
-		   --time-scale="${funcArgs[timeScale]}" \
-		   --lat-lims="${funcArgs[latLims]}" \
-		   --lon-lims="${funcArgs[lonLims]}" \
-		   --prefix="${funcArgs[prefixStr]}" \
-		   --cache="${funcArgs[cache]}" \
-		   --ensemble="${funcArgs[ensemble]}"
+    eval "$script"
   fi
 }
 
@@ -425,23 +463,11 @@ case "${dataset,,}" in
 
   # CanRCM4-WFDEI-GEM-CaPA
   "canrcm4-wfdei-gem-capa" | "canrcm4_wfdei_gem_capa")
-    # adding ensemble argument
-    if [[ "$parallel" == true ]]; then
-      echo "$(basename $0): Warning: Parallel processing is not supported for CanRCM4-WFDEI-GEM-CaPA dataset;"
-      echo "$(basename $0): For quasi-parallel processing, consider submitting individual jobs for each ensemble member;"
-      echo "$(basename $0): Continuing with serial processing of the requested spatial and temporal domain."
-    fi
     call_processing_func "$(dirname $0)/canrcm4_wfdei_gem_capa/canrcm4_wfdei_gem_capa.sh" 
     ;;
   
   # WFDEI-GEM-CaPA
   "wfdei-gem-capa" | "wfdei_gem_capa" | "wfdei-gem_capa" | "wfdei_gem-capa")
-    # adding the non-parallel argument
-    if [[ "$parallel" == true ]]; then
-      echo "$(basename $0): Warning: Parallel processing is not supported for WFDEI-GEM-CaPA dataset;"
-      echo "$(basename $0): For quasi-parallel processing, consider submitting individual jobs for each variable;"
-      echo "$(basename $0): Continuing with serial processing of the requested spatial and temporal domain."
-    fi
     call_processing_func "$(dirname $0)/wfdei_gem_capa/wfdei_gem_capa.sh"
     ;;
 
