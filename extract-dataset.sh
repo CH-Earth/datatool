@@ -392,6 +392,8 @@ call_processing_func () {
     jobArrLen=$(( $taskLen - 1 ))
 
     # parallel run 
+    # FIXME: This needs to be moved into a template scheduler
+    #        document
     sbatch <<- EOF
 	#!/bin/bash
 	#SBATCH --array=0-$jobArrLen
@@ -440,6 +442,9 @@ call_processing_func () {
 # Checking input dataset
 # ======================
 
+# FIXME: This list needs to become part of a configuration
+#        file in future releases
+
 case "${dataset,,}" in
   # NCAR-GWF CONUSI
   "conus1" | "conusi" | "conus_1" | "conus_i" | "conus 1" | "conus i" | "conus-1" | "conus-i")
@@ -478,7 +483,37 @@ case "${dataset,,}" in
 
   # BCC-CSM2-MR
   "bcc" | "bcc_csm2_mr" | "bcc-csm2-mr" )
-    call_processing_func "$(dirname $0)/bcc-csm2-mr/bcc-csm2-mr.sh" "20years"
+    call_processing_func "$(dirname $0)/bcc_csm2_mr/bcc_csm2_mr.sh" "50years"
+    ;;
+
+  # CNRM_CM6_1
+  "cnrm" | "cnrm_cm6_1" | "cnrm-cm6-1" )
+    call_processing_func "$(dirname $0)/cnrm_cm6_1/cnrm_cm6_1.sh" "50years"
+    ;;
+
+  # EC_EARTH3_VEG
+  "ec" | "ec_earth3_veg" | "ec-earth3-veg" )
+    call_processing_func "$(dirname $0)/ec_earth3_veg/ec_earth3_veg.sh" "50years"
+    ;;
+
+  # GFDL_CM4
+  "gfdl_cm4" | "gfdl-cm4" )
+    call_processing_func "$(dirname $0)/gfdl_cm4/gfdl_cm4.sh" "50years"
+    ;;
+
+  # GDFL_ESM4
+  "gfdl_esm4" | "gfdl-esm4" )
+    call_processing_func "$(dirname $0)/gfdl_esm4/gfdl_esm4.sh" "50years"
+    ;;
+
+  # IPSL_CM6A_LR
+  "ipsl" | "ipsl_cm6a_lr" | "ipsl-cm6a-lr" )
+    call_processing_func "$(dirname $0)/ipsl_cm6a_lr/ipsl_cm6a_lr.sh" "50years"
+    ;;
+
+  # MRI_ESM2_0
+  "mri" | "mri-esm2-0" | "mri_esm2_0" )
+    call_processing_func "$(dirname $0)/mri_esm2_0/mri_esm2_0.sh" "50years"
     ;;
 
   # dataset not included above
