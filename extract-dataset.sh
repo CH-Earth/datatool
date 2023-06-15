@@ -445,75 +445,82 @@ call_processing_func () {
 # FIXME: This list needs to become part of a configuration
 #        file in future releases
 
+scriptPath="$(dirname $0)/scripts"
+
 case "${dataset,,}" in
   # NCAR-GWF CONUSI
   "conus1" | "conusi" | "conus_1" | "conus_i" | "conus 1" | "conus i" | "conus-1" | "conus-i")
-    call_processing_func "$(dirname $0)/conus_i/conus_i.sh" "3months"
+    call_processing_func "$scriptPath/conus_i/conus_i.sh" "3months"
     ;;
 
   # NCAR-GWF CONUSII
   "conus2" | "conusii" | "conus_2" | "conus_ii" | "conus 2" | "conus ii" | "conus-2" | "conus-ii")
-    call_processing_func "$(dirname $0)/conus_ii/conus_ii.sh" "1month"
+    call_processing_func "$scriptPath/conus_ii/conus_ii.sh" "1month"
     ;;
 
   # ECMWF ERA5
   "era_5" | "era5" | "era-5" | "era 5")
-    call_processing_func "$(dirname $0)/era5/era5_simplified.sh" "2years"
+    call_processing_func "$scriptPath/era5/era5_simplified.sh" "2years"
     ;;
   
   # ECCC RDRS 
   "rdrs" | "rdrsv2.1")
-    call_processing_func "$(dirname $0)/rdrs/rdrs.sh" "6months"
+    call_processing_func "$scriptPath/rdrs/rdrs.sh" "6months"
     ;;
 
   # CanRCM4-WFDEI-GEM-CaPA
   "canrcm4-wfdei-gem-capa" | "canrcm4_wfdei_gem_capa")
-    call_processing_func "$(dirname $0)/canrcm4_wfdei_gem_capa/canrcm4_wfdei_gem_capa.sh" 
+    call_processing_func "$scriptPath/canrcm4_wfdei_gem_capa/canrcm4_wfdei_gem_capa.sh" 
     ;;
   
   # WFDEI-GEM-CaPA
   "wfdei-gem-capa" | "wfdei_gem_capa" | "wfdei-gem_capa" | "wfdei_gem-capa")
-    call_processing_func "$(dirname $0)/wfdei_gem_capa/wfdei_gem_capa.sh"
+    call_processing_func "$scriptPath/wfdei_gem_capa/wfdei_gem_capa.sh"
     ;;
 
   # Daymet dataset
   "daymet" | "Daymet" )
-    call_processing_func "$(dirname $0)/daymet/daymet.sh" "5years"
+    call_processing_func "$scriptPath/daymet/daymet.sh" "5years"
     ;;
 
   # BCC-CSM2-MR
   "bcc" | "bcc_csm2_mr" | "bcc-csm2-mr" )
-    call_processing_func "$(dirname $0)/bcc_csm2_mr/bcc_csm2_mr.sh" "50years"
+    call_processing_func "$scriptPath/bcc_csm2_mr/bcc_csm2_mr.sh" "50years"
     ;;
 
   # CNRM_CM6_1
   "cnrm" | "cnrm_cm6_1" | "cnrm-cm6-1" )
-    call_processing_func "$(dirname $0)/cnrm_cm6_1/cnrm_cm6_1.sh" "50years"
+    call_processing_func "$scriptPath/cnrm_cm6_1/cnrm_cm6_1.sh" "50years"
     ;;
 
   # EC_EARTH3_VEG
   "ec" | "ec_earth3_veg" | "ec-earth3-veg" )
-    call_processing_func "$(dirname $0)/ec_earth3_veg/ec_earth3_veg.sh" "50years"
+    call_processing_func "$scriptPath/ec_earth3_veg/ec_earth3_veg.sh" "50years"
     ;;
 
   # GFDL_CM4
   "gfdl_cm4" | "gfdl-cm4" )
-    call_processing_func "$(dirname $0)/gfdl_cm4/gfdl_cm4.sh" "50years"
+    call_processing_func "$scriptPath/gfdl_cm4/gfdl_cm4.sh" "50years"
     ;;
 
   # GDFL_ESM4
   "gfdl_esm4" | "gfdl-esm4" )
-    call_processing_func "$(dirname $0)/gfdl_esm4/gfdl_esm4.sh" "50years"
+    call_processing_func "$scriptPath/gfdl_esm4/gfdl_esm4.sh" "50years"
     ;;
 
   # IPSL_CM6A_LR
   "ipsl" | "ipsl_cm6a_lr" | "ipsl-cm6a-lr" )
-    call_processing_func "$(dirname $0)/ipsl_cm6a_lr/ipsl_cm6a_lr.sh" "50years"
+    call_processing_func "$scriptPath/ipsl_cm6a_lr/ipsl_cm6a_lr.sh" "50years"
     ;;
 
   # MRI_ESM2_0
   "mri" | "mri-esm2-0" | "mri_esm2_0" )
-    call_processing_func "$(dirname $0)/mri_esm2_0/mri_esm2_0.sh" "50years"
+    call_processing_func "$scriptPath/mri_esm2_0/mri_esm2_0.sh" "50years"
+    ;;
+
+  # Hybrid Observation Dataset
+  "hybrid" | "hybrid-obs" | "hybrid_obs" | "hybrid_observation" | "hybrid-observation" )
+    call_processing_func "$scriptPath/hybrid_obs/hybrid_obs.sh" "50years"
     ;;
 
   # dataset not included above
