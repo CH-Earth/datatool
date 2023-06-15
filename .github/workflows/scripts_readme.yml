@@ -1,0 +1,24 @@
+name: Mirror main README in ./scripts
+
+on:
+  #schedule:
+  #  - cron: '0 * * * *'  # run every hour
+  workflow_dispatch:
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v2
+
+    - name: Copy and adjust README
+      run: |
+        markdown_file="./scripts/README.me"
+        curl https://raw.githubusercontent.com/kasra-keshavarz/datatool/main/README.md -o $markdown_file # downloading README again
+        main_header="Available Datasets" # the only header to be kept
+        awk -v header="$main_header" '/^#/{p=($0==("# " header));if(p)print;next}p' "${markdown_file}" > temp.md && mv temp.md "${markdown_file}" # keep only the 'main_header' section
+        git add $markdown_file
+        git commit -m "./scripts/README updated"
+        git push
