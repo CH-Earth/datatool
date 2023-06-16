@@ -20,7 +20,7 @@ jobs:
 
       - name: Modify README.md
         run: |
-          markdown_file="./scripts/README.me"
+          markdown_file="./scripts/README.md"
           main_header="Available Datasets"
           awk -v header="$main_header" '/^#/{p=($0==("# " header));if(p)print;next}p' "${markdown_file}" > temp.md && mv temp.md "${markdown_file}"
 
