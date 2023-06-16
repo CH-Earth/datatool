@@ -81,6 +81,7 @@ available for processing:
   12. GFDL-ESM4 (DOI: TBD)
   13. IPSL-CM6A-LR (DOI: TBD)
   14. MRI-ESM2-0 (DOI: TBD)
+  15. Hybrid-observation (DOI: 10.5194/hess-23-5151-2019)
 
 For bug reports, questions, discussions open an issue
 at https://github.com/kasra-keshavarz/datatool/issues" >&1;
