@@ -68,6 +68,6 @@ In most hydrological modelling applications, usually 7 variables are needed deta
 |specific humidity@1.5m|RDRS_v2.1_P_HU_1.5m|1    |huss             |                      |
 |air tempreature @1.5m |RDRS_v2.1_P_TT_1.5m|C    |tas              |                      |
 |wind speed @10m       |RDRS_v2.1_P_UVC_10m|m/s  |wspd             |WIND=SQRT(U10<sup>2</sup>+V10<sup>2</sup>)|
-|precipitation         |RDRS_v2.1_A_PR0_SFC|mm/hr|                 |CaPA outputs          |
+|precipitation         |RDRS_v2.1_A_PR0_SFC|m /hr|                 |CaPA outputs          |
 |short wave radiation  |RDRS_v2.1_P_FB_SFC |W m-2|rsds             |Downward solar flux   |
 |long wave radiation   |RDRS_v2.1_P_FI_SFC |W m-2|rlds             |Downward infrared flux|
