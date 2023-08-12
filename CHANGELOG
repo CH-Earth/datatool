@@ -1,5 +1,19 @@
 Changelog
 =========
+[v0.4.0] - August 11th, 2023
+# Improvements
+ * `--parsable` option now added when the script submits jobs to the SLURM
+   scheduler
+# Fixed
+ * Issue with the `Daymet` dataset is fixed and now subsetting is done properly
+
+[v0.3.0] - June 16th, 2023
+# Improvements
+ * Ensemble members are now processed in parallel mode
+
+# Datasets
+ * AB Government climate projections are added to the dataset (data
+   currently not publicly available)
 
 [v0.2.0] - May 5th, 2023
 

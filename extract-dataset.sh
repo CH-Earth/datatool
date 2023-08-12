@@ -58,6 +58,8 @@ Script options:
 					on the SLURM system; optional
   -k, --no-chunk			No parallelization, recommended for small domains
   -p, --prefix=STR			Prefix  prepended to the output files
+  -b, --parsable			Parsable SLURM message mainly used
+					for chained job submissions
   -c, --cache=DIR			Path of the cache directory; optional
   -E, --email=user@example.com		E-mail user when job starts, ends, and finishes; optional
   -V, --version				Show version
@@ -113,7 +115,7 @@ shopt -s expand_aliases
 # Parsing input arguments
 # =======================
 # argument parsing using getopt - WORKS ONLY ON LINUX BY DEFAULT
-parsedArguments=$(getopt -a -n extract-dataset -o jhVE:d:i:v:o:s:e:t:l:n:p:c:m:ka: --long submit-job,help,version,email:,dataset:,dataset-dir:,variable:,output-dir:,start-date:,end-date:,time-scale:,lat-lims:,lon-lims:,prefix:,cache:,ensemble:,no-chunk,shape-file: -- "$@")
+parsedArguments=$(getopt -a -n extract-dataset -o jhVbE:d:i:v:o:s:e:t:l:n:p:c:m:ka: --long submit-job,help,version,parsable,email:,dataset:,dataset-dir:,variable:,output-dir:,start-date:,end-date:,time-scale:,lat-lims:,lon-lims:,prefix:,cache:,ensemble:,no-chunk,shape-file: -- "$@")
 validArguments=$?
 # check if there is no valid options
 if [ "$validArguments" != "0" ]; then
@@ -148,6 +150,7 @@ do
     -m | --ensemble)      ensemble="$2"        ; shift 2 ;; # optional
     -k | --no-chunk)      parallel=false       ; shift   ;; # optional
     -p | --prefix)	  prefixStr="$2"       ; shift 2 ;; # required
+    -b | --parsable)	  parsable=true	       ; shift   ;; # optional
     -c | --cache)	  cache="$2"	       ; shift 2 ;; # optional
     -a | --shape-file)    shapefile="$2"       ; shift 2 ;; # optional
 
@@ -180,8 +183,21 @@ fi
 
 # email withought job submission not allowed
 if [[ -n $email ]] && [[ -z $jobSubmission ]]; then
-  echo "$(basename $0): Email is not supported wihtout job submission;"
-  echo "$(basename $0): Continuing without email notification..."
+  echo "$(basename $0): ERROR! Email is not supported wihtout job submission;"
+  exit 1;
+fi
+
+# parsable without job submission not allowed
+if [[ $parsable==true ]] && [[ -z $jobSubmission ]]; then
+  echo "$(basename $0): ERROR! --parsable argument cannot be used without job submission"
+  exit 1;
+fi
+
+# if parsable argument is provided
+if [[ -n $parsable ]]; then
+  parsable="--parsable"
+else
+  parsable=""
 fi
 
 # if shapefile is provided extract the extents from it
@@ -402,12 +418,13 @@ call_processing_func () {
 	#SBATCH --nodes=1
 	#SBATCH --account=rpp-kshook
 	#SBATCH --time=04:00:00
-	#SBATCH --mem=8192M
+	#SBATCH --mem=8000M
 	#SBATCH --job-name=DATA_${scriptName}
 	#SBATCH --error=$logDir/datatool_%A-%a_err.txt
 	#SBATCH --output=$logDir/datatool_%A-%a.txt
 	#SBATCH --mail-user=$email
 	#SBATCH --mail-type=BEGIN,END,FAIL
+	#SBATCH ${parsable}
 	
 	$(declare -p startDateArr)
 	$(declare -p endDateArr)
@@ -430,7 +447,9 @@ call_processing_func () {
 	srun ${script} --start-date="\$tBegin" --end-date="\$tEnd" --cache="${cache}-\${SLURM_ARRAY_JOB_ID}-\${SLURM_ARRAY_TASK_ID}" --ensemble="\${member}"
 	EOF
 
-    echo "$(basename $0): job submission details are printed under $logDir"
+    if [[ -z $parsable ]]; then
+      echo "$(basename $0): job submission details are printed under $logDir"
+    fi
 
   # serial run
   else

@@ -125,8 +125,8 @@ latDim="y" # latitude dimension
 lonDim="x" # longitude dimension
 
 # spatial extraction script address
-coordIdxScript="$(dirname $0)/../assets/coord_daymet_idx.ncl"
-coordClosestIdxScript="$(dirname $0)/../assets/coord_closest_daymet_idx.ncl"
+coordIdxScript="$(dirname $0)/../../assets/coord_daymet_idx.ncl"
+coordClosestIdxScript="$(dirname $0)/../../assets/coord_closest_daymet_idx.ncl"
 
 # ===================
 # Necessary Functions
