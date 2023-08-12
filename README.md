@@ -21,6 +21,8 @@ Script options:
 					on the SLURM system; optional
   -k, --no-chunk			No parallelization, recommended for small domains
   -p, --prefix=STR			Prefix  prepended to the output files
+  -b, --parsable			Parsable SLURM message mainly used
+					for chained job submissions
   -c, --cache=DIR			Path of the cache directory; optional
   -E, --email=user@example.com		E-mail user when job starts, ends, and finishes; optional
   -V, --version				Show version
