@@ -96,7 +96,7 @@ fi
 # containing XLAT and XLONG variables each having dimensions
 # of "south_north" and "west_east".
 coordMainFile="/project/rpp-kshook/Model_Output/wrf-conus/CONUSII/hist/wrf04km_coord.nc"
-coordEssFile="$(pwd)/../../assets/coord_XLAT_XLONG_conus_ii.nc"
+coordEssFile="$(dirname $0)/../../assets/coord_XLAT_XLONG_conus_ii.nc"
 latVar="south_north"
 lonVar="west_east"
 
@@ -105,7 +105,7 @@ format="%Y-%m-%d_%H:%M:%S"
 tarFormat="%Y%m%d"
 fileStruct="wrf2d_d01"
 tarFileStruct="wrf2d_conusii"
-coordIdxScript="$(pwd)/../../assets/coord_wrf_idx.ncl"
+coordIdxScript="$(dirname $0)/../../assets/coord_wrf_idx.ncl"
 
 # TZ to be set to UTC to avoid invalid dates due to Daylight Saving
 alias date='TZ=UTC date'
