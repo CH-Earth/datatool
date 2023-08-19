@@ -490,12 +490,12 @@ case "${dataset,,}" in
 
   # CanRCM4-WFDEI-GEM-CaPA
   "canrcm4-wfdei-gem-capa" | "canrcm4_wfdei_gem_capa")
-    call_processing_func "$scriptPath/canrcm4_wfdei_gem_capa/canrcm4_wfdei_gem_capa.sh" 
+    call_processing_func "$scriptPath/canrcm4_wfdei_gem_capa/canrcm4_wfdei_gem_capa.sh" "10years" 
     ;;
   
   # WFDEI-GEM-CaPA
   "wfdei-gem-capa" | "wfdei_gem_capa" | "wfdei-gem_capa" | "wfdei_gem-capa")
-    call_processing_func "$scriptPath/wfdei_gem_capa/wfdei_gem_capa.sh"
+    call_processing_func "$scriptPath/wfdei_gem_capa/wfdei_gem_capa.sh" "10years"
     ;;
 
   # Daymet dataset
