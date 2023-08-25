@@ -188,7 +188,7 @@ if [[ -n $email ]] && [[ -z $jobSubmission ]]; then
 fi
 
 # parsable without job submission not allowed
-if [[ $parsable==true ]] && [[ -z $jobSubmission ]]; then
+if [[ -n $parsable ]] && [[ -z $jobSubmission ]]; then
   echo "$(basename $0): ERROR! --parsable argument cannot be used without job submission"
   exit 1;
 fi
@@ -444,7 +444,7 @@ call_processing_func () {
 	  echo "${scriptName}.sh: Ensemble member is  \$member"
 	fi
 	
-	srun ${script} --start-date="\$tBegin" --end-date="\$tEnd" --cache="${cache}-\${SLURM_ARRAY_JOB_ID}-\${SLURM_ARRAY_TASK_ID}" --ensemble="\${member}"
+	srun ${script} --start-date="\$tBegin" --end-date="\$tEnd" --cache="${cache}/cache-\${SLURM_ARRAY_JOB_ID}-\${SLURM_ARRAY_TASK_ID}" --ensemble="\${member}"
 	EOF
 
     if [[ -z $parsable ]]; then
@@ -490,12 +490,12 @@ case "${dataset,,}" in
 
   # CanRCM4-WFDEI-GEM-CaPA
   "canrcm4-wfdei-gem-capa" | "canrcm4_wfdei_gem_capa")
-    call_processing_func "$scriptPath/canrcm4_wfdei_gem_capa/canrcm4_wfdei_gem_capa.sh" "10years" 
+    call_processing_func "$scriptPath/canrcm4_wfdei_gem_capa/canrcm4_wfdei_gem_capa.sh" "5years"
     ;;
   
   # WFDEI-GEM-CaPA
   "wfdei-gem-capa" | "wfdei_gem_capa" | "wfdei-gem_capa" | "wfdei_gem-capa")
-    call_processing_func "$scriptPath/wfdei_gem_capa/wfdei_gem_capa.sh" "10years"
+    call_processing_func "$scriptPath/wfdei_gem_capa/wfdei_gem_capa.sh" "5years"
     ;;
 
   # Daymet dataset
