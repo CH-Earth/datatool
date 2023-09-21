@@ -1,5 +1,9 @@
 Changelog
 =========
+[v0.4.1] - September 21st, 2023
+# Fixed
+ * minor bug fixes
+
 [v0.4.0] - August 11th, 2023
 # Improvements
  * `--parsable` option now added when the script submits jobs to the SLURM
