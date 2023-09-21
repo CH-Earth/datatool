@@ -374,7 +374,7 @@ call_processing_func () {
   local chunkTStep="$2" # chunking time-frame periods
 
   # local variables
-  local scriptName=$(basename $scriptFile) # script/dataset name
+  local scriptName=$(basename $scriptFile | cut -d '.' -f 1) # script/dataset name
   local logDir="$HOME/.datatool/" # local directory for logs
   local jobArrLen
 
