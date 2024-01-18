@@ -1,5 +1,5 @@
 # Description
-This repository contains scripts to process necessary forcing data from various datasets. The general usage of the script (i.e., `./extract-dataset.sh`) is as follows:
+This repository contains scripts to process meteorological datasets in NetCDF file format. The general usage of the script (i.e., `./extract-dataset.sh`) is as follows:
 
 ```console
 Usage:
@@ -57,7 +57,7 @@ As an example, follow the code block below. Please remember that you MUST have a
 
 ```console
 foo@bar:~$ git clone https://github.com/kasra-keshavarz/datatool # clone the repository
-foo@bar:~$ cd ./datatool/ # always move to the repository's directory
+foo@bar:~$ cd ./datatool/ # move to the repository's directory
 foo@bar:~$ ./extract-dataset.sh -h # view the usage message
 foo@bar:~$ ./extract-dataset.sh  --dataset=CONUS1 \
                                  --dataset-dir="/project/rpp-kshook/Model_Output/WRF/CONUS/CTRL" \
@@ -76,10 +76,10 @@ See the [examples](./examples) directory for real-world scripts for each meteoro
 If you are considering any new dataset to be added to the data repository, and subsequently the associated scripts added here, you can open a new ticket on the **Issues** tab of the current repository. Or, you can make a [Pull Request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request) on this repository with your own script.
 
 # Support
-Please open a new ticket on the **Issues** tab of the current repository in case of any problem.
+Please open a new ticket on the **Issues** tab of the current repository in case of any issues.
 
 # License
-Meteorological Data Processing Workflow<br>
+Meteorological Data Processing Workflow - datatool <br>
 Copyright (C) 2022-2023, University of Saskatchewan<br>
 Copyright (C) 2023, University of Calgary<br>
 
