@@ -3,8 +3,9 @@ In this file, the details of the dataset is explained.
 
 ## Location of Dataset Files
 The global `ERA5` dataset is located under the following directory accessible from Compute Canada (CC) Graham Cluster:
-```
-/project/rpp-kshook/CompHydCore/climateForcingData/ERA5/ERA5_for_SUMMA/2_merged_data
+```console
+/project/rpp-kshook/CompHydCore/climateForcingData/ERA5/ERA5_for_SUMMA/2_merged_data # rpp-kshook allocation
+/project/rrg-mclark/data/meteorological-data/era5 # rrg-mclark allocation
 ```
 and the structure of the dataset hourly files is as following:
 ```console
