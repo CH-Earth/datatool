@@ -35,8 +35,18 @@
 # ==============
 # Help functions
 # ==============
+short_usage () {
+  echo "usage: $(basename $0) [-jh] [-i DIR] [-d DATASET] [-co DIR] [-se DATE] [-ln REAL,REAL] [-p STR]" >&1;
+}
+
+version () {
+  echo "$(basename $0): version $(cat $(dirname $0)/VERSION)";
+  exit 0;
+}
+
+
 usage () {
-  echo "Meteorological Data Processing Script
+  echo "Meteorological Data Processing Script - version $(cat $(dirname $0)/VERSION)
 
 Usage:
   $(basename $0) [options...]
@@ -87,15 +97,6 @@ available for processing:
 For bug reports, questions, discussions open an issue
 at https://github.com/kasra-keshavarz/datatool/issues" >&1;
 
-  exit 0;
-}
-
-short_usage () {
-  echo "usage: $(basename $0) [-jh] [-i DIR] [-d DATASET] [-co DIR] [-se DATE] [-ln REAL,REAL] [-p STR]" >&1;
-}
-
-version () {
-  echo "$(basename $0): version $(cat $(dirname $0)/VERSION)";
   exit 0;
 }
 
