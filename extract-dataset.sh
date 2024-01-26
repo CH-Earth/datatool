@@ -115,7 +115,7 @@ shopt -s expand_aliases
 # Parsing input arguments
 # =======================
 # argument parsing using getopt - WORKS ONLY ON LINUX BY DEFAULT
-parsedArguments=$(getopt -a -n extract-dataset -o jhVbE:d:i:v:o:s:e:t:l:n:p:c:m:ka: --long submit-job,help,version,parsable,email:,dataset:,dataset-dir:,variable:,output-dir:,start-date:,end-date:,time-scale:,lat-lims:,lon-lims:,prefix:,cache:,ensemble:,no-chunk,shape-file: -- "$@")
+parsedArguments=$(getopt -a -n extract-dataset -o jhVbE:d:i:v:o:s:e:t:l:n:p:c:m:ka:u: --long submit-job,help,version,parsable,email:,dataset:,dataset-dir:,variable:,output-dir:,start-date:,end-date:,time-scale:,lat-lims:,lon-lims:,prefix:,cache:,ensemble:,no-chunk,shape-file:,account: -- "$@")
 validArguments=$?
 # check if there is no valid options
 if [ "$validArguments" != "0" ]; then
@@ -152,6 +152,7 @@ do
     -p | --prefix)	  prefixStr="$2"       ; shift 2 ;; # required
     -b | --parsable)	  parsable=true	       ; shift   ;; # optional
     -c | --cache)	  cache="$2"	       ; shift 2 ;; # optional
+    -u | --account)       account="$2"         ; shift 2 ;; # optional
     -a | --shape-file)    shapefile="$2"       ; shift 2 ;; # optional
 
     # -- means the end of the arguments; drop this, and break out of the while loop
@@ -198,6 +199,12 @@ if [[ -n $parsable ]]; then
   parsable="--parsable"
 else
   parsable=""
+fi
+
+# if account is not provided, use `rpp-kshook` as default
+if [[ -z $account ]]; then
+  account="rpp-kshook"
+  echo "$(basename $0): WARNING! --account not provided, using \`rpp-kshook\` by default."
 fi
 
 # if shapefile is provided extract the extents from it
@@ -416,7 +423,7 @@ call_processing_func () {
 	#SBATCH --array=0-$jobArrLen
 	#SBATCH --cpus-per-task=4
 	#SBATCH --nodes=1
-	#SBATCH --account=rpp-kshook
+	#SBATCH --account=$account
 	#SBATCH --time=04:00:00
 	#SBATCH --mem=8000M
 	#SBATCH --job-name=DATA_${scriptName}
