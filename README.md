@@ -26,7 +26,7 @@ Script options:
   -E, --email=user@example.com          E-mail user when job starts, ends, or               
                                         fails; optional
   -u, --account                         Digital Research Alliance of Canada's sponsor's
-                                        account name; optional, defaults to \'rpp-kshook`'  
+                                        account name; optional, defaults to 'rpp-kshook' 
   -V, --version                         Show version 
   -h, --help                            Show this screen and exit
 
