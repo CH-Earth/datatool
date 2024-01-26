@@ -70,7 +70,10 @@ Script options:
   -b, --parsable			Parsable SLURM message mainly used
 					for chained job submissions
   -c, --cache=DIR			Path of the cache directory; optional
-  -E, --email=user@example.com		E-mail user when job starts, ends, and finishes; optional
+  -E, --email=user@example.com		E-mail user when job starts, ends, or
+  					fails; optional
+  -u, --account				Digital Research Alliance of Canada's sponsor's
+  					account name; optional, defaults to \'rpp-kshook`'
   -V, --version				Show version
   -h, --help				Show this screen and exit
 
