@@ -207,7 +207,9 @@ fi
 # if account is not provided, use `rpp-kshook` as default
 if [[ -z $account ]]; then
   account="rpp-kshook"
-  echo "$(basename $0): WARNING! --account not provided, using \`rpp-kshook\` by default."
+  if [[ -z $parsable ]]; then
+    echo "$(basename $0): WARNING! --account not provided, using \`rpp-kshook\` by default."
+  fi
 fi
 
 # if shapefile is provided extract the extents from it
