@@ -74,6 +74,10 @@ foo@bar:~$ ./extract-dataset.sh  --dataset=CONUS1 \
 ```
 See the [examples](./examples) directory for real-world scripts for each meteorological dataset included in this repository.
 
+# Logs
+The datasets logs are generated under the `$HOME/.datatool` directory,
+only in cases where jobs are submitted to clusters' schedulers. If
+processing is not submitted as a job, then the logs are printed on screen.
 
 # New Datasets
 If you are considering any new dataset to be added to the data repository, and subsequently the associated scripts added here, you can open a new ticket on the **Issues** tab of the current repository. Or, you can make a [Pull Request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request) on this repository with your own script.
