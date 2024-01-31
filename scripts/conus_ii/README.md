@@ -6,7 +6,7 @@ In this file, the details of the dataset is explained.
 > It must be noted that the `WRF-CONUSII` dataset are in `.tar` format and the script untars the files automatically. 
 
 > [!CAUTION]
-> `WRF-CONUSI` dataset needs extensive I/O operations in the `cache`
+> `WRF-CONUSII` dataset needs extensive I/O operations in the `cache`
 > directory. So, in case of submitting `SLURM` jobs, it is recommended to
 > use the `$SLURM_TMPDIR` directory as `cache`. This can be provided to
 > the main `extract-dataset.sh` script using the `--cache='$SLURM_TMPDIR'`
