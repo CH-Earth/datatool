@@ -1,7 +1,7 @@
 #!/bin/bash
 # Meteorological Data Processing Workflow
 # Copyright (C) 2022, University of Saskatchewan
-# Copyright (C) 2023, University of Calgary
+# Copyright (C) 2023-2024, University of Calgary
 #
 # This file is part of Meteorological Data Processing Workflow
 #
