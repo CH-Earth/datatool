@@ -10,6 +10,8 @@ In this file, the details of the dataset is explained.
 > directory. So, in case of submitting `SLURM` jobs, it is recommended to
 > use the `$SLURM_TMPDIR` directory as `cache`. This can be provided to
 > the main `extract-dataset.sh` script using the `--cache='$SLURM_TMPDIR'`
+> option. Please be mindful of **single** quotation marks for the argument.
+
 ## Location of Dataset Files
 
 The `WRF-CONUSII` simulation outputs are located under the following directory accessible from Compute Canada (CC) Graham Cluster:
