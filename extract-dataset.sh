@@ -550,8 +550,13 @@ case "${dataset,,}" in
 
   # Ouranos-MRCC5-CMIP6 dataset
   "crcm5-cmip6" | "mrcc5-cmip6" | "crcm5" | "mrcc5" )
-    call_processing_func "$scriptPath/crcm5-cmip6/crcm5-cmip6.sh" "1year"
+    call_processing_func "$scriptPath/crcm5-cmip6/crcm5-cmip6.sh" "1years"
     ;;
+
+  # NASA GDDP-NEX-CMIP6
+  "gddp" | "gddp-nex" | "gddp-nex" | "gddp-nex-cmip6")
+    call_processing_func "$scriptPath/gddp-nex-cmip6/gddp-nex-cmip6.sh" "100years" "0"
+	;;
 
   # CanRCM4-WFDEI-GEM-CaPA
   "canrcm4_g" | "canrcm4-wfdei-gem-capa" | "canrcm4_wfdei_gem_capa")
