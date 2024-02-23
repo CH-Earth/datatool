@@ -1,0 +1,44 @@
+|--------------------------------|-----------|---------------------------|
+|          DATASET NAME          |  keyword  |           DOI             |
+|--------------------------------|-----------|---------------------------|
+|1.  NCAR-GWF WRF CONUS I        |  conus_i  | 10.1007/s00382-016-3327-9 |
+|2.  NCAR-GWF WRF CONUS II       |  conus_ii |    10.5065/49SN-8E08      |
+|3.  ECMWF ERA5                  |   era5    |   10.24381/cds.adbb2d47   |
+|4.  ECCC RDRSv2.1               |   rdrs    | 10.5194/hess-25-4917-2021 |
+|5.  CCRN CanRCM4-WFDEI-GEM-CaPA | canrcm4_g |  10.5194/essd-12-629-2020 |
+|6.  WFDEI-GEM-CaPA              |  wfdei_g  |     10.20383/101.0111     |
+|7.  ORNL Daymet                 |  daymet   |   10.3334/ORNLDAAC/2129   |
+|8.  Alberta Government          |  ab-gov   |           TBD             |
+|  8.1.  BCC-CSM2-MR             |           |           TBD             |
+|  8.2.  CNRM-CM6-1              |           |           TBD             |
+|  8.3.  EC-Earth3-Veg           |           |           TBD             |
+|  8.4.  GFDL-CM4                |           |           TBD             |
+|  8.5.  GFDL-ESM4               |           |           TBD             |
+|  8.6.  IPSL-CM6A-LR            |           |           TBD             |
+|  8.7.  MRI-ESM2-0              |           |           TBD             |
+|  8.8.  Hybrid-observation      |           | 10.5194/hess-23-5151-2019 |
+|9.  Ouranos ESPO-G6-R2          |espo-r6-r2 |10.1038/s41597-023-02855-z |
+|  9.1.   AS-RCEC                |           |          ditto            |
+|  9.2.   BCC                    |           |          ditto            |
+|  9.3.   CAS                    |           |          ditto            |
+|  9.4.   CCCma                  |           |          ditto            |
+|  9.5.   CMCC                   |           |          ditto            |
+|  9.6.   CNRM-CERFACS           |           |          ditto            |
+|  9.7.   CSIRO                  |           |          ditto            |
+|  9.8.   CSIRO-ARCCSS           |           |          ditto            |
+|  9.9.   DKRZ                   |           |          ditto            |
+|  9.10.  EC-Earth-Con           |           |          ditto            |
+|  9.11.  INM                    |           |          ditto            |
+|  9.12.  IPS                    |           |          ditto            |
+|  9.13.  MIROC                  |           |          ditto            |
+|  9.14.  MOHC                   |           |          ditto            |
+|  9.15.  MPI-M                  |           |          ditto            |
+|  9.16.  MRI                    |           |          ditto            |
+|  9.17.  NCC                    |           |          ditto            |
+|  9.18.  NIMS-KMA               |           |          ditto            |
+|  9.19.  NOAA-GFDL              |           |          ditto            |
+|  9.20.  NUIST                  |           |          ditto            |
+|10. Ouranos MRCC5-CMIP6         |crcm5-cmip6|           TBD             |
+|  10.1.  CanESM5                |           |           TBD             |
+|  10.2.  MPI-ESM1-2-LR          |           |           TBD             |
+|--------------------------------|-----------|---------------------------|
