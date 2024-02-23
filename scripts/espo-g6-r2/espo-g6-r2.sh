@@ -36,7 +36,7 @@
 # Usage Functions
 # ===============
 short_usage() {
-  echo "usage: $(basename $0) [-cio DIR] [-v VARS] [-se DATE] [-t CHAR] [-ln REAL,REAL] [-p STR]"
+  echo "usage: $(basename $0) [-cio DIR] [-v VARS] [-se DATE] [-t CHAR] [-ln REAL,REAL] [-p STR] [-MmS STR[,...]]"
 }
 
 
@@ -69,7 +69,7 @@ do
     -n | --lon-lims)      lonLims="$2"         ; shift 2 ;; # required
     -p | --prefix)        prefix="$2"          ; shift 2 ;; # optional
     -c | --cache)         cache="$2"           ; shift 2 ;; # required
-    -m | --ensemble)      ensemble="$2"        ; shift 2 ;; # redundant - only r1i1p1f1
+    -m | --ensemble)      ensemble="$2"        ; shift 2 ;; # redundant
     -S | --scenario)      scenario="$2"        ; shift 2 ;; # required
     -M | --model)         model="$2"           ; shift 2 ;; # required
 
