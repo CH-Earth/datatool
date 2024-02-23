@@ -8,15 +8,15 @@
 |5.  CCRN CanRCM4-WFDEI-GEM-CaPA | canrcm4_g |  10.5194/essd-12-629-2020 |
 |6.  WFDEI-GEM-CaPA              |  wfdei_g  |     10.20383/101.0111     |
 |7.  ORNL Daymet                 |  daymet   |   10.3334/ORNLDAAC/2129   |
-|8.  Alberta Government          |  ab-gov   |           TBD             |
-|  8.1.  BCC-CSM2-MR             |           |           TBD             |
-|  8.2.  CNRM-CM6-1              |           |           TBD             |
-|  8.3.  EC-Earth3-Veg           |           |           TBD             |
-|  8.4.  GFDL-CM4                |           |           TBD             |
-|  8.5.  GFDL-ESM4               |           |           TBD             |
-|  8.6.  IPSL-CM6A-LR            |           |           TBD             |
-|  8.7.  MRI-ESM2-0              |           |           TBD             |
-|  8.8.  Hybrid-observation      |           | 10.5194/hess-23-5151-2019 |
+|8.  Alberta Government          |  ab-gov   |  10.5194/hess-23-5151-201 |
+|  8.1.  BCC-CSM2-MR             |           |          ditto            |
+|  8.2.  CNRM-CM6-1              |           |          ditto            |
+|  8.3.  EC-Earth3-Veg           |           |          ditto            |
+|  8.4.  GFDL-CM4                |           |          ditto            |
+|  8.5.  GFDL-ESM4               |           |          ditto            |
+|  8.6.  IPSL-CM6A-LR            |           |          ditto            |
+|  8.7.  MRI-ESM2-0              |           |          ditto            |
+|  8.8.  Hybrid-observation      |           |          ditto            |
 |9.  Ouranos ESPO-G6-R2          |espo-r6-r2 |10.1038/s41597-023-02855-z |
 |  9.1.   AS-RCEC                |           |          ditto            |
 |  9.2.   BCC                    |           |          ditto            |
