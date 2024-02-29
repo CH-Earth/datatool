@@ -33,7 +33,7 @@
 
 
 # ===============
-# Usage Functions
+# Usage functions
 # ===============
 short_usage() {
   echo "usage: $(basename $0) [-cio DIR] [-v VARS] [-se DATE] [-t CHAR] [-ln REAL,REAL] [-p STR] [-MmS STR[,...]]"
@@ -69,7 +69,7 @@ do
     -n | --lon-lims)      lonLims="$2"         ; shift 2 ;; # required
     -p | --prefix)        prefix="$2"          ; shift 2 ;; # optional
     -c | --cache)         cache="$2"           ; shift 2 ;; # required
-    -m | --ensemble)      ensemble="$2"        ; shift 2 ;; # redundant
+    -m | --ensemble)      ensemble="$2"        ; shift 2 ;; # required
     -S | --scenario)      scenario="$2"        ; shift 2 ;; # required
     -M | --model)         model="$2"           ; shift 2 ;; # required
 
@@ -85,17 +85,16 @@ done
 
 # check the prefix is not set
 if [[ -z $prefix ]]; then
-  prefix="data"
-fi
-
-# check if $model is provided
-if [[ -z $model ]]; then
-    echo "ERROR $(basename $0): --model value(s) missing"
-  exit 1;
+  prefix="data_"
 fi
 
 # useful log date format function
 logDate () { echo "($(date +"%Y-%m-%d %H:%M:%S")) "; }
+
+
+# ================
+# Necessary checks
+# ================
 
 # check if the dates are within datasets date range
 # define $startYear and $endYear
@@ -109,6 +108,7 @@ if [[ $startYear -lt 1950 ]]; then
   startDate="1950-01-01"
   startYear="1950"
 fi
+
 # if $endYear is beyond 2100 raise a "WARNING" and set endDate
 if [[ $endYear -gt 2100 ]]; then
   echo "$(logDate)$(basename $0): WARNING! The date range of the dataset is between 1950-01-01 and 2100-12-31"
@@ -117,9 +117,17 @@ if [[ $endYear -gt 2100 ]]; then
   endYear="2100"
 fi
 
+# check if $model, $ensemble, and $scenario is given
+if [[ -z $model ]] || \
+   [[ -z $ensemble ]] || \
+   [[ -z $scenario ]]; then
+  echo "$(logDate)$(basename $0): ERROR! \`--model\`, \`--ensemble\`, and \`--scenario\` values are required"
+  exit 1;
+fi
+
 
 # =====================
-# Necessary Assumptions
+# Necessary assumptions
 # =====================
 # TZ to be set to UTC to avoid invalid dates due to Daylight Saving
 alias date='TZ=UTC date'
@@ -136,7 +144,7 @@ coordClosestIdxScript="$datatoolPath/assets/ncl_scripts/coord_closest_daymet_idx
 
 
 # ==========================
-# Necessary Global Variables
+# Necessary global variables
 # ==========================
 latDim="rlat"
 lonDim="rlon"
@@ -144,24 +152,24 @@ timeDim="time"
 
 
 # ===================
-# Necessary Functions
+# Necessary functions
 # ===================
 # Modules below available on Digital Research Alliance of Canada's Graham HPC
 ## core modules
-load_core_modules () {
+function load_core_modules () {
   module -q load cdo/2.0.4
   module -q load nco/5.0.6
 }
-unload_core_modules () {
+function unload_core_modules () {
   # WARNING: DO NOT USE IF YOU ARE NOT SURE HOW TO URE IT
   module -q unload cdo/2.0.4
   module -q unload nco/5.0.6
 }
 ## ncl modules
-load_ncl_module () {
+function load_ncl_module () {
   module -q load ncl/6.6.2
 }
-unload_ncl_module () {
+function unload_ncl_module () {
   module -q unload ncl/6.6.2
 }
 
@@ -188,31 +196,8 @@ join_by () { local IFS="$1"; shift; echo "$*"; }
 lims_to_float () { IFS=',' read -ra l <<< $@; f_arr=(); for i in "${l[@]}"; do f_arr+=($(to_float $i)); done; echo $(join_by , "${f_arr[@]}"); }
 
 
-# ================
-# Useful functions
-# ================
-#######################################
-# compare float values using basic
-# calculator, i.e., `bc`
-#
-# Arguments:
-#   1: -> firstNum: first int/float
-#   2: -> SecondNum: second int/float
-#   3: -> operator: comparison operator
-#######################################
-bc_compare () {
-  # local variables
-  local firstNum=$1
-  local secondNum=$2
-  local operator=$3
-
-  # implement the comparison
-  echo "$(bc <<< "$firstNum $operator $secondNum")"
-}
-
-
 # ===============
-# Data Processing
+# Data processing
 # ===============
 # display info
 echo "$(logDate)$(basename $0): processing Ouranos ESPO-G6-R2..."
