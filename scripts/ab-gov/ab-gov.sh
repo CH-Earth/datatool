@@ -1,5 +1,6 @@
 #!/bin/bash
 # Meteorological Data Processing Workflow
+# Copyright (C) 2022-2023, University of Saskatchewan
 # Copyright (C) 2023-2024, University of Calgary
 #
 # This file is part of Meteorological Data Processing Workflow
@@ -20,7 +21,8 @@
 # =========================
 # Credits and contributions
 # =========================
-# 1. Parts of the code are taken from https://www.shellscript.sh/tips/getopt/index.html
+# 1. Parts of the code are taken from 
+#    https://www.shellscript.sh/tips/getopt/index.html
 
 
 # ================
@@ -107,7 +109,7 @@ fi
 
 
 # =====================
-# Necessary Assumptions
+# Necessary assumptions
 # =====================
 # TZ to be set to UTC to avoid invalid dates due to Daylight Saving
 alias date='TZ=UTC date'
@@ -129,20 +131,20 @@ timeDim="time"
 # ===================
 # Modules below available on Digital Research Alliance of Canada's Graham HPC
 ## core modules
-load_core_modules () {
+function load_core_modules () {
   module -q load cdo/2.0.4
   module -q load nco/5.0.6
 }
-unload_core_modules () {
+function unload_core_modules () {
   # WARNING: DO NOT USE IF YOU ARE NOT SURE HOW TO URE IT
   module -q unload cdo/2.0.4
   module -q unload nco/5.0.6
 }
 ## ncl modules
-load_ncl_module () {
+function load_ncl_module () {
   module -q load ncl/6.6.2
 }
-unload_ncl_module () {
+function unload_ncl_module () {
   module -q unload ncl/6.6.2
 }
 
