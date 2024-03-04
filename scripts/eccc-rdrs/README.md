@@ -4,7 +4,7 @@ In this file, the details of the dataset is explained.
 ## Location of Dataset Files
 The `RDRS` v2.1 dataset is located under the following directory accessible from Compute Canada (CC) Graham Cluster:
 ```console
-/project/rpp-kshook/Model_Output/RDRSv2.1 # rpp-kshook allocation
+/project/rpp-kshook/Climate_Forcing_Data/meteorological-data/rdrsv2.1 # rpp-kshook allocation
 /project/rrg-mclark/data/meteorological-data/rdrsv2.1 # rrg-mclark allocation
 ```
 and the structure of the dataset hourly files is as following:
