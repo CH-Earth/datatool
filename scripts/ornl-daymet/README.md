@@ -62,7 +62,8 @@ The spatial resolutaion of `Daymet` gridded data is 1 $km$. The model files are 
 |2		|`pr`		| `+16.85`° to `+19.93`°	| `-67.97`° to `-64.13`°	|
 |3		|`hi`		| `+17.96`° to `+23.51`°	| `-160.30`° to `-154.78`°	|
 
-:warning: As mentioned previously, only the `na` domain is considered in the subsetting process of `datatool`.
+> [!WARNING]
+> As mentioned previously, only the `na` domain is considered in the subsetting process of `datatool`.
 
 ## Temporal Extent
 The time-steps are daily and the temporal extent for each domain is listed in the following table:
@@ -74,7 +75,8 @@ The time-steps are daily and the temporal extent for each domain is listed in th
 
 Also, "[t]he Daymet calendar is based on a standard calendar year. All Daymet years have 1 - 365 days, including leap years. For leap years, the Daymet database includes leap day. Values for December 31 are discarded from leap years to maintain a 365-day year."
 
-:warning: As mentioned previously, only the `na` domain is considered in the subsetting process of `datatool`.
+> [!WARNING]
+> As mentioned previously, only the `na` domain is considered in the subsetting process of `datatool`.
 
 ## Short Description on `Daymet` Variables
 The variables currently available through the `Daymet` dataset and their details are described in the table below, taken from the [source](https://daymet.ornl.gov/overview):
