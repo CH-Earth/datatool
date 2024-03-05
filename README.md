@@ -45,7 +45,7 @@ Script options:
 |--|---------------------------|--------------------------------|--------------------------|-------------------------------------|
 |1 |GWF-NCAR WRF-CONUS I       |Hourly (Oct 2000 - Dec 2013)    |10.1007/s00382-016-3327-9 |[link](./scripts/gwf-ncar-conus_i)   |
 |2 |GWF-NCAR WRF-CONUS II[^1]  |Hourly (Jan 1995 - Dec 2015)    |10.5065/49SN-8E08         |[link](./scripts/gwf-ncar-conus_ii)  |
-|3 |ECMWF ERA5[^2]             |Hourly (Jan 1950 - Dec 2020)    |10.24381/cds.adbb2d47 and [link](https://cds.climate.copernicus.eu/cdsapp#!/dataset/reanalysis-era5-single-levels-preliminary-back-extension?tab=overview)|[link](./scripts/era5)|
+|3 |ECMWF ERA5[^2]             |Hourly (Jan 1950 - Dec 2020)    |10.24381/cds.adbb2d47 and [link](https://cds.climate.copernicus.eu/cdsapp#!/dataset/reanalysis-era5-single-levels-preliminary-back-extension?tab=overview)|[link](./scripts/ecmwf-era5)|
 |4 |ECCC RDRSv2.1              |Hourly (Jan 1980 - Dec 2018)    |10.5194/hess-25-4917-2021 |[link](./scripts/eccc-rdrs)          |
 |5 |CCRN CanRCM4-WFDEI-GEM-CaPA|3-Hourly (Jan 1951 - Dec 2100)  |10.5194/essd-12-629-2020  |[link](./scripts/ccrn-canrcm4_wfdei_gem_capa)|
 |6 |CCRN WFDEI-GEM-CaPA        |3-Hourly (Jan 1979 - Dec 2016)  |10.20383/101.0111         |[link](./scripts/ccrn-wfdei_gem_capa)|
