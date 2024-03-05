@@ -1,7 +1,8 @@
 # `Daymet` dataset 
 In this file, the details of the dataset is explained.
 
-:warning: the dataset files are divided between three different spatial domains: 1) North America (na), 2) Peurto Rico (pr), and 3) Hawaii (hi). For the moment, only the `na` domain is considered in `datatool`. 
+> [!WARNING]
+> the dataset files are divided between three different spatial domains: 1) North America (na), 2) Peurto Rico (pr), and 3) Hawaii (hi). For the moment, only the `na` domain is considered in `datatool`. 
 
 ## Location of Dataset Files
 The global `Daymet` dataset is located under the following directory accessible from Digital Research Alliance of Canada (DRA) Graham cluster:
