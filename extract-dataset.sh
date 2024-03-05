@@ -60,7 +60,9 @@ Script options:
   -s, --start-date=DATE             The start date of the data
   -e, --end-date=DATE               The end date of the data
   -l, --lat-lims=REAL,REAL          Latitude's upper and lower bounds
+                                    optional; within the [-90, +90] limits
   -n, --lon-lims=REAL,REAL          Longitude's upper and lower bounds
+                                    optional; within the [-180, +180] limits
   -a, --shape-file=PATH             Path to the ESRI shapefile; optional
   -m, --ensemble=ens1,[ens2,[...]]  Ensemble members to process; optional
                                     Leave empty to extract all ensemble members
