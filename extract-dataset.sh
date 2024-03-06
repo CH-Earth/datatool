@@ -1,6 +1,6 @@
 #!/bin/bash
 # Meteorological Data Processing Workflow
-# Copyright (C) 2022, University of Saskatchewan
+# Copyright (C) 2022-2023, University of Saskatchewan
 # Copyright (C) 2023-2024, University of Calgary
 #
 # This file is part of Meteorological Data Processing Workflow
@@ -35,67 +35,56 @@
 # ==============
 # Help functions
 # ==============
-short_usage () {
-  echo "usage: $(basename $0) [-jh] [-i DIR] [-d DATASET] [-co DIR] [-se DATE] [-ln REAL,REAL] [-p STR]" >&1;
+function short_usage () {
+  echo "usage: $(basename $0) [-jh] [-i DIR] [-d DATASET] [-co DIR] [-se DATE] [-ln REAL,REAL] [-p STR]
+
+Try \`$(basename $0) --help\` for more options." >&1;
 }
 
-version () {
+function version () {
   echo "$(basename $0): version $(cat $(dirname $0)/VERSION)";
   exit 0;
 }
 
-
-usage () {
+function usage () {
   echo "Meteorological Data Processing Script - version $(cat $(dirname $0)/VERSION)
 
 Usage:
   $(basename $0) [options...]
 
 Script options:
-  -d, --dataset				Meteorological forcing dataset of interest
-  -i, --dataset-dir=DIR			The source path of the dataset file(s)
-  -v, --variable=var1[,var2[...]]	Variables to process
-  -o, --output-dir=DIR			Writes processed files to DIR
-  -s, --start-date=DATE			The start date of the data
-  -e, --end-date=DATE			The end date of the data
-  -l, --lat-lims=REAL,REAL		Latitude's upper and lower bounds
-  -n, --lon-lims=REAL,REAL		Longitude's upper and lower bounds
-  -a, --shape-file=PATH			Path to the ESRI shapefile; optional
-  -m, --ensemble=ens1,[ens2[...]]	Ensemble members to process; optional
-  					Leave empty to extract all ensemble members
-  -j, --submit-job			Submit the data extraction process as a job
-					on the SLURM system; optional
-  -k, --no-chunk			No parallelization, recommended for small domains
-  -p, --prefix=STR			Prefix  prepended to the output files
-  -b, --parsable			Parsable SLURM message mainly used
-					for chained job submissions
-  -c, --cache=DIR			Path of the cache directory; optional
-  -E, --email=user@example.com		E-mail user when job starts, ends, or
-  					fails; optional
-  -u, --account				Digital Research Alliance of Canada's sponsor's
-  					account name; optional, defaults to 'rpp-kshook'
-  -V, --version				Show version
-  -h, --help				Show this screen and exit
-
-
-Currently, the following meteorological datasets are
-available for processing:
-
-  1.  NCAR-GWF WRF CONUS I (DOI: 10.1007/s00382-016-3327-9)
-  2.  NCAR-GWF WRF CONUS II (DOI: 10.5065/49SN-8E08)
-  3.  ECMWF ERA5 (DOI: 10.24381/cds.adbb2d47)
-  4.  ECCC RDRSv2.1 (DOI: 10.5194/hess-25-4917-2021)
-  5.  CCRN CanRCM4-WFDEI-GEM-CaPA (DOI: 10.5194/essd-12-629-2020)
-  6.  WFDEI-GEM-CaPA (DOI: 10.20383/101.0111)
-  7.  ORNL Daymet (DOI: 10.3334/ORNLDAAC/2129)
-  8.  BCC-CSM2-MR (DOI: TBD)
-  9.  CNRM-CM6-1 (DOI: TBD)
-  10. EC-Earth3-Veg (DOI: TBD)
-  11. GFDL-CM4 (DOI: TBD)
-  12. GFDL-ESM4 (DOI: TBD)
-  13. IPSL-CM6A-LR (DOI: TBD)
-  14. MRI-ESM2-0 (DOI: TBD)
-  15. Hybrid-observation (DOI: 10.5194/hess-23-5151-2019)
+  -d, --dataset                     Meteorological forcing dataset of interest
+  -i, --dataset-dir=DIR             The source path of the dataset file(s)
+  -v, --variable=var1[,var2[...]]   Variables to process
+  -o, --output-dir=DIR              Writes processed files to DIR
+  -s, --start-date=DATE             The start date of the data
+  -e, --end-date=DATE               The end date of the data
+  -l, --lat-lims=REAL,REAL          Latitude's upper and lower bounds
+                                    optional; within the [-90, +90] limits
+  -n, --lon-lims=REAL,REAL          Longitude's upper and lower bounds
+                                    optional; within the [-180, +180] limits
+  -a, --shape-file=PATH             Path to the ESRI shapefile; optional
+  -m, --ensemble=ens1,[ens2,[...]]  Ensemble members to process; optional
+                                    Leave empty to extract all ensemble members
+  -M, --model=model1,[model2,[...]] Models that are part of a dataset,
+                                    only applicable to climate datasets, optional
+  -S, --scenario=scn1,[scn2,[...]]  Climate scenarios to process, only applicable
+                                    to climate datasets, optional
+  -j, --submit-job                  Submit the data extraction process as a job
+                                    on the SLURM system; optional
+  -k, --no-chunk                    No parallelization, recommended for small domains
+  -p, --prefix=STR                  Prefix  prepended to the output files
+  -b, --parsable                    Parsable SLURM message mainly used
+                                    for chained job submissions
+  -c, --cache=DIR                   Path of the cache directory; optional
+  -E, --email=user@example.com      E-mail user when job starts, ends, or
+                                    fails; optional
+  -u, --account=ACCOUNT             Digital Research Alliance of Canada's sponsor's
+                                    account name; optional, defaults to 'rpp-kshook'
+  -L, --list-datasets               List all the available datasets and the
+                                    corresponding keywords for '--dataset' option
+  -V, --version                     Show version
+  -h, --help                        Show this screen and exit
 
 For bug reports, questions, discussions open an issue
 at https://github.com/kasra-keshavarz/datatool/issues" >&1;
@@ -103,6 +92,21 @@ at https://github.com/kasra-keshavarz/datatool/issues" >&1;
   exit 0;
 }
 
+function list_datasets () {
+echo "Meteorological Data Processing Script - version $(cat $(dirname $0)/VERSION)
+
+Currently, the following meteorological datasets are
+available for processing:
+$(cat $(dirname $0)/DATASETS | sed 's/^\(.*\)$/\o033[34m\1\o033[0m/')" >&1;
+
+  exit 0;
+}
+
+# useful log date format function
+logDate () { echo "($(date +"%Y-%m-%d %H:%M:%S")) "; }
+
+# useful maximum function
+max () { printf "%s\n" "${@:2}" | sort "$1" | tail -n1; }
 
 # =====================
 # Necessary Assumptions
@@ -113,12 +117,17 @@ alias date='TZ=UTC date'
 # expand aliases for the one stated above
 shopt -s expand_aliases
 
+# necessary local paths for the program
+scriptPath="$(dirname $0)/scripts" # scripts' path
+datatoolPath="$(dirname $0)" # datatool's path
+extract_submodel="${datatoolPath}/assets/bash_scripts/extract_subdir_level.sh" # script path
+
 
 # =======================
 # Parsing input arguments
 # =======================
 # argument parsing using getopt - WORKS ONLY ON LINUX BY DEFAULT
-parsedArguments=$(getopt -a -n extract-dataset -o jhVbE:d:i:v:o:s:e:t:l:n:p:c:m:ka:u: --long submit-job,help,version,parsable,email:,dataset:,dataset-dir:,variable:,output-dir:,start-date:,end-date:,time-scale:,lat-lims:,lon-lims:,prefix:,cache:,ensemble:,no-chunk,shape-file:,account: -- "$@")
+parsedArguments=$(getopt -a -n extract-dataset -o jhVbLE:d:i:v:o:s:e:t:l:n:p:c:m:M:S:ka:u: --long submit-job,help,version,parsable,list-datasets,email:,dataset:,dataset-dir:,variable:,output-dir:,start-date:,end-date:,time-scale:,lat-lims:,lon-lims:,prefix:,cache:,ensemble:,model:,scenario:,no-chunk,shape-file:,account: -- "$@")
 validArguments=$?
 # check if there is no valid options
 if [ "$validArguments" != "0" ]; then
@@ -138,9 +147,10 @@ while :
 do
   case "$1" in
     -h | --help)          usage                ; shift   ;; # optional
-    -V | --version)	  version	       ; shift   ;; # optional
+    -V | --version)       version              ; shift   ;; # optional
+    -L | --list-datasets) list_datasets        ; shift   ;; # optional
     -j | --submit-job)    jobSubmission=true   ; shift   ;; # optional
-    -E | --email)	  email="$2"	       ; shift 2 ;; # optional
+    -E | --email)         email="$2"           ; shift 2 ;; # optional
     -i | --dataset-dir)   datasetDir="$2"      ; shift 2 ;; # required
     -d | --dataset)       dataset="$2"         ; shift 2 ;; # required
     -v | --variable)	  variables="$2"       ; shift 2 ;; # required
@@ -151,10 +161,12 @@ do
     -l | --lat-lims)      latLims="$2"         ; shift 2 ;; # required
     -n | --lon-lims)      lonLims="$2"         ; shift 2 ;; # required
     -m | --ensemble)      ensemble="$2"        ; shift 2 ;; # optional
+    -M | --model)         model="$2"           ; shift 2 ;; # optional
+    -S | --scenario)      scenario="$2"        ; shift 2 ;; # optional
     -k | --no-chunk)      parallel=false       ; shift   ;; # optional
-    -p | --prefix)	  prefixStr="$2"       ; shift 2 ;; # required
+    -p | --prefix)        prefixStr="$2"       ; shift 2 ;; # required
     -b | --parsable)	  parsable=true	       ; shift   ;; # optional
-    -c | --cache)	  cache="$2"	       ; shift 2 ;; # optional
+    -c | --cache)         cache="$2"           ; shift 2 ;; # optional
     -u | --account)       account="$2"         ; shift 2 ;; # optional
     -a | --shape-file)    shapefile="$2"       ; shift 2 ;; # optional
 
@@ -205,7 +217,7 @@ else
 fi
 
 # if account is not provided, use `rpp-kshook` as default
-if [[ -z $account ]]; then
+if [[ -z $account ]] && [[ $jobSubmission == "true" ]]; then
   account="rpp-kshook"
   if [[ -z $parsable ]]; then
     echo "$(basename $0): WARNING! --account not provided, using \`rpp-kshook\` by default."
@@ -215,18 +227,23 @@ fi
 # if shapefile is provided extract the extents from it
 if [[ -n $shapefile ]]; then
   # load GDAL module
-  module -q load gdal;
+  module -q load gcc/9.3.0 gdal/3.4.3;
   # extract the shapefile extent
   IFS=' ' read -ra shapefileExtents <<< "$(ogrinfo -so -al "$shapefile" | sed 's/[),(]//g' | grep Extent)"
   # transform the extents in case they are not in EPSG:4326
-  IFS=':' read -ra sourceProj4 <<< "$(gdalsrsinfo $shapefile | grep -e "PROJ.4")" # source Proj4 value
-  # transform limits and assing to variables
+  IFS=':' read -ra sourceProj4 <<< "$(gdalsrsinfo $shapefile | grep -e "PROJ.4")" >&2
+  # Assuming EPSG:4326 if no definition of the CRS is provided
+  if [[ ${#sourceProj4[@]} -eq 0 ]]; then
+    echo "$(basename $0): WARNING! Assuming EPSG:4326 for --shape-file as none provided"
+    sourceProj4=('PROJ4.J' '+proj=longlat +datum=WGS84 +no_defs')
+  fi
+  # transform limits and assign to variables
   IFS=' ' read -ra leftBottomLims <<< $(echo "${shapefileExtents[@]:1:2}" | gdaltransform -s_srs "${sourceProj4[1]}" -t_srs EPSG:4326 -output_xy)
   IFS=' ' read -ra rightTopLims <<< $(echo "${shapefileExtents[@]:4:5}" | gdaltransform -s_srs "${sourceProj4[1]}" -t_srs EPSG:4326 -output_xy)
   # define $latLims and $lonLims from $shapefileExtents
   lonLims="${leftBottomLims[0]},${rightTopLims[0]}"
   latLims="${leftBottomLims[1]},${rightTopLims[1]}"
-  module -q unload gdal;
+  module -q unload gdal/3.4.3;
 fi
 
 # check mandatory arguments whether provided
@@ -268,7 +285,7 @@ dateFormat="%Y-%m-%d %H:%M:%S"
 # Globals:
 #   startDate: start date of the
 #	       subsetting process
-#   parallel: true by default, false if 
+#   parallel: true by default, false if
 #	      --no-chunk is activated
 #   startDateArr: array of chunked
 #		  start dates
@@ -279,7 +296,6 @@ dateFormat="%Y-%m-%d %H:%M:%S"
 #   endDate: end date of the process
 #   dateFormat: default date format
 #		for manipulations
-#   
 #
 # Arguments:
 #   1: -> tStep: string of time-step
@@ -290,7 +306,7 @@ dateFormat="%Y-%m-%d %H:%M:%S"
 #   will be filled for each chunk of
 #   date for further processing
 #######################################
-chunk_dates () {
+function chunk_dates () {
   # local variables
   local toDate="$startDate"
   local tStep="$1"
@@ -325,65 +341,36 @@ chunk_dates () {
   fi
 }
 
-#######################################
-# Chunking ensemble members in array
-# elements
-#
-# Arguments:
-#   1: -> esnemble: comma-separated 
-#	  values of ensemble members
-#
-# Outputs:
-#   Global ensembleArr array containing
-#   individual members names or an
-#   empty array if '--ensemble'
-#   argument was not applicable
-#######################################
-chunk_ensemble () {
-  # local variables
-  local value="$1"
-
-  # make global 'ensembleArr' array
-  IFS=',' read -ra ensembleArr <<< "$(echo "$value")"
-  
-  # check to see if the '--ensemble'
-  # argument was applicable
-  if [[ "${#ensembleArr[@]}" -gt 0 ]]; then
-    :
-  else
-    # make an empty array for datasets that
-    # do not have any ensemble members
-    ensembleArr=("")
-  fi
-}
-
 
 # ======================
 # Necessary preparations
 # ======================
 # put necessary arguments in an array - just for legibility
 declare -A funcArgs=([jobSubmission]="$jobSubmission" \
-		     [datasetDir]="$datasetDir" \
-		     [variables]="$variables" \
-		     [outputDir]="$outputDir" \
-		     [timeScale]="$timeScale" \
-		     [startDate]="$startDate" \
-		     [endDate]="$endDate" \
-		     [latLims]="$latLims" \
-		     [lonLims]="$lonLims" \
-		     [prefixStr]="$prefixStr" \
-		     [cache]="$cache" \
-		     [ensemble]="$ensemble" \
-		    );
+             [datasetDir]="$datasetDir" \
+             [variables]="$variables" \
+             [outputDir]="$outputDir" \
+             [timeScale]="$timeScale" \
+             [startDate]="$startDate" \
+             [endDate]="$endDate" \
+             [latLims]="$latLims" \
+             [lonLims]="$lonLims" \
+             [prefixStr]="$prefixStr" \
+             [cache]="$cache" \
+             [ensemble]="$ensemble" \
+             [model]="$model" \
+             [scenario]="$scenario"
+             );
 
 
 # ========================
 # Data processing function
 # ========================
-call_processing_func () {
+function call_processing_func () {
   # input arguments as local variables
-  scriptFile="$1" # script local path
+  local scriptFile="$1" # script local path
   local chunkTStep="$2" # chunking time-frame periods
+  local submodelFlag="$3" # flag for submodels' existence
 
   # local variables
   local scriptName=$(basename $scriptFile | cut -d '.' -f 1) # script/dataset name
@@ -392,6 +379,12 @@ call_processing_func () {
 
   # make the $logDir if haven't been created yet
   mkdir -p $logDir
+
+  # if dataset contains sub-models, extract them
+  if [[ $submodelFlag == 1 ]]; then
+    model=$($extract_submodel "$datasetDir" "$model")
+    funcArgs[model]=$model
+  fi
 
   # typical script to run for all sub-modules
   local script=$(cat <<- EOF 
@@ -406,23 +399,52 @@ call_processing_func () {
 	--lon-lims="${funcArgs[lonLims]}" \
 	--prefix="${funcArgs[prefixStr]}" \
 	--cache="${funcArgs[cache]}" \
-	--ensemble="${funcArgs[ensemble]}"
+	--ensemble="${funcArgs[ensemble]}" \
+	--scenario="${funcArgs[scenario]}" \
+	--model="${funcArgs[model]}"
 	EOF
   )
 
   # evaluate the script file using the arguments provided
   if [[ "${funcArgs[jobSubmission]}" == true ]]; then
-    # chunk time-frame and ensembles
+    # ==========================================
+    # Chunk time-frame and other relevant arrays
+    # ==========================================
+    # chunk dates
     chunk_dates "$chunkTStep"
-    chunk_ensemble "$ensemble" # 'ensemble' is a global variable
 
-    # length of total number of tasks and indices 
-    taskLen=$(( ${#startDateArr[@]} * ${#ensembleArr[@]} ))
-    jobArrLen=$(( $taskLen - 1 ))
+    # chunking ensemble members
+    IFS=',' read -ra ensembleArr <<< $ensemble
+    # chunking models
+    IFS=',' read -ra modelArr <<< $model
+    # chunking scenarios
+    IFS=',' read -ra scenarioArr <<< $scenario
 
-    # parallel run 
+    # ===========================
+    # Building job array iterator
+    # ===========================
+    let "ensembleLen = $(max -g ${#ensembleArr[@]} 1)"
+    let "modelLen = $(max -g ${#modelArr[@]} 1)"
+    let "scenarioLen = $(max -g ${#scenarioArr[@]} 1)"
+    let "dateLen = $(max -g ${#startDateArr[@]} 1)"
+
+    let "dateIter = $ensembleLen * $modelLen * $scenarioLen"
+    let "ensembleIter = $modelLen * $scenarioLen"
+    let "modelIter = $scenarioLen"
+
+    # ==============================
+    # Length of processing job array
+    # ==============================
+
+    # length of total number of tasks and indices
+    let "taskLen = $dateLen * $ensembleLen * $modelLen * $scenarioLen"
+    let "jobArrLen = $taskLen - 1"
+
+    # ============
+    # Parallel run
+    # ============
     # FIXME: This needs to be moved into a template scheduler
-    #        document
+    #        document, and various schedulers need to be supported
     sbatch <<- EOF
 	#!/bin/bash
 	#SBATCH --array=0-$jobArrLen
@@ -441,22 +463,35 @@ call_processing_func () {
 	$(declare -p startDateArr)
 	$(declare -p endDateArr)
 	$(declare -p ensembleArr)
+	$(declare -p modelArr)
+	$(declare -p scenarioArr)
 	
-	idxDate="\$(( \${SLURM_ARRAY_TASK_ID} % \${#startDateArr[@]}  ))"
-	idxMember="\$(( \${SLURM_ARRAY_TASK_ID} / \${#startDateArr[@]}  ))"
+	idxDate="\$(( (\${SLURM_ARRAY_TASK_ID} / ${dateIter}) % ${dateLen} ))"
+	idxMember="\$(( (\${SLURM_ARRAY_TASK_ID} / ${ensembleIter}) % ${ensembleLen} ))"
+	idxModel="\$(( (\${SLURM_ARRAY_TASK_ID} / ${modelIter}) % ${modelLen} ))"
+	idxScenario="\$(( \${SLURM_ARRAY_TASK_ID} % ${scenarioLen} ))"
 	
-	tBegin="\${startDateArr[\${idxDate}]}"
-	tEnd="\${endDateArr[\${idxDate}]}"
-	member="\${ensembleArr[\${idxMember}]}"
+	tBegin="\${startDateArr[\$idxDate]}"
+	tEnd="\${endDateArr[\$idxDate]}"
+	memberChosen="\${ensembleArr[\$idxMember]}"
+	modelChosen="\${modelArr[\$idxModel]}"
+	scenarioChosen="\${scenarioArr[\$idxScenario]}"
 	
-	echo "${scriptName}.sh: #\${SLURM_ARRAY_TASK_ID} chunk submitted."
-	echo "${scriptName}.sh: Chunk start date is \$tBegin"
-	echo "${scriptName}.sh: Chunk end date is   \$tEnd"
-	if [[ -n \${member} ]]; then
-	  echo "${scriptName}.sh: Ensemble member is  \$member"
+	echo "$(logDate)$(basename $0): Calling ${scriptName}.sh..."
+	echo "$(logDate)$(basename $0): #\${SLURM_ARRAY_TASK_ID} chunk submitted."
+	echo "$(logDate)$(basename $0): Chunk start date is \$tBegin"
+	echo "$(logDate)$(basename $0): Chunk end date is   \$tEnd"
+	if [[ -n \${modelChosen} ]]; then
+	  echo "$(logDate)$(basename $0): Model is            \${modelChosen}"
+	fi
+	if [[ -n \${scenarioChosen} ]]; then
+	  echo "$(logDate)$(basename $0): Scenario is         \${scenarioChosen}"
+	fi
+	if [[ -n \${memberChosen} ]]; then
+	  echo "$(logDate)$(basename $0): Ensemble member is  \${memberChosen}"
 	fi
 	
-	srun ${script} --start-date="\$tBegin" --end-date="\$tEnd" --cache="${cache}/cache-\${SLURM_ARRAY_JOB_ID}-\${SLURM_ARRAY_TASK_ID}" --ensemble="\${member}"
+	srun ${script} --start-date="\$tBegin" --end-date="\$tEnd" --cache="${cache}/cache-\${SLURM_ARRAY_JOB_ID}-\${SLURM_ARRAY_TASK_ID}" --ensemble="\${memberChosen}" --model="\${modelChosen}" --scenario="\${scenarioChosen}"
 	EOF
 
     if [[ -z $parsable ]]; then
@@ -476,84 +511,81 @@ call_processing_func () {
 
 # FIXME: This list needs to become part of a configuration
 #        file in future releases
-
-scriptPath="$(dirname $0)/scripts"
+# $scriptPath is defined at the top
 
 case "${dataset,,}" in
+
+  # ============
+  # WRF products
+  # ============
+
   # NCAR-GWF CONUSI
   "conus1" | "conusi" | "conus_1" | "conus_i" | "conus 1" | "conus i" | "conus-1" | "conus-i")
-    call_processing_func "$scriptPath/conus_i/conus_i.sh" "3months"
+    call_processing_func "$scriptPath/gwf-ncar-conus_i/conus_i.sh" "3months"
     ;;
 
   # NCAR-GWF CONUSII
   "conus2" | "conusii" | "conus_2" | "conus_ii" | "conus 2" | "conus ii" | "conus-2" | "conus-ii")
-    call_processing_func "$scriptPath/conus_ii/conus_ii.sh" "1month"
+    call_processing_func "$scriptPath/gwf-ncar-conus_ii/conus_ii.sh" "1month"
     ;;
+
+  # ==========
+  # Reanalysis
+  # ==========
 
   # ECMWF ERA5
   "era_5" | "era5" | "era-5" | "era 5")
-    call_processing_func "$scriptPath/era5/era5_simplified.sh" "2years"
+    call_processing_func "$scriptPath/ecmwf-era5/era5_simplified.sh" "2years"
     ;;
   
-  # ECCC RDRS 
+  # ECCC RDRS
   "rdrs" | "rdrsv2.1")
-    call_processing_func "$scriptPath/rdrs/rdrs.sh" "6months"
+    call_processing_func "$scriptPath/eccc-rdrs/rdrs.sh" "6months"
     ;;
 
-  # CanRCM4-WFDEI-GEM-CaPA
-  "canrcm4-wfdei-gem-capa" | "canrcm4_wfdei_gem_capa")
-    call_processing_func "$scriptPath/canrcm4_wfdei_gem_capa/canrcm4_wfdei_gem_capa.sh" "5years"
-    ;;
-  
-  # WFDEI-GEM-CaPA
-  "wfdei-gem-capa" | "wfdei_gem_capa" | "wfdei-gem_capa" | "wfdei_gem-capa")
-    call_processing_func "$scriptPath/wfdei_gem_capa/wfdei_gem_capa.sh" "5years"
-    ;;
+  # ====================
+  # Observation datasets
+  # ====================
 
   # Daymet dataset
   "daymet" | "Daymet" )
-    call_processing_func "$scriptPath/daymet/daymet.sh" "5years"
+    call_processing_func "$scriptPath/ornl-daymet/daymet.sh" "5years"
     ;;
 
-  # BCC-CSM2-MR
-  "bcc" | "bcc_csm2_mr" | "bcc-csm2-mr" )
-    call_processing_func "$scriptPath/bcc_csm2_mr/bcc_csm2_mr.sh" "50years"
+  # ================
+  # Climate datasets
+  # ================
+
+  # ESPO-G6-R2 dataset
+  "espo" | "espo-g6-r2" | "espo_g6_r2" | "espo_g6-r2" | "espo-g6_r2" )
+    call_processing_func "$scriptPath/ouranos-espo-g6-r2/espo-g6-r2.sh" "151years" "1"
     ;;
 
-  # CNRM_CM6_1
-  "cnrm" | "cnrm_cm6_1" | "cnrm-cm6-1" )
-    call_processing_func "$scriptPath/cnrm_cm6_1/cnrm_cm6_1.sh" "50years"
+  # Ouranos-MRCC5-CMIP6 dataset
+  "crcm5-cmip6" | "mrcc5-cmip6" | "crcm5" | "mrcc5" )
+    call_processing_func "$scriptPath/ouranos-crcm5-cmip6/crcm5-cmip6.sh" "1years"
     ;;
 
-  # EC_EARTH3_VEG
-  "ec" | "ec_earth3_veg" | "ec-earth3-veg" )
-    call_processing_func "$scriptPath/ec_earth3_veg/ec_earth3_veg.sh" "50years"
+  # Alberta Government Downscaled Climate Dataset - CMIP6
+  "alberta" | "ab-gov" | "ab" | "ab_gov" | "abgov" )
+    call_processing_func "$scriptPath/ab-gov/ab-gov.sh" "151years" "0"
+	;;
+
+  # NASA GDDP-NEX-CMIP6
+  "gddp" | "nex" | "gddp-nex" | "nex-gddp" | "gddp-nex-cmip6" | "nex-gddp-cmip6")
+    call_processing_func "$scriptPath/nasa-nex-gddp-cmip6/nex-gddp-cmip6.sh" "100years" "0"
+	;;
+
+  # CanRCM4-WFDEI-GEM-CaPA
+  "canrcm4_g" | "canrcm4-wfdei-gem-capa" | "canrcm4_wfdei_gem_capa")
+    call_processing_func "$scriptPath/ccrn-canrcm4_wfdei_gem_capa/canrcm4_wfdei_gem_capa.sh" "5years"
+    ;;
+  
+  # WFDEI-GEM-CaPA
+  "wfdei_g" | "wfdei-gem-capa" | "wfdei_gem_capa" | "wfdei-gem_capa" | "wfdei_gem-capa")
+    call_processing_func "$scriptPath/ccrn-wfdei_gem_capa/wfdei_gem_capa.sh" "5years"
     ;;
 
-  # GFDL_CM4
-  "gfdl_cm4" | "gfdl-cm4" )
-    call_processing_func "$scriptPath/gfdl_cm4/gfdl_cm4.sh" "50years"
-    ;;
-
-  # GDFL_ESM4
-  "gfdl_esm4" | "gfdl-esm4" )
-    call_processing_func "$scriptPath/gfdl_esm4/gfdl_esm4.sh" "50years"
-    ;;
-
-  # IPSL_CM6A_LR
-  "ipsl" | "ipsl_cm6a_lr" | "ipsl-cm6a-lr" )
-    call_processing_func "$scriptPath/ipsl_cm6a_lr/ipsl_cm6a_lr.sh" "50years"
-    ;;
-
-  # MRI_ESM2_0
-  "mri" | "mri-esm2-0" | "mri_esm2_0" )
-    call_processing_func "$scriptPath/mri_esm2_0/mri_esm2_0.sh" "50years"
-    ;;
-
-  # Hybrid Observation Dataset
-  "hybrid" | "hybrid-obs" | "hybrid_obs" | "hybrid_observation" | "hybrid-observation" )
-    call_processing_func "$scriptPath/hybrid_obs/hybrid_obs.sh" "50years"
-    ;;
 
   # dataset not included above
   *)

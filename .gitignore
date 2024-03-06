@@ -3,3 +3,6 @@
 .ipynb_checkpoints
 .DS_Store
 *.swp
+
+# WIP folders
+scripts/ouranos-crcm5-cmip6/

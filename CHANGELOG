@@ -1,5 +1,20 @@
 Changelog
 =========
+[v0.5.0] March 5th, 2024
+# Improvements
+  * `DATASETS` file now describes all the datasets available in the script
+  * new parallelization schemes are introduced using models, scenarios,
+    and ensemble members
+  * the `assets` directory is now more organized separating common NCL
+    and bash scripts needed
+  * styles of the script is updated (not completely) to be more compatible
+    with Google's shell scripting style guidelines
+  * Documentations have been updated
+# Datasets
+  * Ouranos ESPO-G6-R2 CMIP6 script added (~9TBs)
+  * NASA GDDP-NEX-CMIP CMIP6 script added (~37TBs)
+  * Alberta Governments CMIP6 script added (~0.1TBs)
+  
 [v0.4.1] - September 21st, 2023
 # Fixed
  * minor bug fixes
