@@ -238,6 +238,48 @@ main `datatool` script:
 |34 |`TaiESM1`                       |`historical`, `ssp126`, `ssp245`, `ssp370`, `ssp585`|
 |35 |`UKESM1-0-LL`                   |`historical`, `ssp126`, `ssp245`, `ssp370`, `ssp585`|
 
+## `nex-gddp-cmip6` Climate Models' Ensemble Members
+This dataset offers downscaled outputs of various climate models. Table below
+summarizes the dataset ensemble members for each climate model:
+
+|#  |Model (keyword for `--model`)   |Ensemble Member(s) (keyword for `--ensemble`)       |
+|---| -------------------------------|----------------------------------------------------|
+|1  |`ACCESS-CM2`                    |`r1i1p1f1`                                          |
+|2  |`ACCESS-ESM1-5`                 |`r1i1p1f1`                                          |
+|3  |`BCC-CSM2-MR`                   |`r1i1p1f1`                                          |
+|4  |`CanESM5`                       |`r1i1p1f1`                                          |
+|5  |`CESM2`                         |`r4i1p1f1`                                          |
+|6  |`CESM2-WACCM`                   |`r3i1p1f1`                                          |
+|7  |`CMCC-CM2-SR5`                  |`r1i1p1f1`                                          |
+|8  |`CMCC-ESM2`                     |`r1i1p1f1`                                          |
+|9  |`CNRM-CM6-1`                    |`r1i1p1f2`                                          |
+|10 |`CNRM-ESM2-1`                   |`r1i1p1f2`                                          |
+|11 |`EC-Earth3`                     |`r1i1p1f1`                                          |
+|12 |`EC-Earth3-Veg-LR`              |`r1i1p1f1`                                          |
+|13 |`FGOALS-g3`                     |`r3i1p1f1`                                          |
+|14 |`GFDL-CM4`                      |`r1i1p1f1`                                          |
+|15 |`GFDL-CM4_gr2`                  |`r1i1p1f1`                                          |
+|16 |`GFDL-ESM4`                     |`r1i1p1f1`                                          |
+|17 |`GISS-E2-1-G`                   |`r1i1p1f2`                                          |
+|18 |`HadGEM3-GC31-LL`               |`r1i1p1f3`                                          |
+|19 |`HadGEM3-GC31-MM`               |`r1i1p1f3`                                          |
+|20 |`IITM-ESM`                      |`r1i1p1f1`                                          |
+|21 |`INM-CM4-8`                     |`r1i1p1f1`                                          |
+|22 |`INM-CM5-0`                     |`r1i1p1f1`                                          |
+|23 |`IPSL-CM6A-LR`                  |`r1i1p1f1`                                          |
+|24 |`KACE-1-0-G`                    |`r1i1p1f1`                                          |
+|25 |`KIOST-ESM`                     |`r1i1p1f1`                                          |
+|26 |`MIROC6`                        |`r1i1p1f1`                                          |
+|27 |`MIROC-ES2L`                    |`r1i1p1f2`                                          |
+|28 |`MPI-ESM1-2-HR`                 |`r1i1p1f1`                                          |
+|29 |`MPI-ESM1-2-LR`                 |`r1i1p1f1`                                          |
+|30 |`MRI-ESM2-0`                    |`r1i1p1f1`                                          |
+|31 |`NESM3`                         |`r1i1p1f1`                                          |
+|32 |`NorESM2-LM`                    |`r1i1p1f1`                                          |
+|33 |`NorESM2-MM`                    |`r1i1p1f1`                                          |
+|34 |`TaiESM1`                       |`r1i1p1f1`                                          |
+|35 |`UKESM1-0-LL`                   |`r1i1p1f2`                                          |
+
 
 ## Coordinate Variables, Spatial and Temporal extents, and Time-stamps
 
