@@ -145,6 +145,30 @@ describes the temporal extent for senarios included in this dataset:
 |2  |`ssp370`                             |`2015-01-01` to `2100-12-31`|
 |3  |`ssp585`                             |`2015-01-01` to `2100-12-31`|
 
+## List of Ensemble Members
+|#  |Models (keyword for `--model`)|Ensemble Members (keyword for `--ensemble`)|
+|---|------------------------------|-------------------------------------------|
+|1  |`AS-RCEC`                     |`r1i1p1f1`                                 |
+|2  |`BCC`                         |`r1i1p1f1`                                 |
+|3  |`CAS`                         |`r1i1p1f1`                                 | 
+|4  |`CCCma`                       |`r1i1p1f1`                                 |
+|5  |`CMCC`                        |`r1i1p1f1`                                 |
+|6  |`CNRM-CERFACS`                |`r1i1p1f2`                                 |
+|7  |`CSIRO`                       |`r1i1p1f1`                                 |
+|8  |`CSIRO-ARCCSS`                |`r1i1p1f1`                                 |
+|9  |`DKRZ`                        |`r1i1p1f1`                                 |
+|10 |`EC-Earth-Consortium`         |`r1i1p1f1`                                 |
+|11 |`INM`                         |`r1i1p1f1`                                 |
+|12 |`IPSL`                        |`r1i1p1f1`                                 |
+|13 |`MIROC`                       |`r1i1p1f1`, `r1i1p1f2`                     |
+|14 |`MOHC`                        |`r1i1p1f2`                                 |
+|15 |`MPI-M`                       |`r1i1p1f1`                                 |
+|16 |`MRI`                         |`r1i1p1f1`                                 |
+|17 |`NCC`                         |`r1i1p1f1`                                 |
+|18 |`NIMS-KMA`                    |`r1i1p1f1`                                 |
+|19 |`NOAA-GFDL`                   |`r1i1p1f1`                                 |
+|20 |`NUIST`                       |`r1i1p1f1`                                 |
+
 
 ## Short Description on `ESPO-G6-R2 v1.0.0` Variables
 This dataset only offers three climate variables: 1) daily precipitation
