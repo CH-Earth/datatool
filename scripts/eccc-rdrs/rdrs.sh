@@ -85,11 +85,14 @@ do
   esac
 done
 
+# useful log date format function
+logDate () { echo "($(date +"%Y-%m-%d %H:%M:%S")) "; }
+
 # check if $ensemble is provided
 if [[ -n "$ensemble" ]] || \
    [[ -n "$scenario" ]] || \
    [[ -n "$model" ]]; then
-  echo "ERROR $(basename $0): redundant argument provided";
+  echo "$(logDate)$(basename $0): ERROR! redundant argument provided";
   exit 1;
 fi
 
@@ -108,6 +111,13 @@ alias date='TZ=UTC date'
 # expand aliases for the one stated above
 shopt -s expand_aliases
 
+# paths
+datatoolPath="$(dirname $0)/../../" # datatool's path
+# daymet index scripts works on RDRSv2.1 grids as well
+# and ESPO-G6-R2 has similar grid system as RDRSv2.1
+coordIdxScript="$datatoolPath/assets/ncl_scripts/coord_daymet_idx.ncl"
+coordClosestIdxScript="$datatoolPath/assets/ncl_scripts/coord_closest_daymet_idx.ncl"
+
 
 # ==========================
 # Necessary global variables
@@ -117,19 +127,37 @@ rdrsFormat="%Y%m%d" # rdrs file date format
 exportFormat="%Y%m%d" # exported file date format
 fileStruct="" # source dataset files' prefix constant
 
-latVar="rlat"
-lonVar="rlon"
+latDim="rlat"
+lonDim="rlon"
 
 
 # ===================
 # Necessary functions
 # ===================
-# Modules below available on Compute Canada (CC) Graham Cluster Server
+# Modules below available on Digital Research Alliance of Canada's Graham HPC
+## core modules
 function load_core_modules () {
+  module -q load StdEnv/2020
   module -q load gcc/9.3.0
   module -q load cdo/2.0.4
   module -q load nco/5.0.6
 }
+function unload_core_modules () {
+  # WARNING: DO NOT USE IF YOU ARE NOT SURE HOW TO URE IT
+  module -q unload cdo/2.0.4
+  module -q unload nco/5.0.6
+}
+## ncl modules
+function load_ncl_module () {
+  module -q load StdEnv/2020
+  module -q load gcc/9.3.0
+  module -q load ncl/6.6.2
+}
+function unload_ncl_module () {
+  module -q unload ncl/6.6.2
+}
+
+# loading core modules for the script
 load_core_modules
 
 
@@ -156,14 +184,57 @@ lims_to_float () { IFS=',' read -ra l <<< $@; f_arr=(); for i in "${l[@]}"; do f
 # Data processing
 # ===============
 # display info
-echo "$(basename $0): processing ECCC RDRSv2.1..."
+echo "$(logDate)$(basename $0): processing ECCC RDRSv2.1..."
 
 # make the output directory
-echo "$(basename $0): creating output directory under $outputDir"
+echo "$(logDate)$(basename $0): creating output directory under $outputDir"
 mkdir -p "$outputDir"
-echo "$(basename $0): creating cache directory under $cache"
+echo "$(logDate)$(basename $0): creating cache directory under $cache"
 mkdir -p "$cache"
 
+
+# ======================
+# Extract domain extents
+# ======================
+
+# parse the upper and lower bounds of a given spatial limit
+minLat=$(echo $latLims | cut -d ',' -f 1)
+maxLat=$(echo $latLims | cut -d ',' -f 2)
+minLon=$(echo $lonLims | cut -d ',' -f 1)
+maxLon=$(echo $lonLims | cut -d ',' -f 2)
+
+# unload and load necessary modules
+unload_core_modules
+load_ncl_module
+# choose a sample file as all files share the same grid
+domainFile="$(find "${datasetDir}/" -type f -name "*.nc" | head -n 1)"
+# parse the upper and lower bounds of a given spatial limit
+minLat=$(echo $latLims | cut -d ',' -f 1)
+maxLat=$(echo $latLims | cut -d ',' -f 2)
+minLon=$(echo $lonLims | cut -d ',' -f 1)
+maxLon=$(echo $lonLims | cut -d ',' -f 2)
+
+# extract the associated indices corresponding to $latLims and $lonLims
+coordIdx="$(ncl -nQ 'coord_file='\"$domainFile\" 'minlat='"$minLat" 'maxlat='"$maxLat" 'minlon='"$minLon" 'maxlon='"$maxLon" "$coordIdxScript")"
+
+# if spatial index out-of-bound, i.e., 'ERROR' is return
+if [[ "${coordIdx}" == "ERROR" ]]; then
+  # extract the closest index values
+  coordIdx="$(ncl -nQ 'coord_file='\"$domainFile\" 'minlat='"$minLat" 'maxlat='"$maxLat" 'minlon='"$minLon" 'maxlon='"$maxLon" "$coordClosestIdxScript")"
+fi
+
+# parse the output index for latitude and longitude
+lonLimsIdx+="$(echo $coordIdx | cut -d ' ' -f 1)"
+latLimsIdx+="$(echo $coordIdx | cut -d ' ' -f 2)"
+
+# reload necessary modules
+unload_ncl_module
+load_core_modules
+
+
+# =====================
+# Extract dataset files
+# =====================
 # define necessary dates
 startYear=$(date --date="$startDate" +"%Y") # start year (first folder)
 endYear=$(date --date="$endDate" +"%Y") # end year (last folder)
@@ -175,11 +246,12 @@ endDateUnix="$(unix_epoch "$endDate")"
 
 for yr in $yearsRange; do
   # creating yearly directory
-  mkdir -p "$outputDir/$yr" # making the output directory
-  mkdir -p "$cache/$yr" # making the cache directory
+  mkdir -p "$outputDir/$yr" # output directory
+  mkdir -p "$cache/$yr" # cache directory
 
   # setting the end point, either the end of current year, or the $endDate
-  endOfCurrentYearUnix=$(date --date="$yr-01-01 +1year -1day" "+%s") # last time-step of the current year
+  # last time-step of the current year
+  endOfCurrentYearUnix=$(date --date="$yr-01-01 +1year -1day" "+%s")
   if [[ $endOfCurrentYearUnix -le $endDateUnix ]]; then
     endPointUnix=$endOfCurrentYearUnix
   else
@@ -189,28 +261,55 @@ for yr in $yearsRange; do
   # extract variables from the forcing data files
   while [[ "$toDateUnix" -le "$endPointUnix" ]]; do
     # date manipulations
-    toDateFormatted=$(date --date "$toDate" +"$rdrsFormat") # current timestamp formatted to conform to RDRS naming convention
+    # current timestamp formatted to conform to RDRS naming convention
+    toDateFormatted=$(date --date "$toDate" +"$rdrsFormat")
 
     # creating file name
     file="${toDateFormatted}12.nc" # current file name
     
-    # change lon values so the extents are from ~-180 to 0
-    ncap2 -s 'where(lon>0) lon=lon-360' "${datasetDir}/${yr}/${file}" "${cache}/${yr}/${file}"
-
     # extracting variables from the files and spatial subsetting
-    cdo -z zip -s -L -sellonlatbox,"$lonLims","$latLims" \
-        -selvar,"$variables" \
-        "${cache}/${yr}/${file}" "${outputDir}/${yr}/${prefix}${file}"
+    # assuring the process finished using an `until` loop
+    until ncks -A -v ${variables} \
+               -d "$latDim","${latLimsIdx}" \
+               -d "$lonDim","${lonLimsIdx}" \
+               ${datasetDir}/${yr}/${file} \
+               ${cache}/${yr}/${file}; do
+      echo "$(logDate)$(basename $0): Process killed: restarting process in 10 sec" >&2
+      echo "NCKS [...] failed" >&2
+      sleep 10;
+    done # until ncks
 
-    [ $( jobs | wc -l ) -ge $( nproc ) ] && wait # forking shell processes
+    # remove any left-over .tmp file
+    if [[ -e ${cache}/${yr}/${file}*.tmp ]]; then
+      rm -r "${cache}/${yr}/${file}*.tmp"
+    fi
+
+    # wait for any left-over processes to finish
+    wait
+
+    # change lon values so the extents are from ~-180 to 0
+    # assuring the process finished using an `until` loop
+    until ncap2 -O -s 'where(lon>0) lon=lon-360' \
+            "${cache}/${yr}/${file}" \
+            "${outputDir}/${yr}/${prefix}${file}"; do
+      rm "${outputDir}/${yr}/${prefix}${file}"
+      echo "$(logDate)$(basename $0): Process killed: restarting process in 10 sec" >&2
+      echo "$(logDate)$(basename $0): NCAP2 -s [...] failed" >&2
+      sleep 10;
+    done
+ 
+    # remove any left-over .tmp file
+    if [[ -e ${cache}/${yr}/${file}*.tmp ]]; then
+      rm -r "${cache}/${yr}/${file}*.tmp"
+    fi
+
+    # wait for any left-over processes to finish
+    wait
 
     # increment time-step by one unit
     toDate="$(date --date "$toDate 1day")" # current time-step
     toDateUnix="$(unix_epoch "$toDate")" # current timestamp in unix EPOCH time
   done
-
-  # wait to make sure the while loop is finished
-  wait
 
   # go to the next year if necessary
   if [[ "$toDateUnix" == "$endOfCurrentYearUnix" ]]; then
@@ -220,9 +319,9 @@ for yr in $yearsRange; do
 done
 
 mkdir "$HOME/empty_dir"
-echo "$(basename $0): deleting temporary files from $cache"
+echo "$(logDate)$(basename $0): deleting temporary files from $cache"
 rsync -aP --delete "$HOME/empty_dir/" "$cache"
 rm -r "$cache"
-echo "$(basename $0): temporary files from $cache are removed"
-echo "$(basename $0): results are produced under $outputDir"
+echo "$(logDate)$(basename $0): temporary files from $cache are removed"
+echo "$(logDate)$(basename $0): results are produced under $outputDir"
 
