@@ -236,6 +236,13 @@ load_core_modules
 # Extract dataset files
 # =====================
 # define necessary dates
+# Assure the end-date is not beyond 2018-12-30
+endDateInt=$(date --date="$endDate" +"%Y%m%d")
+if [[ $endDateInt -gt "20181230" ]]; then
+  endDate="2018-12-30T23:00:00"
+fi
+
+# assign proper variables for dates
 startYear=$(date --date="$startDate" +"%Y") # start year (first folder)
 endYear=$(date --date="$endDate" +"%Y") # end year (last folder)
 yearsRange=$(seq $startYear $endYear)
@@ -244,6 +251,7 @@ toDate="$startDate"
 toDateUnix="$(unix_epoch "$toDate")"
 endDateUnix="$(unix_epoch "$endDate")"
 
+# iterate over the years
 for yr in $yearsRange; do
   # creating yearly directory
   mkdir -p "$outputDir/$yr" # output directory
