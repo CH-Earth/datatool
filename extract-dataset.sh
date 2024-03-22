@@ -36,7 +36,7 @@
 # Help functions
 # ==============
 function short_usage () {
-  echo "usage: $(basename $0) [-jh] [-i DIR] [-d DATASET] [-co DIR] [-se DATE] [-ln REAL,REAL] [-p STR]
+  echo "Usage: $(basename $0) [-jh] [-i DIR] [-d DATASET] [-co DIR] [-se DATE] [-ln REAL,REAL] [-p STR]
 
 Try \`$(basename $0) --help\` for more options." >&1;
 }
