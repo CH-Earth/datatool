@@ -128,6 +128,7 @@ resolution="0.25"
 # Modules below available on Digital Research Alliance of Canada's Graham HPC
 ## core modules
 function load_core_modules () {
+  module -q load StdEnv/2020
   module -q load gcc/9.3.0
   module -q load cdo/2.0.4
   module -q load nco/5.0.6
@@ -139,6 +140,7 @@ function unload_core_modules () {
 }
 ## ncl modules
 function load_ncl_module () {
+  module -q load StdEnv/2020
   module -q load gcc/9.3.0
   module -q load ncl/6.6.2
 }

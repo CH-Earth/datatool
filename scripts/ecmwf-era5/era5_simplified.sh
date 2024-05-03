@@ -125,8 +125,10 @@ lonVar="longitude"
 # ===================
 # Modules below available on Compute Canada (CC) Graham Cluster Server
 function load_core_modules () {
-    module -q load cdo/2.0.4
-    module -q load nco/5.0.6
+  module -q load StdEnv/2020
+  module -q load gcc/9.3.0
+  module -q load cdo/2.0.4
+  module -q load nco/5.0.6
 }
 load_core_modules
 
