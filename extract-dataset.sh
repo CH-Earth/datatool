@@ -227,7 +227,9 @@ fi
 # if shapefile is provided extract the extents from it
 if [[ -n $shapefile ]]; then
   # load GDAL module
-  module -q load gcc/9.3.0 gdal/3.4.3;
+  module -q load StdEnv/2020;
+  module -q load gcc/9.3.0;
+  module -q load gdal/3.4.3;
   # extract the shapefile extent
   IFS=' ' read -ra shapefileExtents <<< "$(ogrinfo -so -al "$shapefile" | sed 's/[),(]//g' | grep Extent)"
   # transform the extents in case they are not in EPSG:4326
@@ -563,7 +565,7 @@ case "${dataset,,}" in
 
   # Ouranos-MRCC5-CMIP6 dataset
   "crcm5-cmip6" | "mrcc5-cmip6" | "crcm5" | "mrcc5" )
-    call_processing_func "$scriptPath/ouranos-crcm5-cmip6/crcm5-cmip6.sh" "1years"
+    call_processing_func "$scriptPath/ouranos-mrcc5-cmip6/mrcc5-cmip6.sh" "1years"
     ;;
 
   # Alberta Government Downscaled Climate Dataset - CMIP6
