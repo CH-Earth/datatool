@@ -206,13 +206,21 @@ maxLon=$(echo $lonLims | cut -d ',' -f 2)
 # unload and load necessary modules
 unload_core_modules
 load_ncl_module
+
 # choose a sample file as all files share the same grid
 domainFile="$(find "${datasetDir}/" -type f -name "*.nc" | head -n 1)"
+
 # parse the upper and lower bounds of a given spatial limit
 minLat=$(echo $latLims | cut -d ',' -f 1)
 maxLat=$(echo $latLims | cut -d ',' -f 2)
 minLon=$(echo $lonLims | cut -d ',' -f 1)
 maxLon=$(echo $lonLims | cut -d ',' -f 2)
+
+# adding/subtracting 0.1 degree to/from max/min values
+minLat=$(bc <<< "$minLat - 0.1")
+maxLat=$(bc <<< "$maxLat + 0.1")
+minLon=$(bc <<< "$minLon - 0.1")
+maxLon=$(bc <<< "$maxLon + 0.1")
 
 # extract the associated indices corresponding to $latLims and $lonLims
 coordIdx="$(ncl -nQ 'coord_file='\"$domainFile\" 'minlat='"$minLat" 'maxlat='"$maxLat" 'minlon='"$minLon" 'maxlon='"$maxLon" "$coordIdxScript")"
