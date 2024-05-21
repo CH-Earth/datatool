@@ -249,6 +249,11 @@ endDateInt=$(date --date="$endDate" +"%Y%m%d")
 if [[ $endDateInt -gt "20181230" ]]; then
   endDate="2018-12-30T23:00:00"
 fi
+# Assure the start-date is not before 1980-01-01
+startDateInt=$(date --date="$startDate" +"%Y%m%d")
+if [[ $startDateInt -lt "19800101" ]]; then
+  startDate="1980-01-01T12:00:00"
+fi
 
 # assign proper variables for dates
 startYear=$(date --date="$startDate" +"%Y") # start year (first folder)
