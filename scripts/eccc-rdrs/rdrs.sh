@@ -272,7 +272,7 @@ for yr in $yearsRange; do
 
   # setting the end point, either the end of current year, or the $endDate
   # last time-step of the current year
-  endOfCurrentYearUnix=$(date --date="$yr-01-01 +1year -1day" "+%s")
+  endOfCurrentYearUnix=$(date --date="$yr-01-01 23:00:00 +1year -1day" "+%s")
   if [[ $endOfCurrentYearUnix -le $endDateUnix ]]; then
     endPointUnix=$endOfCurrentYearUnix
   else
@@ -287,7 +287,7 @@ for yr in $yearsRange; do
 
     # creating file name
     file="${toDateFormatted}12.nc" # current file name
-    
+
     # extracting variables from the files and spatial subsetting
     # assuring the process finished using an `until` loop
     until ncks -A -v ${variables} \
