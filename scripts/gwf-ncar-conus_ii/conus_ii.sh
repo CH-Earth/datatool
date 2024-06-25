@@ -431,18 +431,34 @@ for yr in $yearsRange; do
 
   # extract variables from the forcing data files
   while [[ "$toDateUnix" -le "$endPointUnix" ]]; do
-    # date manipulations
-    toDateFormatted=$(date --date "$toDate" "+$tarFormat") # current timestamp formatted to conform to CONUSII naming convention
-    
-    # creating file name
-    file="${tarFileStruct}_${toDateFormatted}.tar" # current file name
+ 
+    if [[ "$yr" -ge "2080" ]] && [[ "$yr" -le "2100" ]]; then 
+      # date manipulations
+      # current timestamp formatted to conform to CONUSII naming convention
+      toDateFormatted=$(date --date "$toDate" "+$format")
 
-    # untar files one day at a time
-    tar --strip-components=6 -xf "$datasetDir/$yr/$file" -C "$cacheDir/$yr/"
+      # copy files to $cache
+      cp "${datasetDir}/${yr}/${fileStruct}_${toDateFormatted}" \
+         "${cacheDir}/${yr}/${fileStruct}_${toDateFormatted}"
 
-    # parse tar file contents
-    tarFiles="$(tar -tf $datasetDir/$yr/$file)"
-    IFS=' ' read -ra tarFiles <<< $(echo $tarFiles)
+      # for compatibility in the next few lines
+      tarFiles=( "${fileStruct}_${toDateFormatted}" )
+
+    else
+      # date manipulations
+      # current timestamp formatted to conform to CONUSII naming convention
+      toDateFormatted=$(date --date "$toDate" "+$tarFormat")
+
+      # creating file name
+      file="${tarFileStruct}_${toDateFormatted}.tar" # current file name
+
+      # untar files one day at a time
+      tar --strip-components=6 -xf "$datasetDir/$yr/$file" -C "$cacheDir/$yr/"
+
+      # parse tar file contents
+      tarFiles="$(tar -tf $datasetDir/$yr/$file)"
+      IFS=' ' read -ra tarFiles <<< $(echo $tarFiles)
+    fi
 
     # extracting variables from the files and spatial subsetting
     for f in "${tarFiles[@]}"; do
@@ -453,15 +469,21 @@ for yr in $yearsRange; do
            -d "$lonVar","$lonLimsIdx" \
            "$cacheDir/$yr/$f2" "$cacheDir/$yr/$f2"; do
 
-	   echo "$(basename $0): Process killed: restarting process" >$2
-	   sleep 5;
+	      echo "$(basename $0): Process killed: restarting process" >$2
+	      sleep 5;
       done
     
     done
 
     # increment time-step by one unit
-    toDate=$(date --date "$toDate 1day") # current time-step
-    toDateUnix=$(date --date="$toDate" "+%s") # current timestamp in unix EPOCH time
+    if [[ "$yr" -ge "2080" ]] && [[ "$yr" -le "2100" ]]; then 
+      toDate=$(date --date "$toDate 1hours") # current time-step
+    else
+      toDate=$(date --date "$toDate 1days") # current time-step
+    fi
+
+    # conversion current time-step to UNIX EPOCH
+    toDateUnix=$(date --date="$toDate" "+%s")
   done
 
   # go to the next year if necessary

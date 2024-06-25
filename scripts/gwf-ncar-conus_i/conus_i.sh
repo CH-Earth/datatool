@@ -268,9 +268,9 @@ function date_match_idx () {
   # defining local variables
   local str="$1"	# string to be matched 
   local matchPos="$2"	# the position of the matching string within the "YYYY-MM-DD",
-  			# 1: year, 2: month, 3: day
-			# 1,2: year and month, 2,3: month and day, 1,3: year and day
-			# 1-3: complete date
+  # 1: year, 2: month, 3: day
+	# 1,2: year and month, 2,3: month and day, 1,3: year and day
+	# 1-3: complete date
   local delim="$3"	# delimiter
   shift	3		# shift argument positins by 3
   local strArr=("$@")	# arrays of string

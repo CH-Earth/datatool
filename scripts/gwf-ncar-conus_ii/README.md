@@ -14,9 +14,10 @@ In this file, the details of the dataset is explained.
 
 ## Location of Dataset Files
 
-The `WRF-CONUSII` simulation outputs are located under the following directory accessible from Compute Canada (CC) Graham Cluster:
+The `WRF-CONUSII` simulation outputs are located under the following directories accessible from Compute Canada (CC) Graham Cluster:
 ```
-/project/rpp-kshook/Model_Output/wrf-conus/CONUSII/hist
+/project/rpp-kshook/Model_Output/wrf-conus/CONUSII/hist # years 1995-2015
+/project/rpp-kshook/Model_Output/wrf-conus/CONUSII/fut  # years 2080-2100
 ```
 and the structure of the dataset hourly files is as following:
 ```console
@@ -106,7 +107,7 @@ foo@bar:~$ ncdump -h  /path/to/extracted/conusii/netcdf/file.nc
 The spatial extent of the `WRF-CONUSII` is on latitutes from `15.02852` to `73.27542` and longitudes from `-156.8242` to `-40.3046`.
 
 ## Temporal Extent
-As is obvious from the nomenclature of the dataset files, the time-steps are hourly covering from the January 1995 to December 2015.
+As is obvious from the nomenclature of the dataset files, the time-steps are hourly covering from the January 1995 to December 2015 (`hist` dataset directory). Also, the dataset covers data from January 2080 to December 2100 (`fut` dataset directory).
 
 # Short Description on `WRF-CONUSII` Variables
 In most hydrological modelling applications, usually 7 variables are needed detailed as following: 1) specific humidity at 2 meters, 2) surface pressure, 3) air temperature at 2 meters, 4) wind speed at 10 meters, 5) precipitation, 6) downward short wave radiation, and 7) downward long wave radiation. These variables are available through `WRF-CONUSII` dataset and their details are described in the table below:
