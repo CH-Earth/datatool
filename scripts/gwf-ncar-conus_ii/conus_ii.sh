@@ -437,6 +437,14 @@ for yr in $yearsRange; do
       # current timestamp formatted to conform to CONUSII naming convention
       toDateFormatted=$(date --date "$toDate" "+$format")
 
+      # ignore leap days
+      day=$(date --date "$toDate" "+%m%d")
+      if [[ "$day" == "0229" ]]; then
+        toDate=$(date --date "$toDate 1hours") # current time-step
+        toDateUnix=$(date --date "$toDate" +"%s") # current UNIX EPOCH
+        continue
+      fi
+
       # copy files to $cache
       cp "${datasetDir}/${yr}/${fileStruct}_${toDateFormatted}" \
          "${cacheDir}/${yr}/${fileStruct}_${toDateFormatted}"
@@ -469,10 +477,10 @@ for yr in $yearsRange; do
            -d "$lonVar","$lonLimsIdx" \
            "$cacheDir/$yr/$f2" "$cacheDir/$yr/$f2"; do
 
-	      echo "$(basename $0): Process killed: restarting process" >$2
+        echo "$(basename $0): Process killed: restarting process" >$2
 	      sleep 5;
       done
-    
+ 
     done
 
     # increment time-step by one unit
@@ -498,7 +506,6 @@ for yr in $yearsRange; do
   files=($cacheDir/$yr/*)
   # sorting files to make sure the time-series is correct
   IFS=$'\n' files=($(sort <<<"${files[*]}")); unset IFS
-
 
   # check the $timeScale variable
   case "${timeScale,,}" in
