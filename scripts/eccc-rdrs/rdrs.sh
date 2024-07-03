@@ -222,6 +222,10 @@ maxLat=$(bc <<< "$maxLat + 0.1")
 minLon=$(bc <<< "$minLon - 0.1")
 maxLon=$(bc <<< "$maxLon + 0.1")
 
+# updating $latLims and $lonLims based on new values
+latLims="${minLat},${maxLat}"
+lonLims="${minLon},${maxLon}"
+
 # extract the associated indices corresponding to $latLims and $lonLims
 coordIdx="$(ncl -nQ 'coord_file='\"$domainFile\" 'minlat='"$minLat" 'maxlat='"$maxLat" 'minlon='"$minLon" 'maxlon='"$maxLon" "$coordIdxScript")"
 
@@ -288,15 +292,15 @@ for yr in $yearsRange; do
     # creating file name
     file="${toDateFormatted}12.nc" # current file name
 
-    # extracting variables from the files and spatial subsetting
-    # assuring the process finished using an `until` loop
-    until ncks -A -v ${variables} \
-               -d "$latDim","${latLimsIdx}" \
-               -d "$lonDim","${lonLimsIdx}" \
-               ${datasetDir}/${yr}/${file} \
-               ${cache}/${yr}/${file}; do
+    # extracting spatial extents and variables
+    until cdo -z zip \
+        -s -L \
+        -sellonlatbox,"$lonLims","$latLims" \
+        -selvar,"$variables" \
+        "${datasetDir}/${yr}/${file}" \
+        "${cache}/${yr}/${file}"; do
       echo "$(logDate)$(basename $0): Process killed: restarting process in 10 sec" >&2
-      echo "NCKS [...] failed" >&2
+      echo "CDO [...] failed" >&2
       sleep 10;
     done # until ncks
 
@@ -306,6 +310,7 @@ for yr in $yearsRange; do
     fi
 
     # wait for any left-over processes to finish
+    # note to self: not sure this even does anything, but anyways
     wait
 
     # change lon values so the extents are from ~-180 to 0
@@ -318,13 +323,14 @@ for yr in $yearsRange; do
       echo "$(logDate)$(basename $0): NCAP2 -s [...] failed" >&2
       sleep 10;
     done
- 
+
     # remove any left-over .tmp file
     if [[ -e ${cache}/${yr}/${file}*.tmp ]]; then
       rm -r "${cache}/${yr}/${file}*.tmp"
     fi
 
     # wait for any left-over processes to finish
+    # note to self: not sure this even does anything, but anyways
     wait
 
     # increment time-step by one unit
