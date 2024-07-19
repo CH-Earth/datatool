@@ -113,10 +113,10 @@ As is obvious from the nomenclature of the dataset files, the time-steps are hou
 In most hydrological modelling applications, usually 7 variables are needed detailed as following: 1) specific humidity at 2 meters, 2) surface pressure, 3) air temperature at 2 meters, 4) wind speed at 10 meters, 5) precipitation, 6) downward short wave radiation, and 7) downward long wave radiation. These variables are available through `WRF-CONUSII` dataset and their details are described in the table below:
 |Variable Name        |WRF-CONUSII Variable|Unit |IPCC abbreviation|Comments            |
 |---------------------|--------------------|-----|-----------------|--------------------|
-|surface pressure     |PSFC                |Pa   |ps               |                    |
-|specific humidity @2m|Q2                  |1    |huss             |                    |
-|air tempreature @2m  |T2                  |k    |tas              |                    |
-|wind speed @10m      |U10,V10             |m/s  |wspd             |WIND=SQRT(U10<sup>2</sup>+V10<sup>2</sup>)|
-|precipitation        |PREC_ACC_NC         |mm/hr|                 |accumulated precipitation over one hour|
-|short wave radiation |ACSWDNB             |W m-2|rsds             |                    |
-|long wave radiation  |ACLWDNB             |W m-2|rlds             |                    |
+|surface pressure     |`PSFC`              |Pa   |ps               |                    |
+|specific humidity @2m|`Q2`                |1    |huss             |                    |
+|air tempreature @2m  |`T2`                |k    |tas              |                    |
+|wind speed @10m      |`U10,V10`           |m/s  |wspd             |WIND=SQRT(U10<sup>2</sup>+V10<sup>2</sup>)|
+|precipitation        |`PREC_ACC_NC`       |mm/hr|                 |accumulated precipitation over one hour|
+|short wave radiation |`SWDOWN`            |W m-2|rsds             |                    |
+|long wave radiation  |`GLW`               |W m-2|rlds             |                    |
