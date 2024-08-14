@@ -98,6 +98,8 @@ if [[ -z $prefix ]]; then
   prefix="data_"
 fi
 
+# useful log date format function
+logDate () { echo "($(date +"%Y-%m-%d %H:%M:%S")) "; }
 
 # =====================
 # Necessary assumptions
@@ -156,15 +158,28 @@ lims_to_float () { IFS=',' read -ra l <<< $@; f_arr=(); for i in "${l[@]}"; do f
 # Data processing
 # ===============
 # display info
-echo "$(basename $0): processing ECMWF ERA5..."
+echo "$(logDate)$(basename $0): processing ECMWF ERA5..."
 
 # make the output directory
-echo "$(basename $0): creating output directory under $outputDir"
+echo "$(logDate)$(basename $0): creating output directory under $outputDir"
 mkdir -p "$outputDir"
 
+# take care of dates
 toDate="$startDate"
 toDateUnix="$(unix_epoch "$toDate")"
 endDateUnix="$(unix_epoch "$endDate")"
+
+# parse the upper and lower bounds of a given spatial limit
+minLat=$(lims_to_float $latLims | cut -d ',' -f 1)
+maxLat=$(lims_to_float $latLims | cut -d ',' -f 2)
+minLon=$(lims_to_float $lonLims | cut -d ',' -f 1)
+maxLon=$(lims_to_float $lonLims | cut -d ',' -f 2)
+
+# adding/subtracting 0.1 degree to/from max/min values
+minLat=$(bc <<< "$minLat - 0.25")
+maxLat=$(bc <<< "$maxLat + 0.25")
+minLon=$(bc <<< "$minLon - 0.25")
+maxLon=$(bc <<< "$maxLon + 0.25")
 
 # creating yearly directory
 mkdir -p "$outputDir" # making the output directory
@@ -177,13 +192,17 @@ while [[ "$toDateUnix" -le "$endDateUnix" ]]; do
   # creating file name
   file="${fileStruct}_${toDateFormatted}.nc" # current file name
 
-  # extracting variables from the files and spatial subsetting
-  ncks -O -v "$variables" \
-          -d latitude,"$(lims_to_float "$latLims")" \
-          -d longitude,"$(lims_to_float "$lonLims")" \
-          "${datasetDir}/${file}" "${outputDir}/${prefix}${file}"
+  # wait to be trapped
+  trap 'wait' CHLD
 
-  [ $( jobs | wc -l ) -ge $( nproc ) ] && wait # forking shell processes
+  # extracting variables from the files and spatial subsetting
+  (ncks -O -v "$variables" \
+       -d latitude,"${minLat},${maxLat}" \
+       -d longitude,"${minLon},${maxLon}" \
+       "${datasetDir}/${file}" "${outputDir}/${prefix}${file}") &
+
+  # make sure ncks finishes
+  wait $!
 
   # increment time-step by one unit
   toDate="$(date --date "$toDate 1month")" # current time-step
@@ -198,6 +217,6 @@ if [[ "$toDateUnix" == "$endOfCurrentYearUnix" ]]; then
   toDate=$(date --date "$toDate 1month")
 fi
 
-
-echo "$(basename $0): results are produced under $outputDir."
+# exit message
+echo "$(logDate)$(basename $0): results are produced under $outputDir."
 
