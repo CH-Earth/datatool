@@ -571,12 +571,12 @@ case "${dataset,,}" in
   # Alberta Government Downscaled Climate Dataset - CMIP6
   "alberta" | "ab-gov" | "ab" | "ab_gov" | "abgov" )
     call_processing_func "$scriptPath/ab-gov/ab-gov.sh" "151years" "0"
-	;;
+    ;;
 
   # NASA GDDP-NEX-CMIP6
   "gddp" | "nex" | "gddp-nex" | "nex-gddp" | "gddp-nex-cmip6" | "nex-gddp-cmip6")
     call_processing_func "$scriptPath/nasa-nex-gddp-cmip6/nex-gddp-cmip6.sh" "100years" "0"
-	;;
+    ;;
 
   # CanRCM4-WFDEI-GEM-CaPA
   "canrcm4_g" | "canrcm4-wfdei-gem-capa" | "canrcm4_wfdei_gem_capa")
