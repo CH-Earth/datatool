@@ -204,7 +204,7 @@ lims_to_float () { IFS=',' read -ra l <<< $@; f_arr=(); for i in "${l[@]}"; do f
 # Data processing
 # ===============
 # display info
-echo "$(logDate)$(basename $0): processing Ouranos ESPO-G6-R2..."
+echo "$(logDate)$(basename $0): processing Ouranos MRCC5-CMIP6..."
 
 # create $modelArr array from input comma-delimited values
 IFS=',' read -ra modelArr <<< $(echo $model)
@@ -254,84 +254,61 @@ latLimsIdx+="$(echo $coordIdx | cut -d ' ' -f 2)"
 unload_ncl_module
 load_core_modules
 
-# ============================================
+# =====================
+# Extract dataset files
+# =====================
+# Typical directory structure of the dataset is:
+#   ${datasetDir}/${model}/${scenario}/${ensemble}/CRCM5/v1-r1/1hr/${var}/%arbitraryVersion
+# Some files come in two versions. The versioning seems to be arbitrary.
+#
+# Each ${var}/%arbitraryVersion directory contains files in the following nomenclature:
+#   ${var}_NAM-12_${model}_${scenario}_${ensemble}_OURANOS_CRCM5_v1-r1_1hr_%yyyy010100%M_%yyyy123123%M.nc
+# with the former date value indicating the starting year of data inside the
+# file, and the latter demonstrating the ending date of data
+#
 # Build date arrays for time-series extraction
-# ============================================
 # file date intervals in years - dataset's default
 interval=1
 
-startFormat="%Y01010000"
-endFormat="%Y12312300" # will be redefined later depending on the $modelName
-
-actualFormat='%Y%m%d%H00'
-
-# define needed variables
-let "difference = $endYear - $startYear"
-let "steps = $difference / $interval"
-
-# build $startDateFileArr, $endDateFileArr
-startDateFileArr=()
-endDateFileArr=()
-
 # range of jumps
-range=$(seq 0 $steps)
+range=$(seq $startYear $interval $endYear)
 
-# filling the arrays
+# date formats
+subsetStartFormat="%Y-%m-%dT%H:00:00"
+subsetEndFormat="%Y-%m-%dT%H:30:00"
+
+# empty arrays
+startDateArray=()
+endDateArray=()
+
+# extraction process for each year
 for iter in $range; do
-  # jumps every $interval years
-  let "jumps = $iter * $interval"
-
-  # current date after necessary jumps
-  let "toDate = $jumps + $startYear"
-
   # extract start and end values
-  startValue="$(date --date "${toDate}0101" +"${startFormat}")"
-  endValue="$(date --date "${toDate}0101 +${interval}years -1hours" +"${endFormat}")"
-  
-  # create a substitute endValue with understandable format for `date`
-  endValueSub="$(echo "$endValue" | sed -E 's/(....)(..)(..)(..)(..)/\1-\2-\3T\4:\5:00/')" 
+  # if start year is included, make the end date accurate
+  if [[ $startYear -eq $iter ]]; then
+    startValue="$(date --date "${startDate}" +"${subsetStartFormat}")"
+  else
+    startValue="$(date --date "${iter}0101" +"${subsetStartFormat}")"
+  fi
+
+  # if end year is included, make the end date accurate
+  if [[ "$endYear" -eq "$iter" ]]; then
+    endValue="$(date --date "${endDate}" +"${subsetEndFormat}")"
+  else
+    endValue="$(date --date "${iter}0101 +1years -30minutes" +"${subsetEndFormat}")"
+  fi
 
   # check if endValue is beyond 2100
   endValueYear="$(date --date "${endValueSub}" +"%Y")"
   # double-check end-date
   if [[ "$endValueYear" -gt 2100 ]]; then
-    endValue="210012312300" # irregular last date for dataset files
+    endValue="2100-12-31T23:30:00" # irregular last date for dataset files
   fi
 
-  # fill up relevant arrays
-  startDateFileArr+=("${startValue}")
-  endDateFileArr+=("${endValue}")
-
+  # fill up arrays
+  startDateArray+=($startValue)
+  endDateArray+=($endValue)
 done
-
-# build actualStartArr array for temporal subsetting
-actualStartDateArr=("${startDateFileArr[@]}")
-actualStartDateArr[0]="$(date --date "${startDate}" +"${actualFormat}")"
-
-# and similarly, the actualEndArr array
-actualEndDateArr=("${endDateFileArr[@]}")
-lastIndex=$(( "${#actualEndDateArr[@]}" - 1 ))
-actualEndDateArr[${lastIndex}]="$(date --date "${endDate}" +"${actualFormat}")"
-# DEBUG
-echo "actualStartDateArr: ${actualStartDateArr[@]}"
-echo "actualEndDateArr: ${actualEndDateArr[@]}"
-echo "startDateFileArr: ${startDateFileArr[@]}"
-echo "endDateFileArr: ${endDateFileArr[@]}"
-# DEBUG
-
-
-# =====================
-# Extract dataset files
-# =====================
-# Typical directory structure of the dataset is:
-#   ${datasetDir}/${model}/%submodel/${scenario}/${ensemble}/day/${var}/
-# and each ${var} directory contains files in the following nomenclature:
-#   ${var}_day_ESPO-G6-R2_v1.0.0_CMIP6_ScenarioMIP_NAM_${model}_%submodel_${scenario}_${ensemble}_%yyyymmdd-%yyyymmdd.nc
-# with the former date value indicating the starting year of data inside the
-# file, and the latter demonstrating the ending date of data
-#
-# NOTE: %submodel must be determined in the upstream caller
-#
 
 # create dataset directories in $cache and $outputDir
 echo "$(logDate)$(basename $0): creating output directory under $outputDir"
@@ -350,71 +327,68 @@ for model in "${modelArr[@]}"; do
     # iterate over ensemble members, e.g., r1p1, r1p2, etc.
     for ensemble in "${ensembleArr[@]}"; do
 
-      pathTemplate="${modelName}/${submodelName}/${scenario}/${ensemble}/CRCM5/v1-r1/1h/"
+      # template: ${datasetDir}/${scenario}/${ensemble}/CRCM5/v1-r1/1hr/${var}/%arbitraryVersion
+      pathTemplate="${modelName}/${scenario}/${ensemble}/CRCM5/v1-r1/1hr/"
       if [[ -e "${datasetDir}/${pathTemplate}" ]]; then
         echo "$(logDate)$(basename $0): processing ${model}.${scenario}.${ensemble} files"
-        mkdir -p "${cache}/${pathTemplate}"
-        mkdir -p "${outputDir}/${pathTemplate}"
       else
         echo "$(logDate)$(basename $0): ERROR! ${model}.${scenario}.${ensemble} does not exist."
         break 1;
       fi
 
       # iterate over date range of interest using index
-      for idx in "${!startDateFileArr[@]}"; do
-
-        # dates for files
-        fileStartDate="${startDateFileArr[$idx]}"
-        fileEndDate="${endDateFileArr[$idx]}"
-        # dates for subsetting
-        actualStartDate="${actualStartDateArr[$idx]}"
-        actualEndDate="${actualEndDateArr[$idx]}"
-        # dates for ncks slabs
-        actualStartDateFormatted="$(date --date $actualStartDate +'%Y-%m-%d')"
-        actualEndDateFormatted="$(date --date $actualEndDate +'%Y-%m-%d')"
+      for idx in "${!startDateArray[@]}"; do
+        # defind the file year and dates (for nomenclature)
+        fileYear="$(date --date "${startDateArray[$idx]}" +"%Y")"
+        fileStartDate="$(date --date "${startDateArray[$idx]}" +"%Y%m%d%H%M")"
+        fileEndDate="$(date --date "${endDateArray[$idx]}" +"%Y%m%d%H00")"
 
         # iterate over dataset variables of interest
         for var in "${variableArr[@]}"; do
-          # taking care of time inaccuracies in both filedates and
-          # actualdates
-          exceptionsArr=(\
-            "pr" \
-            "rlds" \
-            "rsds" \
-          )
-          if [[ $(echo ${exceptionsArr[@]} | fgrep -w $var) ]]; then
+          # find the source file
+          src="$(find ${datasetDir}/${pathTemplate}/${var} -type f -name "*${fileYear}*")"
 
-            # business as usual
-          fi
+          # destination NetCDF file
+          # template: ${var}_NAM-12_${model}_${scenario}_${ensemble}_OURANOS_CRCM5_v1-r1_1hr_%yyyy010100%M_%yyyy123123%M.nc
+          dst="${var}_NAM-12_${modelName}_${scenario}_${ensemble}_OURANOS_CRCM5_v1-r1_1hr_${fileStartDate}-${fileEndDate}.nc"
 
-          # source and destination NetCDF files
-          src="${var}_NAM-12_${modelName}_${scenario}_${ensemble}_OURANOS_CRCM5_v1-r1_1hr_${fileStartDate}-${fileEndDate}.nc"
-          dst="${var}_NAM-12_${modelName}_${scenario}_${ensemble}_OURANOS_CRCM5_v1-r1_1hr_${actualStartDate}-${actualEndDate}.nc"
+          # create destination and cache directory
+          mkdir -p "${outputDir}/${pathTemplate}/${var}"
+          mkdir -p "${cache}/${pathTemplate}/${var}"
 
           # spatial subsetting
           until ncks -A -v ${var} \
                      -d "$latDim","${latLimsIdx}" \
                      -d "$lonDim","${lonLimsIdx}" \
-                     -d "$timeDim","${actualStartDateFormatted}","${actualEndDateFormatted}" \
-                     ${datasetDir}/${pathTemplate}/${var}/${src} \
-                     ${cache}/${pathTemplate}/${dst}; do
+                     -d "$timeDim","${startDateArray[$idx]}","${endDateArray[$idx]}" \
+                     "${src}" \
+                     "${cache}/${pathTemplate}/${var}/${dst}"; do
                 echo "$(logDate)$(basename $0): Process killed: restarting process in 10 sec" >&2
                 echo "NCKS failed" >&2
                 sleep 10;
           done # until ncks
         done # for $variableArr
 
+        # statement for ncap2
+        minute="$(date --date "$(ncks --dt_fmt=1 --cal -v time -C --jsn out_canesm.nc | jq -r ".variables.time.data[0]")" +"%M")"
+
+        if [[ "$minute" == "30" ]]; then
+          ncap2Statement="where(lon>0) lon=lon-360; time=time-1.0/48.0" # shift for half an hour (1/48th of a day)
+        else
+          ncap2Statement="where(lon>0) lon=lon-360;" # no shift required
+        fi
+
         # change lon values so the extents are from ~-180 to 0
         # this is solely for easymore compatibility
-        until ncap2 -O -s "where(lon>0) lon=lon-360" \
-                    "${cache}/${pathTemplate}/${dst}" \
-                    "${outputDir}/${pathTemplate}/${prefix}${dst}"; do
+        until ncap2 -O -s "${ncap2Statement}" \
+                    "${cache}/${pathTemplate}/${var}/${dst}" \
+                    "${outputDir}/${pathTemplate}/${var}/${prefix}${dst}"; do
               echo "$(logDate)$(basename $0): Process killed: restarting process in 10 sec" >&2
               echo "NCAP2 failed" >&2
               sleep 10;
         done # until ncap2
 
-      done # for $startDateArr
+      done # for $startDateArray
     done # for $ensembleArr
   done # for $scenarioArr
 done # for $modelArr
