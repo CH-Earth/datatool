@@ -346,7 +346,7 @@ for model in "${modelArr[@]}"; do
         # iterate over dataset variables of interest
         for var in "${variableArr[@]}"; do
           # find the source file
-          src="$(find ${datasetDir}/${pathTemplate}/${var} -type f -name "*${fileYear}*")"
+          src="$(find ${datasetDir}/${pathTemplate}/${var}/ -type f -name "*${fileYear}*")"
 
           # destination NetCDF file
           # template: ${var}_NAM-12_${model}_${scenario}_${ensemble}_OURANOS_CRCM5_v1-r1_1hr_%yyyy010100%M_%yyyy123123%M.nc
@@ -367,27 +367,26 @@ for model in "${modelArr[@]}"; do
                 echo "NCKS failed" >&2
                 sleep 10;
           done # until ncks
+
+          # statement for ncap2
+          minute="$(date --date "$(ncks --dt_fmt=1 --cal -v time -C --jsn ${src} | jq -r ".variables.time.data[0]")" +"%M")"
+
+          if [[ "$minute" == "30" ]]; then
+            ncap2Statement="where(lon>0) lon=lon-360; time=time-1.0/48.0" # shift for half an hour (1/48th of a day)
+          else
+            ncap2Statement="where(lon>0) lon=lon-360;" # no shift required
+          fi
+
+          # change lon values so the extents are from ~-180 to 0
+          # this is solely for easymore compatibility
+          until ncap2 -O -s "${ncap2Statement}" \
+                      "${cache}/${pathTemplate}/${var}/${dst}" \
+                      "${outputDir}/${pathTemplate}/${var}/${prefix}${dst}"; do
+                echo "$(logDate)$(basename $0): Process killed: restarting process in 10 sec" >&2
+                echo "NCAP2 failed" >&2
+                sleep 10;
+          done # until ncap2
         done # for $variableArr
-
-        # statement for ncap2
-        minute="$(date --date "$(ncks --dt_fmt=1 --cal -v time -C --jsn out_canesm.nc | jq -r ".variables.time.data[0]")" +"%M")"
-
-        if [[ "$minute" == "30" ]]; then
-          ncap2Statement="where(lon>0) lon=lon-360; time=time-1.0/48.0" # shift for half an hour (1/48th of a day)
-        else
-          ncap2Statement="where(lon>0) lon=lon-360;" # no shift required
-        fi
-
-        # change lon values so the extents are from ~-180 to 0
-        # this is solely for easymore compatibility
-        until ncap2 -O -s "${ncap2Statement}" \
-                    "${cache}/${pathTemplate}/${var}/${dst}" \
-                    "${outputDir}/${pathTemplate}/${var}/${prefix}${dst}"; do
-              echo "$(logDate)$(basename $0): Process killed: restarting process in 10 sec" >&2
-              echo "NCAP2 failed" >&2
-              sleep 10;
-        done # until ncap2
-
       done # for $startDateArray
     done # for $ensembleArr
   done # for $scenarioArr
