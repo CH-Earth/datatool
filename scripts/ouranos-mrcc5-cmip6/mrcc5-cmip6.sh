@@ -317,23 +317,21 @@ echo "$(logDate)$(basename $0): creating cache directory under $cache"
 mkdir -p "$cache"
 
 # iterate over models/submodels
-for model in "${modelArr[@]}"; do
-  # extract model and submodel names
-  modelName="$model"
+for modelMember in "${modelArr[@]}"; do
 
   # iterate over scenarios, e.g., ssp245, ssp370, ssp585 
-  for scenario in "${scenarioArr[@]}"; do
+  for scenarioMember in "${scenarioArr[@]}"; do
 
     # iterate over ensemble members, e.g., r1p1, r1p2, etc.
-    for ensemble in "${ensembleArr[@]}"; do
+    for ensembleMember in "${ensembleArr[@]}"; do
 
-      # template: ${datasetDir}/${scenario}/${ensemble}/CRCM5/v1-r1/1hr/${var}/%arbitraryVersion
-      pathTemplate="${modelName}/${scenario}/${ensemble}/CRCM5/v1-r1/1hr/"
+      # template: ${datasetDir}/${scenarioMember}/${ensembleMember}/CRCM5/v1-r1/1hr/${var}/%arbitraryVersion
+      pathTemplate="${modelMember}/${scenarioMember}/${ensembleMember}/CRCM5/v1-r1/1hr/"
       if [[ -e "${datasetDir}/${pathTemplate}" ]]; then
-        echo "$(logDate)$(basename $0): processing ${model}.${scenario}.${ensemble} files"
+        echo "$(logDate)$(basename $0): processing ${modelMember}.${scenarioMember}.${ensembleMember} files"
       else
-        echo "$(logDate)$(basename $0): ERROR! ${model}.${scenario}.${ensemble} does not exist."
-        break 1;
+        echo "$(logDate)$(basename $0): WARNING! Skipping ${modelMember}.${scenarioMember}.${ensembleMember} as it does not exist."
+        continue;
       fi
 
       # iterate over date range of interest using index
@@ -343,14 +341,37 @@ for model in "${modelArr[@]}"; do
         fileStartDate="$(date --date "${startDateArray[$idx]}" +"%Y%m%d%H%M")"
         fileEndDate="$(date --date "${endDateArray[$idx]}" +"%Y%m%d%H00")"
 
+        # if historical scenarioMember is being analyzed, the last year of
+        # analysis is 2014 and the first year is only 1950
+        if [[ "${scenarioMember}" == *"historical"* ]]; then
+          if [[ "$fileYear" -gt 2014 ]] ||
+             [[ $fileYear -lt 1950 ]]; then
+            echo "$(logDate)$(basename $0): WARNING! $fileYear is skipped for $scenarioMember"
+            continue;
+          fi
+        fi        
+        # if ssp scenarios are being analyzed, the last year of analysis
+        # is 2100 and the first year is 2015
+        if [[ "${scenarioMember}" == *"ssp"* ]]; then
+          if [[ $fileYear -gt 2100 ]] ||
+             [[ $fileYear -lt 2015 ]]; then
+            echo "$(logDate)$(basename $0): WARNING! $fileYear is skipped for $scenarioMember"
+            continue;
+          fi
+        fi
+
         # iterate over dataset variables of interest
         for var in "${variableArr[@]}"; do
           # find the source file
           src="$(find ${datasetDir}/${pathTemplate}/${var}/ -type f -name "*${fileYear}*")"
+          if [[ -z "$src" ]]; then
+            echo "$(logDate)$(basename $0): ERROR! ${fileYear} file not found in ${datasetDir}/${pathTemplate}/${var}/"
+            exit 1;
+          fi
 
           # destination NetCDF file
-          # template: ${var}_NAM-12_${model}_${scenario}_${ensemble}_OURANOS_CRCM5_v1-r1_1hr_%yyyy010100%M_%yyyy123123%M.nc
-          dst="${var}_NAM-12_${modelName}_${scenario}_${ensemble}_OURANOS_CRCM5_v1-r1_1hr_${fileStartDate}-${fileEndDate}.nc"
+          # template: ${var}_NAM-12_${modelMember}_${scenarioMember}_${ensembleMember}_OURANOS_CRCM5_v1-r1_1hr_%yyyy010100%M_%yyyy123123%M.nc
+          dst="${var}_NAM-12_${modelMemberName}_${scenarioMember}_${ensembleMember}_OURANOS_CRCM5_v1-r1_1hr_${fileStartDate}-${fileEndDate}.nc"
 
           # create destination and cache directory
           mkdir -p "${outputDir}/${pathTemplate}/${var}"
@@ -364,12 +385,12 @@ for model in "${modelArr[@]}"; do
                      "${src}" \
                      "${cache}/${pathTemplate}/${var}/${dst}"; do
                 echo "$(logDate)$(basename $0): Process killed: restarting process in 10 sec" >&2
-                echo "NCKS failed" >&2
+                echo "$(logDate)$(basename $0): NCKS failed" >&2
                 sleep 10;
           done # until ncks
 
           # statement for ncap2
-          minute="$(date --date "$(ncks --dt_fmt=1 --cal -v time -C --jsn ${src} | jq -r ".variables.time.data[0]")" +"%M")"
+          minute="$(date --date "$(ncks --dt_fmt=1 --cal -v time -C --jsn "${src}" | jq -r ".variables.time.data[0]")" +"%M")"
 
           if [[ "$minute" == "30" ]]; then
             ncap2Statement="where(lon>0) lon=lon-360; time=time-1.0/48.0" # shift for half an hour (1/48th of a day)
@@ -383,7 +404,7 @@ for model in "${modelArr[@]}"; do
                       "${cache}/${pathTemplate}/${var}/${dst}" \
                       "${outputDir}/${pathTemplate}/${var}/${prefix}${dst}"; do
                 echo "$(logDate)$(basename $0): Process killed: restarting process in 10 sec" >&2
-                echo "NCAP2 failed" >&2
+                echo "$(logDate)$(basename $0): NCAP2 failed" >&2
                 sleep 10;
           done # until ncap2
         done # for $variableArr
