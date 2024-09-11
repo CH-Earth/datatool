@@ -107,7 +107,7 @@ hurs  huss  pr  rlds  rsds  vas  uas  tas  ps
 
 ## Spatial Extent
 The spatial extent of the `MRCC5-CMIP6` is on latitutes from `+6.33` to `+82.84`
-and longitudes from `-179.99` to `179.99` covering North America. The resolution is 0.09 degrees (~10km). 
+and longitudes from `-179.99` to `179.99` covering North America. The resolution is 0.11 degrees (~10km). 
 
 ## Temporal Extent
 The time-stamps are already included in the original files. The dataset offers
