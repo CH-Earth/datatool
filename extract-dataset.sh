@@ -565,7 +565,7 @@ case "${dataset,,}" in
 
   # Ouranos-MRCC5-CMIP6 dataset
   "crcm5-cmip6" | "mrcc5-cmip6" | "crcm5" | "mrcc5" )
-    call_processing_func "$scriptPath/ouranos-mrcc5-cmip6/mrcc5-cmip6.sh" "1years"
+    call_processing_func "$scriptPath/ouranos-mrcc5-cmip6/mrcc5-cmip6.sh" "20years"
     ;;
 
   # Alberta Government Downscaled Climate Dataset - CMIP6
