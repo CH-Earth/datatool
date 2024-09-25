@@ -4,5 +4,5 @@
 .DS_Store
 *.swp
 
-# WIP folders
-scripts/ouranos-crcm5-cmip6/
+# test folders
+ignore-tests/
