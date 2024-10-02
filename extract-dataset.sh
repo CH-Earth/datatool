@@ -79,8 +79,7 @@ Script options:
   -c, --cache=DIR                   Path of the cache directory; optional
   -E, --email=user@example.com      E-mail user when job starts, ends, or
                                     fails; optional
-  -u, --account=ACCOUNT             Digital Research Alliance of Canada's sponsor's
-                                    account name; optional, defaults to 'rpp-kshook'
+  -C, --cluster=JSON                JSON file detailing cluster-specific details
   -L, --list-datasets               List all the available datasets and the
                                     corresponding keywords for '--dataset' option
   -V, --version                     Show version
@@ -97,13 +96,14 @@ echo "Meteorological Data Processing Script - version $(cat $(dirname $0)/VERSIO
 
 Currently, the following meteorological datasets are
 available for processing:
-$(cat $(dirname $0)/DATASETS | sed 's/^\(.*\)$/\o033[34m\1\o033[0m/')" >&1;
+$(cat $(dirname $0)/etc/usages/DATASETS | sed 's/^\(.*\)$/\o033[34m\1\o033[0m/')" >&1;
 
   exit 0;
 }
 
 # useful log date format function
 logDate () { echo "($(date +"%Y-%m-%d %H:%M:%S")) "; }
+logDirDate () { echo "$(date +"%Y%m%d_%H%M%S")"; }
 
 # useful maximum function
 max () { printf "%s\n" "${@:2}" | sort "$1" | tail -n1; }
@@ -117,17 +117,29 @@ alias date='TZ=UTC date'
 # expand aliases for the one stated above
 shopt -s expand_aliases
 
-# necessary local paths for the program
+# local paths
+schedulersPath="$(dirname $0)/etc/schedulers/"
 scriptPath="$(dirname $0)/scripts" # scripts' path
-datatoolPath="$(dirname $0)" # datatool's path
-extract_submodel="${datatoolPath}/assets/bash_scripts/extract_subdir_level.sh" # script path
+extract_submodel="$(dirname $0)/assets/bash_scripts/extract_subdir_level.sh" # script path
 
 
 # =======================
 # Parsing input arguments
 # =======================
-# argument parsing using getopt - WORKS ONLY ON LINUX BY DEFAULT
-parsedArguments=$(getopt -a -n extract-dataset -o jhVbLE:d:i:v:o:s:e:t:l:n:p:c:m:M:S:ka:u: --long submit-job,help,version,parsable,list-datasets,email:,dataset:,dataset-dir:,variable:,output-dir:,start-date:,end-date:,time-scale:,lat-lims:,lon-lims:,prefix:,cache:,ensemble:,model:,scenario:,no-chunk,shape-file:,account: -- "$@")
+# argument parsing using GNU getopt
+parsedArguments=$( \
+  getopt --alternative \
+  --name "extract-dataset" \
+  -o jhVbLE:d:i:v:o:s:e:t:l:n:p:c:m:M:S:ka:C: \
+  --long submit-job,help,version, \
+  --long parsable,list-datasets,email:, \
+  --long dataset:,dataset-dir:,variable:, \
+  --long output-dir:,start-date:,end-date:, \
+  --long time-scale:,lat-lims:,lon-lims:, \
+  --long prefix:,cache:,ensemble:,model:, \
+  --long scenario:,no-chunk,shape-file:, \
+  --long cluster: -- "$@" \
+)
 validArguments=$?
 # check if there is no valid options
 if [ "$validArguments" != "0" ]; then
@@ -153,7 +165,7 @@ do
     -E | --email)         email="$2"           ; shift 2 ;; # optional
     -i | --dataset-dir)   datasetDir="$2"      ; shift 2 ;; # required
     -d | --dataset)       dataset="$2"         ; shift 2 ;; # required
-    -v | --variable)	  variables="$2"       ; shift 2 ;; # required
+    -v | --variable)      variables="$2"       ; shift 2 ;; # required
     -o | --output-dir)    outputDir="$2"       ; shift 2 ;; # required
     -s | --start-date)    startDate="$2"       ; shift 2 ;; # required
     -e | --end-date)      endDate="$2"         ; shift 2 ;; # required
@@ -165,9 +177,9 @@ do
     -S | --scenario)      scenario="$2"        ; shift 2 ;; # optional
     -k | --no-chunk)      parallel=false       ; shift   ;; # optional
     -p | --prefix)        prefixStr="$2"       ; shift 2 ;; # required
-    -b | --parsable)	  parsable=true	       ; shift   ;; # optional
+    -b | --parsable)      parsable=true        ; shift   ;; # optional
     -c | --cache)         cache="$2"           ; shift 2 ;; # optional
-    -u | --account)       account="$2"         ; shift 2 ;; # optional
+    -C | --cluster)       cluster="$2"         ; shift 2 ;; # required
     -a | --shape-file)    shapefile="$2"       ; shift 2 ;; # optional
 
     # -- means the end of the arguments; drop this, and break out of the while loop
@@ -277,7 +289,7 @@ unix_epoch () { date --date="$@" +"%s"; } # unix EPOCH date value
 format_date () { date --date="$1" +"$2"; } # format date
 
 # default date format
-dateFormat="%Y-%m-%d %H:%M:%S"
+dateFormat="%Y-%m-%dT%H:%M:%S"
 
 
 #######################################
@@ -349,20 +361,20 @@ function chunk_dates () {
 # ======================
 # put necessary arguments in an array - just for legibility
 declare -A funcArgs=([jobSubmission]="$jobSubmission" \
-             [datasetDir]="$datasetDir" \
-             [variables]="$variables" \
-             [outputDir]="$outputDir" \
-             [timeScale]="$timeScale" \
-             [startDate]="$startDate" \
-             [endDate]="$endDate" \
-             [latLims]="$latLims" \
-             [lonLims]="$lonLims" \
-             [prefixStr]="$prefixStr" \
-             [cache]="$cache" \
-             [ensemble]="$ensemble" \
-             [model]="$model" \
-             [scenario]="$scenario"
-             );
+  [datasetDir]="$datasetDir" \
+  [variables]="$variables" \
+  [outputDir]="$outputDir" \
+  [timeScale]="$timeScale" \
+  [startDate]="$startDate" \
+  [endDate]="$endDate" \
+  [latLims]="$latLims" \
+  [lonLims]="$lonLims" \
+  [prefixStr]="$prefixStr" \
+  [cache]="$cache" \
+  [ensemble]="$ensemble" \
+  [model]="$model" \
+  [scenario]="$scenario"
+);
 
 
 # ========================
@@ -374,10 +386,22 @@ function call_processing_func () {
   local chunkTStep="$2" # chunking time-frame periods
   local submodelFlag="$3" # flag for submodels' existence
 
-  # local variables
-  local scriptName=$(basename $scriptFile | cut -d '.' -f 1) # script/dataset name
-  local logDir="$HOME/.datatool/" # local directory for logs
+  # local script related variables
+  # script name
+  local scriptName=$(basename $scriptFile | cut -d '.' -f 1)
+  # local directory for logs
+  local logDir="$HOME/.datatool/${scriptName}_$(logDirDate)/" 
+  # local length variables for chunking jobs
   local jobArrLen
+  local modelLen
+  local scenarioLen
+  local ensembleLen
+  local dateLen
+  local taskLen
+  # local iterator variables
+  local dateIter
+  local modelIter
+  local ensembleIter
 
   # make the $logDir if haven't been created yet
   mkdir -p $logDir
@@ -414,107 +438,116 @@ function call_processing_func () {
     # ==========================================
     # chunk dates
     chunk_dates "$chunkTStep"
+    # converting Bash arrays to comma-delimited strings
+    startDateStr="$(IFS=,; echo "${startDateArr[*]}")"
+    endDateStr="$(IFS=,; echo "${endDateArr[*]}")"
 
-    # chunking ensemble members
-    IFS=',' read -ra ensembleArr <<< $ensemble
-    # chunking models
-    IFS=',' read -ra modelArr <<< $model
-    # chunking scenarios
-    IFS=',' read -ra scenarioArr <<< $scenario
-
-    # ===========================
-    # Building job array iterator
-    # ===========================
+    # ========================
+    # Building job array specs
+    # ========================
+    # relevant array lengths
     let "ensembleLen = $(max -g ${#ensembleArr[@]} 1)"
     let "modelLen = $(max -g ${#modelArr[@]} 1)"
     let "scenarioLen = $(max -g ${#scenarioArr[@]} 1)"
     let "dateLen = $(max -g ${#startDateArr[@]} 1)"
 
+    # relevant iterator variables
     let "dateIter = $ensembleLen * $modelLen * $scenarioLen"
     let "ensembleIter = $modelLen * $scenarioLen"
     let "modelIter = $scenarioLen"
-
-    # ==============================
-    # Length of processing job array
-    # ==============================
 
     # length of total number of tasks and indices
     let "taskLen = $dateLen * $ensembleLen * $modelLen * $scenarioLen"
     let "jobArrLen = $taskLen - 1"
 
+    # ==============================
+    # Building relevant JSON objects
+    # ==============================
+    # job chunk array information
+    jobChunkArrayJSON="$(
+      jq -n \
+        --arg "startDateArr" "${startDateStr}" \
+        --arg "endDateArr" "${endDateStr}" \
+        --arg "ensembleArr" "${ensemble}" \
+        --arg "modelArr" "${model}" \
+        --arg "scenarioArr" "${scenario}" \
+        '$ARGS.named | with_entries(.value |= split(","))' \
+      )"
+
+    # job chunk variable information
+    jobChunkJSON="$(
+      jq -n \
+        --arg "ensembleLen" "$ensembleLen" \
+        --arg "modelLen" "$modelLen" \
+        --arg "scenarioLen" "$scenarioLen" \
+        --arg "dateLen" "$dateLen" \
+        --arg "dateIter" "$dateIter" \
+        --arg "ensembleIter" "$ensembleIter" \
+        --arg "modelIter" "$modelIter" \
+        '$ARGS.named'
+      )"
+
+    # scheduler information
+    scheduler="$(jq -r '.scheduler' $cluster)"
+    schedulerJSON="$(jq -r '.environment_variables' ${schedulersPath}/${scheduler}.json)"
+
+    # job directives information
+    jobDirectiveJSON="$(
+      jq -n \
+        --arg "jobArrLen" "$jobArrLen" \
+        --arg "scriptName" "$scriptName" \
+        --arg "logDir" "$logDir" \
+        --arg "email" "$email" \
+        --arg "parsable" "$parsable" \
+        --argjson "specs" "$(jq -r '.specs' $cluster)" \
+        '$ARGS.named + $specs | del(.specs)' \
+      )"
+
+
     # ============
     # Parallel run
     # ============
-    # FIXME: This needs to be moved into a template scheduler
-    #        document, and various schedulers need to be supported
-    sbatch <<- EOF
-	#!/bin/bash
-	#SBATCH --array=0-$jobArrLen
-	#SBATCH --cpus-per-task=4
-	#SBATCH --nodes=1
-	#SBATCH --account=$account
-	#SBATCH --time=04:00:00
-	#SBATCH --mem=8000M
-	#SBATCH --job-name=DATA_${scriptName}
-	#SBATCH --error=$logDir/datatool_%A-%a_err.txt
-	#SBATCH --output=$logDir/datatool_%A-%a.txt
-	#SBATCH --mail-user=$email
-	#SBATCH --mail-type=BEGIN,END,FAIL
-	#SBATCH ${parsable}
-	
-	$(declare -p startDateArr)
-	$(declare -p endDateArr)
-	$(declare -p ensembleArr)
-	$(declare -p modelArr)
-	$(declare -p scenarioArr)
-	
-	idxDate="\$(( (\${SLURM_ARRAY_TASK_ID} / ${dateIter}) % ${dateLen} ))"
-	idxMember="\$(( (\${SLURM_ARRAY_TASK_ID} / ${ensembleIter}) % ${ensembleLen} ))"
-	idxModel="\$(( (\${SLURM_ARRAY_TASK_ID} / ${modelIter}) % ${modelLen} ))"
-	idxScenario="\$(( \${SLURM_ARRAY_TASK_ID} % ${scenarioLen} ))"
-	
-	tBegin="\${startDateArr[\$idxDate]}"
-	tEnd="\${endDateArr[\$idxDate]}"
-	memberChosen="\${ensembleArr[\$idxMember]}"
-	modelChosen="\${modelArr[\$idxModel]}"
-	scenarioChosen="\${scenarioArr[\$idxScenario]}"
-	
-	echo "$(logDate)$(basename $0): Calling ${scriptName}.sh..."
-	echo "$(logDate)$(basename $0): #\${SLURM_ARRAY_TASK_ID} chunk submitted."
-	echo "$(logDate)$(basename $0): Chunk start date is \$tBegin"
-	echo "$(logDate)$(basename $0): Chunk end date is   \$tEnd"
-	if [[ -n \${modelChosen} ]]; then
-	  echo "$(logDate)$(basename $0): Model is            \${modelChosen}"
-	fi
-	if [[ -n \${scenarioChosen} ]]; then
-	  echo "$(logDate)$(basename $0): Scenario is         \${scenarioChosen}"
-	fi
-	if [[ -n \${memberChosen} ]]; then
-	  echo "$(logDate)$(basename $0): Ensemble member is  \${memberChosen}"
-	fi
-	
-	srun ${script} --start-date="\$tBegin" --end-date="\$tEnd" --cache="${cache}/cache-\${SLURM_ARRAY_JOB_ID}-\${SLURM_ARRAY_TASK_ID}" --ensemble="\${memberChosen}" --model="\${modelChosen}" --scenario="\${scenarioChosen}"
-	EOF
+    # create JSON config file for final submission
+    JSON="$( 
+      jq -n \
+        --argjson "scheduler" "$schedulerJSON" \
+        --argjson "jobchunks" "$jobChunkJSON" \
+        --argjson "jobchunksarrays" "$jobChunkArrayJSON" \
+        '$scheduler + $jobchunks + $jobchunksarrays' \
+      )"
+    # exporting to the job $logDir
+    echo "$JSON" > $logDir/conf.json
 
-    if [[ -z $parsable ]]; then
-      echo "$(basename $0): job submission details are printed under $logDir"
-    fi
+    # generating the submission script using m4 macros
 
-  # serial run
+    # m4 variables defined
+    directiveM4="$(
+      echo "$jobDirectiveJSON" | jq -r \
+        'to_entries | 
+         map(select(.value != null and .value != "")) |
+         map(
+             "-D" +
+             "__" +
+             (.key | tostring | ascii_upcase) +
+             "__" + "=" +
+             (.value | tostring)
+         ) |
+         join(" ")'
+      )"
+
+    # create scheduler-specific job submission script
+    m4 "${directiveM4}" "${schedulersPath}/${scheduler}.m4" > \
+      "${logDir}/job.${scheduler}"
+
   else
-    eval "$script"
+    # serial mode
+    eval "${script}"
   fi
 }
-
 
 # ======================
 # Checking input dataset
 # ======================
-
-# FIXME: This list needs to become part of a configuration
-#        file in future releases
-# $scriptPath is defined at the top
-
 case "${dataset,,}" in
 
   # ============

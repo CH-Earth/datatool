@@ -1,10 +1,10 @@
 {
-	"specs": {
-		"cpus": 1,
-		"time": "04:00:00",
-		"nodes": 1,
-		"partition": "",
-		"account": "rpp-kshook",
-		"ram": "8000M"
-	}
+    "specs": {
+        "cpus": 1,
+        "time": "04:00:00",
+        "nodes": 1,
+        "partition": "",
+        "account": "x-ees240082",
+        "mem": "8000M"
+    }
 }
