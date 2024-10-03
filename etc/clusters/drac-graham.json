@@ -1,6 +1,5 @@
 {
     "scheduler": "slurm",
-    "tmp": "$SLURM_TMPDIR",
     "specs": {
         "cpus": 1,
         "time": "04:00:00",

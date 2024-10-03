@@ -119,8 +119,9 @@ shopt -s expand_aliases
 
 # local paths
 schedulersPath="$(dirname $0)/etc/schedulers/"
-scriptPath="$(dirname $0)/scripts" # scripts' path
-extract_submodel="$(dirname $0)/assets/bash_scripts/extract_subdir_level.sh" # script path
+scriptPath="$(dirname $0)/etc/scripts" # core script path
+recipePath="$(dirname $)/var/repos/builtin/recipes/"
+extract_submodel="$(dirname $0)/etc/scripts/extract_subdir_level.sh" # script path
 
 
 # =======================
@@ -355,6 +356,40 @@ function chunk_dates () {
   fi
 }
 
+#######################################
+# Create m4 variable definitions to be
+# used in m4 macro calls in CLI from 
+# JSON objects
+#
+# Globals:
+#   None
+#
+# Arguments:
+#   1: JSON object
+#
+# Outputs:
+#   A string in "-D__KEY__=$value"
+#   format of all the fields of a JSON
+#   object
+#######################################
+function json_to_m4_vars () {
+  # local variables
+  local json="$1"
+
+  # echo the string using jq>1.6
+  echo "$json" | jq -r \
+    'to_entries | 
+     map(select(.value != null and .value != "")) |
+     map(
+         "-D" +
+         "__" +
+         (.key | tostring | ascii_upcase) +
+         "__" + "=" +
+         (.value | tostring)
+     ) |
+     join(" ")'
+}
+
 
 # ======================
 # Necessary preparations
@@ -391,7 +426,11 @@ function call_processing_func () {
   local scriptName=$(basename $scriptFile | cut -d '.' -f 1)
   # local directory for logs
   local logDir="$HOME/.datatool/${scriptName}_$(logDirDate)/" 
+  # selected scheduler
+  local scheduler
   # local length variables for chunking jobs
+  local startDateStr
+  local endDateStr
   local jobArrLen
   local modelLen
   local scenarioLen
@@ -402,6 +441,16 @@ function call_processing_func () {
   local dateIter
   local modelIter
   local ensembleIter
+  # local JSON variables
+  local jobDirectiveJSON
+  local schedulerJSON
+  local jobChunkArrayJSON
+  local jobChunkJSON
+  local JSON
+  # local m4 variables
+  local jobDirectiveM4
+  local jobScriptM4
+
 
   # make the $logDir if haven't been created yet
   mkdir -p $logDir
@@ -438,7 +487,7 @@ function call_processing_func () {
     # ==========================================
     # chunk dates
     chunk_dates "$chunkTStep"
-    # converting Bash arrays to comma-delimited strings
+    # converting chunk date Bash arrays to comma-delimited strings
     startDateStr="$(IFS=,; echo "${startDateArr[*]}")"
     endDateStr="$(IFS=,; echo "${endDateArr[*]}")"
 
@@ -488,8 +537,14 @@ function call_processing_func () {
       )"
 
     # scheduler information
-    scheduler="$(jq -r '.scheduler' $cluster)"
-    schedulerJSON="$(jq -r '.environment_variables' ${schedulersPath}/${scheduler}.json)"
+    scheduler="$(
+      jq -r \
+        '.scheduler' $cluster \
+      )"
+    schedulerJSON="$(
+      jq -r \
+        '.environment_variables' ${schedulersPath}/${scheduler}.json \
+      )"
 
     # job directives information
     jobDirectiveJSON="$(
@@ -503,47 +558,72 @@ function call_processing_func () {
         '$ARGS.named + $specs | del(.specs)' \
       )"
 
+    # job script information
+    jobScriptJSON="$(
+      jq -n \
+        --arg "script" "$script" \
+        --arg "cache" "$cache" \
+        '$ARGS.named' \
+      )"
+
 
     # ============
     # Parallel run
     # ============
+    # determining job script path
+    local jobScriptPath="$logDir/job.${scheduler}"
+    local jobConfPath="$logDir/job.json"
+
     # create JSON config file for final submission
     JSON="$( 
       jq -n \
+        --argjson "jobscript" "$jobScriptJSON" \
+        --argjson "jobdirective" "$jobDirectiveJSON" \
         --argjson "scheduler" "$schedulerJSON" \
         --argjson "jobchunks" "$jobChunkJSON" \
         --argjson "jobchunksarrays" "$jobChunkArrayJSON" \
-        '$scheduler + $jobchunks + $jobchunksarrays' \
+        '$jobscript + 
+         $jobdirective + 
+         $scheduler + 
+         $jobchunks + 
+         $jobchunksarrays' \
       )"
     # exporting to the job $logDir
-    echo "$JSON" > $logDir/conf.json
+    echo "$JSON" > "$jobConfPath"
 
     # generating the submission script using m4 macros
-
     # m4 variables defined
-    directiveM4="$(
-      echo "$jobDirectiveJSON" | jq -r \
-        'to_entries | 
-         map(select(.value != null and .value != "")) |
-         map(
-             "-D" +
-             "__" +
-             (.key | tostring | ascii_upcase) +
-             "__" + "=" +
-             (.value | tostring)
-         ) |
-         join(" ")'
-      )"
+    # m4 variables are in the following form: __VAR__
+    jobDirectiveM4="$(json_to_m4_vars "$jobDirectiveJSON")"
+    # append the main processing script using m4 macros
+    jobScriptM4="-D__CONF__=$jobConfPath "
+    jobScriptM4+="$(json_to_m4_vars "$schedulerJSON")"
 
     # create scheduler-specific job submission script
-    m4 "${directiveM4}" "${schedulersPath}/${scheduler}.m4" > \
-      "${logDir}/job.${scheduler}"
+    m4 ${jobDirectiveM4} ${schedulersPath}/${scheduler}.m4 > \
+      ${jobScriptPath}
+
+    m4 ${jobScriptM4} ${scriptPath}/main.m4 >> \
+      ${jobScriptPath}
+
+    exit 4;
+
+    # choose applicable scheduler and submit the job
+    case "${scheduler,,}" in 
+      "slurm")
+        sbatch ${jobScriptPath} ;;
+      "pbs")
+        qsub ${jobScriptPath} ;;
+      "lfs")
+        bsub ${jobScriptPath} ;;
+    esac
 
   else
     # serial mode
     eval "${script}"
   fi
 }
+
 
 # ======================
 # Checking input dataset
@@ -556,12 +636,12 @@ case "${dataset,,}" in
 
   # NCAR-GWF CONUSI
   "conus1" | "conusi" | "conus_1" | "conus_i" | "conus 1" | "conus i" | "conus-1" | "conus-i")
-    call_processing_func "$scriptPath/gwf-ncar-conus_i/conus_i.sh" "3months"
+    call_processing_func "$recipePath/gwf-ncar-conus_i/conus_i.sh" "3months"
     ;;
 
   # NCAR-GWF CONUSII
   "conus2" | "conusii" | "conus_2" | "conus_ii" | "conus 2" | "conus ii" | "conus-2" | "conus-ii")
-    call_processing_func "$scriptPath/gwf-ncar-conus_ii/conus_ii.sh" "1month"
+    call_processing_func "$recipePath/gwf-ncar-conus_ii/conus_ii.sh" "1month"
     ;;
 
   # ==========
@@ -570,12 +650,12 @@ case "${dataset,,}" in
 
   # ECMWF ERA5
   "era_5" | "era5" | "era-5" | "era 5")
-    call_processing_func "$scriptPath/ecmwf-era5/era5_simplified.sh" "2years"
+    call_processing_func "$recipePath/ecmwf-era5/era5_simplified.sh" "2years"
     ;;
   
   # ECCC RDRS
   "rdrs" | "rdrsv2.1")
-    call_processing_func "$scriptPath/eccc-rdrs/rdrs.sh" "6months"
+    call_processing_func "$recipePath/eccc-rdrs/rdrs.sh" "6months"
     ;;
 
   # ====================
@@ -584,7 +664,7 @@ case "${dataset,,}" in
 
   # Daymet dataset
   "daymet" | "Daymet" )
-    call_processing_func "$scriptPath/ornl-daymet/daymet.sh" "5years"
+    call_processing_func "$recipePath/ornl-daymet/daymet.sh" "5years"
     ;;
 
   # ================
@@ -593,32 +673,32 @@ case "${dataset,,}" in
 
   # ESPO-G6-R2 dataset
   "espo" | "espo-g6-r2" | "espo_g6_r2" | "espo_g6-r2" | "espo-g6_r2" )
-    call_processing_func "$scriptPath/ouranos-espo-g6-r2/espo-g6-r2.sh" "151years" "1"
+    call_processing_func "$recipePath/ouranos-espo-g6-r2/espo-g6-r2.sh" "151years" "1"
     ;;
 
   # Ouranos-MRCC5-CMIP6 dataset
   "crcm5-cmip6" | "mrcc5-cmip6" | "crcm5" | "mrcc5" )
-    call_processing_func "$scriptPath/ouranos-mrcc5-cmip6/mrcc5-cmip6.sh" "20years"
+    call_processing_func "$recipePath/ouranos-mrcc5-cmip6/mrcc5-cmip6.sh" "20years"
     ;;
 
   # Alberta Government Downscaled Climate Dataset - CMIP6
   "alberta" | "ab-gov" | "ab" | "ab_gov" | "abgov" )
-    call_processing_func "$scriptPath/ab-gov/ab-gov.sh" "151years" "0"
+    call_processing_func "$recipePath/ab-gov/ab-gov.sh" "151years" "0"
     ;;
 
   # NASA GDDP-NEX-CMIP6
   "gddp" | "nex" | "gddp-nex" | "nex-gddp" | "gddp-nex-cmip6" | "nex-gddp-cmip6")
-    call_processing_func "$scriptPath/nasa-nex-gddp-cmip6/nex-gddp-cmip6.sh" "100years" "0"
+    call_processing_func "$recipePath/nasa-nex-gddp-cmip6/nex-gddp-cmip6.sh" "100years" "0"
     ;;
 
   # CanRCM4-WFDEI-GEM-CaPA
   "canrcm4_g" | "canrcm4-wfdei-gem-capa" | "canrcm4_wfdei_gem_capa")
-    call_processing_func "$scriptPath/ccrn-canrcm4_wfdei_gem_capa/canrcm4_wfdei_gem_capa.sh" "5years"
+    call_processing_func "$recipePath/ccrn-canrcm4_wfdei_gem_capa/canrcm4_wfdei_gem_capa.sh" "5years"
     ;;
   
   # WFDEI-GEM-CaPA
   "wfdei_g" | "wfdei-gem-capa" | "wfdei_gem_capa" | "wfdei-gem_capa" | "wfdei_gem-capa")
-    call_processing_func "$scriptPath/ccrn-wfdei_gem_capa/wfdei_gem_capa.sh" "5years"
+    call_processing_func "$recipePath/ccrn-wfdei_gem_capa/wfdei_gem_capa.sh" "5years"
     ;;
 
 
