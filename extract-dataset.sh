@@ -120,7 +120,7 @@ shopt -s expand_aliases
 # local paths
 schedulersPath="$(dirname $0)/etc/schedulers/"
 scriptPath="$(dirname $0)/etc/scripts" # core script path
-recipePath="$(dirname $)/var/repos/builtin/recipes/"
+recipePath="$(realpath $(dirname $0)/var/repos/builtin/recipes/)"
 extract_submodel="$(dirname $0)/etc/scripts/extract_subdir_level.sh" # script path
 
 
@@ -378,7 +378,7 @@ function json_to_m4_vars () {
 
   # echo the string using jq>1.6
   echo "$json" | jq -r \
-    'to_entries | 
+    'to_entries |
      map(select(.value != null and .value != "")) |
      map(
          "-D" +
@@ -422,8 +422,9 @@ function call_processing_func () {
   local submodelFlag="$3" # flag for submodels' existence
 
   # local script related variables
-  # script name
+  # script requirements
   local scriptName=$(basename $scriptFile | cut -d '.' -f 1)
+  local script
   # local directory for logs
   local logDir="$HOME/.datatool/${scriptName}_$(logDirDate)/" 
   # selected scheduler
@@ -447,6 +448,9 @@ function call_processing_func () {
   local jobChunkArrayJSON
   local jobChunkJSON
   local JSON
+  # local variables defining module information
+  local jobModules
+  local jobModulesInit
   # local m4 variables
   local jobDirectiveM4
   local jobScriptM4
@@ -462,7 +466,7 @@ function call_processing_func () {
   fi
 
   # typical script to run for all sub-modules
-  local script=$(cat <<- EOF 
+  script=$(cat <<- EOF 
 	bash ${scriptFile} \
 	--dataset-dir="${funcArgs[datasetDir]}" \
 	--variable="${funcArgs[variables]}" \
@@ -559,11 +563,38 @@ function call_processing_func () {
       )"
 
     # job script information
+    # arguments used for pallaleization, i.e.,
+    # startDate, endDate, ensemble, model, scenario,
+    # are removed, as they are processed elsewhere and fed
+    # as part of various other JSONs, namely
+    # `$jobChunkJSON` and `$jobChunkArrJSON`
     jobScriptJSON="$(
       jq -n \
-        --arg "script" "$script" \
-        --arg "cache" "$cache" \
+         --arg "scriptFile" "$scriptFile" \
+         --arg "dataset" "${funcArgs[dataset]}" \
+         --arg "datasetDir" "${funcArgs[datasetDir]}" \
+         --arg "variable" "${funcArgs[variables]}" \
+         --arg "outputDir" "${funcArgs[outputDir]}" \
+         --arg "timeScale" "${funcArgs[timeScale]}" \
+         --arg "latLims" "${funcArgs[latLims]}" \
+         --arg "lonLims" "${funcArgs[lonLims]}" \
+         --arg "prefix" "${funcArgs[prefixStr]}" \
+         --arg "cache" "${funcArgs[cache]}" \
         '$ARGS.named' \
+      )"
+
+    # job module init information - not JSON as echoed as is
+    jobModulesInit="$(
+      jq -r \
+        '.modules.init[] | select(length > 0)' $cluster \
+      )"
+
+    # job module information - not JSON as echoed as is
+    jobModules="$(
+      jq -r \
+        '.modules[] | 
+         select(length > 0) | 
+         select(type != "array")' $cluster \
       )"
 
 
@@ -588,7 +619,8 @@ function call_processing_func () {
          $jobchunks + 
          $jobchunksarrays' \
       )"
-    # exporting to the job $logDir
+
+    # exporting job configurations as a JSON to the job $logDir
     echo "$JSON" > "$jobConfPath"
 
     # generating the submission script using m4 macros
@@ -597,12 +629,20 @@ function call_processing_func () {
     jobDirectiveM4="$(json_to_m4_vars "$jobDirectiveJSON")"
     # append the main processing script using m4 macros
     jobScriptM4="-D__CONF__=$jobConfPath "
-    jobScriptM4+="$(json_to_m4_vars "$schedulerJSON")"
+    jobScriptM4+="$(json_to_m4_vars "$schedulerJSON") "
 
     # create scheduler-specific job submission script
+    # 1. job scheduler directives
     m4 ${jobDirectiveM4} ${schedulersPath}/${scheduler}.m4 > \
       ${jobScriptPath}
 
+    # 2. module inititation, if applicable
+    echo -e "\n${jobModulesInit}" >> "${jobScriptPath}"
+
+    # 3. loading core modules, if applicable
+    echo -e "\n${jobModules}" >> "${jobScriptPath}"
+
+    # 4. main body of script
     m4 ${jobScriptM4} ${scriptPath}/main.m4 >> \
       ${jobScriptPath}
 
@@ -611,11 +651,11 @@ function call_processing_func () {
     # choose applicable scheduler and submit the job
     case "${scheduler,,}" in 
       "slurm")
-        sbatch ${jobScriptPath} ;;
+        sbatch --export=NONE ${jobScriptPath} ;;
       "pbs")
         qsub ${jobScriptPath} ;;
       "lfs")
-        bsub ${jobScriptPath} ;;
+        bsub --env=none ${jobScriptPath} ;;
     esac
 
   else

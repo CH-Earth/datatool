@@ -1,4 +1,7 @@
 
+# logging function
+logDate () { echo "($(date +"%Y-%m-%d %H:%M:%S")) "; }
+
 # reading job configuration JSON
 declare -A conf
 while IFS="=" read -r key value; do
@@ -43,7 +46,15 @@ if [[ -n ${memberChosen} ]]; then
 fi
 
 # running script
-srun "${conf[script]}" \
+srun ${conf[scriptFile]} \
+  --dataset="${conf[dataset]}" \
+  --dataset-dir="${conf[datasetDir]}" \
+  --variable="${conf[variables]}" \
+  --output-dir="${conf[outputDir]}" \
+  --time-scale="${conf[timeScale]}" \
+  --lat-lims="${conf[latLims]}" \
+  --lon-lims="${conf[lonLims]}" \
+  --prefix="${conf[prefix]}" \
   --start-date="$tBegin" \
   --end-date="$tEnd" \
   --cache="${conf[cache]}/cache-__ARRAY_JOB_ID__-__ARRAY_TASK_ID__" \

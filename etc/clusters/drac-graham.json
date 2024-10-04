@@ -9,18 +9,14 @@
         "mem": "8000M"
     },
     "modules": {
-        "preload": [
-            "module -q purge",
-            "module -q load StdEnv/2023",
-            "module -q load gcc/12.3"
+        "init": [
+            "module -q purge"
         ],
+        "stdenv": "module -q laod StdEnv/2023",
+        "compiler": "module -q load gcc/12.3",
         "gdal": "module -q load gdal/3.9.1",
         "cdo": "module -q load cdo/2.2.2",
-        "ncks": "module -q load nco/5.1.7"
-    },
-    "executables": {
-        "gdal": "",
-        "nco": "",
-        "cdo": ""
+        "nco": "module -q load nco/5.1.7",
+        "ncl": "module -q load ncl/6.6.2"
     }
 }
