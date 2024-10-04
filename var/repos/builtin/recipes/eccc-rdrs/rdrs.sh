@@ -112,11 +112,11 @@ alias date='TZ=UTC date'
 shopt -s expand_aliases
 
 # paths
-datatoolPath="$(dirname $0)/../../" # datatool's path
+datatoolPath="$(dirname $0)/../../../../../" # datatool's path
 # daymet index scripts works on RDRSv2.1 grids as well
 # and ESPO-G6-R2 has similar grid system as RDRSv2.1
-coordIdxScript="$datatoolPath/assets/ncl_scripts/coord_daymet_idx.ncl"
-coordClosestIdxScript="$datatoolPath/assets/ncl_scripts/coord_closest_daymet_idx.ncl"
+coordIdxScript="$datatoolPath/etc/scripts/coord_daymet_idx.ncl"
+coordClosestIdxScript="$datatoolPath/etc/scripts/coord_closest_daymet_idx.ncl"
 
 
 # ==========================
@@ -161,6 +161,10 @@ echo "$(logDate)$(basename $0): creating output directory under $outputDir"
 mkdir -p "$outputDir"
 echo "$(logDate)$(basename $0): creating cache directory under $cache"
 mkdir -p "$cache"
+
+
+echo "variables: $variables"
+exit 2;
 
 
 # ======================

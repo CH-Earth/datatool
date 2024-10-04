@@ -45,11 +45,13 @@ if [[ -n ${memberChosen} ]]; then
   echo "$(logDate)$(basename $0): Ensemble member is ${memberChosen}"
 fi
 
+cache="${conf[cache]}"
+
 # running script
-srun ${conf[scriptFile]} \
+eval ${conf[scriptFile]} \
   --dataset="${conf[dataset]}" \
   --dataset-dir="${conf[datasetDir]}" \
-  --variable="${conf[variables]}" \
+  --variable="${conf[variable]}" \
   --output-dir="${conf[outputDir]}" \
   --time-scale="${conf[timeScale]}" \
   --lat-lims="${conf[latLims]}" \
@@ -57,7 +59,7 @@ srun ${conf[scriptFile]} \
   --prefix="${conf[prefix]}" \
   --start-date="$tBegin" \
   --end-date="$tEnd" \
-  --cache="${conf[cache]}/cache-__ARRAY_JOB_ID__-__ARRAY_TASK_ID__" \
+  --cache="${cache}/cache-__ARRAY_JOB_ID__-__ARRAY_TASK_ID__" \
   --ensemble="${memberChosen}" \
   --model="${modelChosen}" \
   --scenario="${scenarioChosen}";

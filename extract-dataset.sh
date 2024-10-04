@@ -571,7 +571,6 @@ function call_processing_func () {
     jobScriptJSON="$(
       jq -n \
          --arg "scriptFile" "$scriptFile" \
-         --arg "dataset" "${funcArgs[dataset]}" \
          --arg "datasetDir" "${funcArgs[datasetDir]}" \
          --arg "variable" "${funcArgs[variables]}" \
          --arg "outputDir" "${funcArgs[outputDir]}" \
@@ -645,8 +644,6 @@ function call_processing_func () {
     # 4. main body of script
     m4 ${jobScriptM4} ${scriptPath}/main.m4 >> \
       ${jobScriptPath}
-
-    exit 4;
 
     # choose applicable scheduler and submit the job
     case "${scheduler,,}" in 
