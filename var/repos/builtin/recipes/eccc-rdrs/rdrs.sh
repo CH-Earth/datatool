@@ -163,10 +163,6 @@ echo "$(logDate)$(basename $0): creating cache directory under $cache"
 mkdir -p "$cache"
 
 
-echo "variables: $variables"
-exit 2;
-
-
 # ======================
 # Extract domain extents
 # ======================

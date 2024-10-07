@@ -122,36 +122,6 @@ timeDim="time"
 resolution="0.25"
 
 
-# ===================
-# Necessary Functions
-# ===================
-# Modules below available on Digital Research Alliance of Canada's Graham HPC
-## core modules
-function load_core_modules () {
-  module -q load StdEnv/2020
-  module -q load gcc/9.3.0
-  module -q load cdo/2.0.4
-  module -q load nco/5.0.6
-}
-function unload_core_modules () {
-  # WARNING: DO NOT USE IF YOU ARE NOT SURE HOW TO URE IT
-  module -q unload cdo/2.0.4
-  module -q unload nco/5.0.6
-}
-## ncl modules
-function load_ncl_module () {
-  module -q load StdEnv/2020
-  module -q load gcc/9.3.0
-  module -q load ncl/6.6.2
-}
-function unload_ncl_module () {
-  module -q unload ncl/6.6.2
-}
-
-# loading core modules for the script
-load_core_modules
-
-
 # =================
 # Useful one-liners
 # =================
@@ -219,13 +189,15 @@ IFS=',' read -ra ensembleArr <<< $(echo $ensemble)
 # create $variableArr array from input comma-delimited values
 IFS=',' read -ra variableArr <<< $(echo $variables)
 
+echo "scenarioArr is: ${scenarioArr[@]}"
+
 # taking care of various possible scenarios for $startDate and $endDate
 ## #1 if startYear is before 2015, and historical is NOT selected as a
 ##    scenario, issue a WARNING and add historical to $scenarioArr
 if [[ "$startYear" -lt 2015 ]] && \
-   [[ "${scenarioArr[*]}" == "historical" ]]; then
+   [[ "${scenarioArr[*]}" != "historical" ]]; then
   # issue a warning and add historical to the scenarios
-  echo "$(logDate)$(basename $0): WARNING! Dates preceeding 2015 belongs to \`hisotrical\` scenario"
+  echo "$(logDate)$(basename $0): WARNING! Dates preceeding 2015 belongs to \`historical\` scenario"
   echo "$(logDate)$(basename $0): WARNING! \`historical\` is added to \`--scenario\` list"
   scenarioArr+=("historical")
 fi
@@ -320,7 +292,7 @@ done
 actualStartDateArr[0]="$(date --date "${startDate}" +"${actualDateFormat}")"
 
 # and similarly, the actualEndArr array
-lastIndex=$(( "${#actualEndDateArr[@]}" - 1 ))
+lastIndex="$(( "${#actualEndDateArr[@]}" - 1 ))"
 actualEndDateArr[${lastIndex}]="$(date --date "${endDate}" +"${actualDateFormat}")"
 
 

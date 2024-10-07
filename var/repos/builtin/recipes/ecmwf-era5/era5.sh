@@ -107,17 +107,6 @@ exportFormat="%Y-%m-%d_%H:%M:%S" # exported file date format
 fileStruct="ERA5_merged" # source dataset files' prefix constant
 
 
-# ===================
-# Necessary functions
-# ===================
-# Modules below available on Compute Canada (CC) Graham Cluster Server
-function load_core_modules () {
-  module load cdo/2.0.4
-  module load nco/5.0.6
-}
-load_core_modules
-
-
 # =================
 # Useful one-liners
 # =================

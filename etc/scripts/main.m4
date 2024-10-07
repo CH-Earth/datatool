@@ -12,7 +12,7 @@ done < <(jq -r 'to_entries | .[] | "\(.key)=\(.value)"' __CONF__)
 startDateArr=($(echo "${conf[startDateArr]}" | tr -d '[]"' | tr ',' ' '))
 endDateArr=($(echo "${conf[endDateArr]}" | tr -d '[]"' | tr ',' ' '))
 ensembleArr=($(echo "${conf[ensembleArr]}" | tr -d '[]"' | tr ',' ' '))
-modelDateArr=($(echo "${conf[modelArr]}" | tr -d '[]"' | tr ',' ' '))
+modelArr=($(echo "${conf[modelArr]}" | tr -d '[]"' | tr ',' ' '))
 scenarioArr=($(echo "${conf[scenarioArr]}" | tr -d '[]"' | tr ',' ' '))
 
 # extracting indices
