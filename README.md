@@ -76,6 +76,7 @@ foo@bar:~$ ./extract-dataset.sh  \
   --lat-lims=49,51  \
   --lon-lims=-117,-115 \
   --variable="RDRS_v2.1_A_PR0_SFC,RDRS_v2.1_P_HU_09944" \
+  --cache='$SLURM_TMPDIR' \
   --prefix="testing_";
 ```
 See the [examples](./examples) directory for real-world scripts for each meteorological dataset included in this repository.
