@@ -371,7 +371,7 @@ for modelMember in "${modelArr[@]}"; do
 
           # destination NetCDF file
           # template: ${var}_NAM-12_${modelMember}_${scenarioMember}_${ensembleMember}_OURANOS_CRCM5_v1-r1_1hr_%yyyy010100%M_%yyyy123123%M.nc
-          dst="${var}_NAM-12_${modelMemberName}_${scenarioMember}_${ensembleMember}_OURANOS_CRCM5_v1-r1_1hr_${fileStartDate}-${fileEndDate}.nc"
+          dst="${var}_NAM-12_${modelMember}_${scenarioMember}_${ensembleMember}_OURANOS_CRCM5_v1-r1_1hr_${fileStartDate}-${fileEndDate}.nc"
 
           # create destination and cache directory
           mkdir -p "${outputDir}/${pathTemplate}/${var}"
