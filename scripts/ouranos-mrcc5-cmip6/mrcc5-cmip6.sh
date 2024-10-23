@@ -363,7 +363,7 @@ for modelMember in "${modelArr[@]}"; do
         # iterate over dataset variables of interest
         for var in "${variableArr[@]}"; do
           # find the source file
-          src="$(find ${datasetDir}/${pathTemplate}/${var}/ -type f -name "*${fileYear}*")"
+          src="$(find ${datasetDir}/${pathTemplate}/${var}/ -type f -name "*${fileYear}0101*")"
           if [[ -z "$src" ]]; then
             echo "$(logDate)$(basename $0): ERROR! ${fileYear} file not found in ${datasetDir}/${pathTemplate}/${var}/"
             exit 1;
