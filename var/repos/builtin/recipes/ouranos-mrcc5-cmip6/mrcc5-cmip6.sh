@@ -151,36 +151,6 @@ lonDim="rlon"
 timeDim="time"
 
 
-# ===================
-# Necessary functions
-# ===================
-# Modules below available on Digital Research Alliance of Canada's Graham HPC
-## core modules
-function load_core_modules () {
-  module -q load StdEnv/2020
-  module -q load gcc/9.3.0
-  module -q load cdo/2.0.4
-  module -q load nco/5.0.6
-}
-function unload_core_modules () {
-  # WARNING: DO NOT USE IF YOU ARE NOT SURE HOW TO URE IT
-  module -q unload cdo/2.0.4
-  module -q unload nco/5.0.6
-}
-## ncl modules
-function load_ncl_module () {
-  module -q load StdEnv/2020
-  module -q load gcc/9.3.0
-  module -q load ncl/6.6.2
-}
-function unload_ncl_module () {
-  module -q unload ncl/6.6.2
-}
-
-# loading core modules for the script
-load_core_modules
-
-
 # =================
 # Useful one-liners
 # =================
@@ -226,9 +196,6 @@ maxLat=$(echo $latLims | cut -d ',' -f 2)
 minLon=$(echo $lonLims | cut -d ',' -f 1)
 maxLon=$(echo $lonLims | cut -d ',' -f 2)
 
-# unload and load necessary modules
-unload_core_modules
-load_ncl_module
 # choose a sample file as all files share the same grid
 domainFile=$(find ${datasetDir} -type f -name "*.nc" | head -n 1)
 # parse the upper and lower bounds of a given spatial limit
@@ -249,10 +216,6 @@ fi
 # parse the output index for latitude and longitude
 lonLimsIdx+="$(echo $coordIdx | cut -d ' ' -f 1)"
 latLimsIdx+="$(echo $coordIdx | cut -d ' ' -f 2)"
-
-# reload necessary modules
-unload_ncl_module
-load_core_modules
 
 # =====================
 # Extract dataset files

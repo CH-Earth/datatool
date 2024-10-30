@@ -122,18 +122,6 @@ alias date='TZ=UTC date'
 shopt -s expand_aliases
 
 
-# ===================
-# Necessary functions
-# ===================
-# Modules below available on Compute Canada (CC) Graham Cluster Server
-function load_core_modules () {
-  module -q load StdEnv/2020;
-  module -q load gcc/9.3.0;
-  module -q load cdo/2.0.4;
-  module -q load nco/5.0.6;
-}
-load_core_modules # load necessary modules
-
 # =================
 # Useful one-liners
 # =================
@@ -389,7 +377,6 @@ toDateUnix=$(date --date="$startDate" "+%s") # first date in unix EPOCH time
 endDateUnix=$(date --date="$endDate" "+%s") # end date in unix EPOCH time
 
 # extract the associated indices corresponding to latLims and lonLims
-module -q load ncl/6.6.2
 ## min and max of latitude and longitude limits
 minLat=$(echo $latLims | cut -d ',' -f 1)
 maxLat=$(echo $latLims | cut -d ',' -f 2)
@@ -399,8 +386,6 @@ maxLon=$(echo $lonLims | cut -d ',' -f 2)
 coordIdx="$(ncl -nQ 'coord_file='\"$coordMainFile\" 'minlat='"$minLat" 'maxlat='"$maxLat" 'minlon='"$minLon" 'maxlon='"$maxLon" "$coordIdxScript")"
 lonLimsIdx="$(echo $coordIdx | cut -d ' ' -f 1)"
 latLimsIdx="$(echo $coordIdx | cut -d ' ' -f 2)"
-module -q unload ncl/6.6.2
-load_core_modules
 
 # produce subsetted $coordFile as well
 mkdir -p "$cacheDir"
