@@ -136,11 +136,11 @@ alias date='TZ=UTC date'
 shopt -s expand_aliases
 
 # paths
-datatoolPath="$(dirname $0)/../../" # datatool's path
+root="$(echo $(dirname $0) | grep -Po '(.*)(?=((/.*?){5})$)')"
 # daymet index scripts works on RDRSv2.1 grids as well
 # and ESPO-G6-R2 has similar grid system as RDRSv2.1
-coordIdxScript="$datatoolPath/assets/ncl_scripts/coord_daymet_idx.ncl"
-coordClosestIdxScript="$datatoolPath/assets/ncl_scripts/coord_closest_daymet_idx.ncl"
+coordIdxScript="$root/etc/scripts/coord_daymet_idx.ncl"
+coordClosestIdxScript="$root/etc/scripts/coord_closest_daymet_idx.ncl"
 
 
 # ==========================
