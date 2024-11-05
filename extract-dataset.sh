@@ -107,6 +107,7 @@ logDirDate () { echo "$(date +"%Y%m%d_%H%M%S")"; }
 
 # useful maximum function
 max () { printf "%s\n" "${@:2}" | sort "$1" | tail -n1; }
+count_values () { max -g $(echo $1 | tr ',' ' ' | wc -w) 1 ; }
 
 # =====================
 # Necessary Assumptions
@@ -499,9 +500,9 @@ function call_processing_func () {
     # Building job array specs
     # ========================
     # relevant array lengths
-    let "ensembleLen = $(max -g ${#ensembleArr[@]} 1)"
-    let "modelLen = $(max -g ${#modelArr[@]} 1)"
-    let "scenarioLen = $(max -g ${#scenarioArr[@]} 1)"
+    let "ensembleLen = $(count_values $ensemble)"
+    let "modelLen = $(count_values $model)"
+    let "scenarioLen = $(count_values $scenario)"
     let "dateLen = $(max -g ${#startDateArr[@]} 1)"
 
     # relevant iterator variables
@@ -715,7 +716,7 @@ case "${dataset,,}" in
 
   # Ouranos-MRCC5-CMIP6 dataset
   "crcm5-cmip6" | "mrcc5-cmip6" | "crcm5" | "mrcc5" )
-    call_processing_func "$recipePath/ouranos-mrcc5-cmip6/mrcc5-cmip6.sh" "20years"
+    call_processing_func "$recipePath/ouranos-mrcc5-cmip6/mrcc5-cmip6.sh" "5years"
     ;;
 
   # Alberta Government Downscaled Climate Dataset - CMIP6
