@@ -36,13 +36,13 @@ echo "$(logDate)$(basename $0): Chunk end date is   $tEnd"
 
 # details of submission chunk
 if [[ -n ${modelChosen} ]]; then
-  echo "$(logDate)$(basename $0): Model is           ${modelChosen}"
+  echo "$(logDate)$(basename $0): Model is            ${modelChosen}"
 fi
 if [[ -n ${scenarioChosen} ]]; then
-  echo "$(logDate)$(basename $0): Scenario is        ${scenarioChosen}"
+  echo "$(logDate)$(basename $0): Scenario is         ${scenarioChosen}"
 fi
 if [[ -n ${memberChosen} ]]; then
-  echo "$(logDate)$(basename $0): Ensemble member is ${memberChosen}"
+  echo "$(logDate)$(basename $0): Ensemble member is  ${memberChosen}"
 fi
 
 cache="${conf[cache]}"
