@@ -10,9 +10,9 @@
     },
     "modules": {
         "init": [
-            "module -q purge"
+            "module -q purge",
+            "module -q load StdEnv/2023"
         ],
-        "stdenv": "module -q load StdEnv/2023",
         "compiler": "module -q load gcc/12.3",
         "gdal": "module -q load gdal/3.9.1",
         "cdo": "module -q load cdo/2.2.2",
