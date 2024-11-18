@@ -12,9 +12,9 @@ Script options:
   -o, --output-dir=DIR              Writes processed files to DIR
   -s, --start-date=DATE             The start date of the data
   -e, --end-date=DATE               The end date of the data
-  -l, --lat-lims=REAL,REAL          Latitude's upper and lower bounds;
+  -l, --lat-lims=REAL,REAL          Latitude's upper and lower bounds
                                     optional; within the [-90, +90] limits
-  -n, --lon-lims=REAL,REAL          Longitude's upper and lower bounds;
+  -n, --lon-lims=REAL,REAL          Longitude's upper and lower bounds
                                     optional; within the [-180, +180] limits
   -a, --shape-file=PATH             Path to the ESRI shapefile; optional
   -m, --ensemble=ens1,[ens2,[...]]  Ensemble members to process; optional
@@ -30,16 +30,21 @@ Script options:
   -b, --parsable                    Parsable SLURM message mainly used
                                     for chained job submissions
   -c, --cache=DIR                   Path of the cache directory; optional
-  -E, --email=user@example.com      E-mail user when job starts, ends, or               
+  -E, --email=user@example.com      E-mail user when job starts, ends, or
                                     fails; optional
-  -u, --account                     Digital Research Alliance of Canada's sponsor's
-                                    account name; optional, defaults to 'rpp-kshook' 
+  -C, --cluster=JSON                JSON file detailing cluster-specific details
   -L, --list-datasets               List all the available datasets and the
                                     corresponding keywords for '--dataset' option
-  -V, --version                     Show version 
+  -V, --version                     Show version
   -h, --help                        Show this screen and exit
 
+For bug reports, questions, discussions open an issue
+at https://github.com/kasra-keshavarz/datatool/issues
 ```
+
+# Documentation
+The relevant documentation is lcoated on [Readthedocs](https://datatool.readthedocs.io/en/latest/) website.
+
 # Available Datasets
 |# |Dataset                    |Time Period                     |DOI                       |Description                          |
 |--|---------------------------|--------------------------------|--------------------------|-------------------------------------|
