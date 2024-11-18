@@ -240,10 +240,6 @@ fi
 
 # if shapefile is provided extract the extents from it
 if [[ -n $shapefile ]]; then
-  # load GDAL module
-  module -q load StdEnv/2020;
-  module -q load gcc/9.3.0;
-  module -q load gdal/3.4.3;
   # extract the shapefile extent
   IFS=' ' read -ra shapefileExtents <<< "$(ogrinfo -so -al "$shapefile" | sed 's/[),(]//g' | grep Extent)"
   # transform the extents in case they are not in EPSG:4326
@@ -259,7 +255,6 @@ if [[ -n $shapefile ]]; then
   # define $latLims and $lonLims from $shapefileExtents
   lonLims="${leftBottomLims[0]},${rightTopLims[0]}"
   latLims="${leftBottomLims[1]},${rightTopLims[1]}"
-  module -q unload gdal/3.4.3;
 fi
 
 # check mandatory arguments whether provided
@@ -276,6 +271,26 @@ if [[ -z "${datasetDir}" ]] || \
    echo "$(basename $0): mandatory option(s) missing.";
    short_usage;
    exit 1;
+fi
+
+
+# =================
+# Base dependencies 
+# =================
+# `gdal' and `jq' or the basics we need to run this file
+# initialize the cluster-dependent settings
+inits="$(jq -r '.modules.init | join("; ")' $cluster)"
+if [[ -n "$inits" ]]; then
+  eval "$inits"
+fi
+
+# assure `jq' and `gdal' are loaded
+gdal_init="$(jq -r '.modules.gdal' $cluster)"
+if [[ -n "$gdal_init" ]]; then
+  eval "$gdal_init"
+else
+  echo "$(basename $0): ERROR! GDAL missing"
+  exit 1;
 fi
 
 
@@ -658,6 +673,21 @@ function call_processing_func () {
 
   else
     # serial mode
+    # load all the necessary modules
+    mods="$( \
+      jq -r \
+        '.modules | 
+        to_entries | 
+        map(
+          select(
+            .value | 
+            type != "array" and . != ""
+            )
+        ) | 
+        map(.value) | 
+        join(" && ")' \
+      $cluster)"
+    eval "$mods"
     eval "${script}"
   fi
 }
