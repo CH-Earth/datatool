@@ -230,12 +230,10 @@ else
   parsable=""
 fi
 
-# if account is not provided, use `rpp-kshook` as default
-if [[ -z $account ]] && [[ $jobSubmission == "true" ]]; then
-  account="rpp-kshook"
-  if [[ -z $parsable ]]; then
-    echo "$(basename $0): WARNING! --account not provided, using \`rpp-kshook\` by default."
-  fi
+# if cluster is not provided, exit with an error 
+if [[ -z $cluster ]]; then
+  echo "$(basename $0): ERROR! --cluster invalid "
+  exit 1
 fi
 
 # if shapefile is provided extract the extents from it
