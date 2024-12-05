@@ -1,7 +1,7 @@
 .. datatool documentation master file, created by Kasra Keshavarz
 
-``datatool``
-============
+Welcome to ``datatool``'s documentation!
+========================================
 ``datatool`` is an HPC-indepenent workflow enabling end-users extracting
 subsets from community meteorological datasets through a simple
 command-line interface (CLI). The tool works at large with NetCDF files,
