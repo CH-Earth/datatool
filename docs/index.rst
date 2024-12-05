@@ -11,8 +11,8 @@ Through crowsourcing, ``datatool`` aims to enable end-users extract subsets
 from any dataset available to the community members.
 
 
-``User Interface``
-==================
+User Interface
+==============
 This repository contains scripts to process meteorological datasets in NetCDF 
 file format. The general usage of the script (i.e., ``./extract-dataset.sh``)
 is as follows:
