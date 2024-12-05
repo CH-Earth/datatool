@@ -7,7 +7,7 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'datatool'
-copyright = '2022-2014, University of Calgary'
+copyright = '2022-2024, University of Calgary'
 author = 'Kasra Keshavarz'
 release = '0.7.0'
 

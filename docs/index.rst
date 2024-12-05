@@ -1,5 +1,11 @@
-.. datatool documentation master file, created by Kasra Keshavarz
+.. Copyright 2022-2024 University of Calgary, University of Saskatchewan
+   and other datatool Developers.
 
+   SPDX-License-Identifier: (GPL-3.0-or-later)
+
+.. _main-datatool:
+
+========================================
 Welcome to ``datatool``'s documentation!
 ========================================
 ``datatool`` is an HPC-indepenent workflow enabling end-users extracting
@@ -10,9 +16,9 @@ but is not limited to any file format, structure, or dataset.
 Through crowsourcing, ``datatool`` aims to enable end-users extract subsets
 from any dataset available to the community members.
 
-
+--------------
 User Interface
-==============
+--------------
 This repository contains scripts to process meteorological datasets in NetCDF 
 file format. The general usage of the script (i.e., ``./extract-dataset.sh``)
 is as follows:
@@ -56,5 +62,6 @@ is as follows:
      -h, --help                        Show this screen and exit
 
 
-Use the navigation menu on the left to explore the documentations!
+Use the navigation menu on the left to explore the ``datatool``'s
+documentation!
 
