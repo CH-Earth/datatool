@@ -1,79 +1,60 @@
-.. datatool documentation master file, created by
+.. datatool documentation master file, created by Kasra Keshavarz
 
-Welcome to ``datatool``'s documentation!
-========================================
-The current version of ``datatool`` can be run on any HPC. A JSON file
-needs to be prepared the reflects the requirements needed by the tool.
+``datatool``
+============
+``datatool`` is an HPC-indepenent workflow enabling end-users extracting
+subsets from community meteorological datasets through a simple
+command-line interface (CLI). The tool works at large with NetCDF files,
+but is not limited to any file format, structure, or dataset.
 
-JSON Configuration File for HPC Module Systems
-==============================================
+Through crowsourcing, ``datatool`` aims to enable end-users extract subsets
+from any dataset available to the community members.
 
-This JSON file provides the configuration specifications for running the datatool on any High-Performance Computing (HPC) system. It primarily describes the scheduler, job specifications, and module systems required for successful execution.
 
-File Structure
---------------
+``User Interface``
+==================
+This repository contains scripts to process meteorological datasets in NetCDF 
+file format. The general usage of the script (i.e., ``./extract-dataset.sh``)
+is as follows:
 
-**Root Keys:**
+.. code-block:: console
 
-- **scheduler**: Specifies the type of scheduler used by the HPC system. In this case, the scheduler is set to `slurm`.
+   Usage:
+     extract-dataset [options...]
 
-- **specs**: A dictionary containing the job specifications, such as allocated CPUs, runtime, memory, and other SLURM-specific parameters.
+   Script options:
+     -d, --dataset                     Meteorological forcing dataset of interest
+     -i, --dataset-dir=DIR             The source path of the dataset file(s)
+     -v, --variable=var1[,var2[...]]   Variables to process
+     -o, --output-dir=DIR              Writes processed files to DIR
+     -s, --start-date=DATE             The start date of the data
+     -e, --end-date=DATE               The end date of the data
+     -l, --lat-lims=REAL,REAL          Latitude's upper and lower bounds
+                                       optional; within the [-90, +90] limits
+     -n, --lon-lims=REAL,REAL          Longitude's upper and lower bounds
+                                       optional; within the [-180, +180] limits
+     -a, --shape-file=PATH             Path to the ESRI shapefile; optional
+     -m, --ensemble=ens1,[ens2,[...]]  Ensemble members to process; optional
+                                       Leave empty to extract all ensemble members
+     -M, --model=model1,[model2,[...]] Models that are part of a dataset,
+                                       only applicable to climate datasets, optional
+     -S, --scenario=scn1,[scn2,[...]]  Climate scenarios to process, only applicable
+                                       to climate datasets, optional
+     -j, --submit-job                  Submit the data extraction process as a job
+                                       on the SLURM system; optional
+     -k, --no-chunk                    No parallelization, recommended for small domains
+     -p, --prefix=STR                  Prefix prepended to the output files
+     -b, --parsable                    Parsable SLURM message mainly used
+                                       for chained job submissions
+     -c, --cache=DIR                   Path of the cache directory; optional
+     -E, --email=user@example.com      E-mail user when job starts, ends, or
+                                       fails; optional
+     -C, --cluster=JSON                JSON file detailing cluster-specific details
+     -L, --list-datasets               List all the available datasets and the
+                                       corresponding keywords for '--dataset' option
+     -V, --version                     Show version
+     -h, --help                        Show this screen and exit
 
-- **modules**: A dictionary defining the module system initialization commands and specific software modules required.
 
-Details
--------
-
-**Scheduler**
-
-- ``scheduler``: 
-  Specifies the HPC job scheduler. Current value: ``slurm``.
-
-**Job Specifications**
-
-- **specs**:
-  Defines the job configuration to be submitted to the scheduler:
-  
-  - ``cpus``: Number of CPUs to allocate.
-  - ``time``: Maximum runtime for the job in HH:MM:SS format.
-  - ``nodes``: Number of nodes to allocate.
-  - ``partition``: SLURM partition to use.
-  - ``account``: HPC account name. Leave blank or specify as needed.
-  - ``mem``: Memory allocation for the job in megabytes. Leave blank or
-    specify as needed.
-
-**Modules**
-
-- **modules**:
-  Defines the module system setup and required software:
-  
-  - ``init``: List of initialization commands for the module system
-    (optional).
-  - ``stdenv``: Placeholder for standard environment modules (optional).
-  - ``compiler``: Loads the compiler (e.g., ``module -q load gcc/14.2.0``).
-  - ``mpi``: Loads the MPI implementation (e.g., ``module -q load mpi-serial/2.5.0``).
-  - ``gdal``: Loads GDAL library for geospatial data processing (e.g., ``module -q load gdal/3.9.2``).
-  - ``cdo``: Loads CDO library for climate data operators (e.g., ``module -q load cdo/2.4.3``).
-  - ``nco``: Loads NCO library for netCDF operations (e.g., ``module -q load nco/5.2.4``).
-  - ``ncl``: Loads NCL library for data visualization and processing (e.g., ``module -q load ncl-mpi-serial/6.6.2``).
-
-Usage
------
-
-This configuration file ensures that all necessary software and environment settings are loaded before running the datatool on an HPC system. Customize the fields (e.g., ``account`` or ``partition``) based on your specific HPC setup.
-
-**Example:**
-
-Save this JSON configuration as a file (e.g., ``hpc_config.json``) and reference it in your datatool configuration via the ``--cluster=/path/to/hpc_config.json`` argument.
-
-Predefined HPC Configurations
------------------------------
-
-For ease of use, a few HPC systems have default configuration files included. Users can refer to these pre-configured files as needed:
-
-- **Digital Research Alliance of Canada - Graham HPC**: ``./etc/clusters/drac-graham.json``
-- **Perdue ACCESS Anvil HPC**: ``./etc/clusters/perdue-anvil.json``
-- **UCalgary ARC HPC**: ``./etc/clusters/ucalgary-arc.json``
-- **Environment and Climate Change Canada's Collab HPC**: ``./etc/clusters/eccc-collab.json``
-- **Environment and Climate Change Canada's Science HPC**: ``./etc/clusters/eccc-science.json``
+Use the navigation menu on the left to explore the documentations!
 
