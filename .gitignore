@@ -6,3 +6,6 @@
 
 # test folders
 ignore-tests/
+
+# docs stuff
+docs/build/
