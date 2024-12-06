@@ -132,7 +132,7 @@ extract_submodel="$(dirname $0)/etc/scripts/extract_subdir_level.sh" # script pa
 parsedArguments=$( \
   getopt --alternative \
   --name "extract-dataset" \
-  -o jhVbLE:d:i:v:o:s:e:t:l:n:p:c:m:M:S:ka:C: \
+  -o jhVbLE:d:i:v:o:s:e:t:l:n:p:c:m:M:S:ka:C:u: \
   --long submit-job,help,version, \
   --long parsable,list-datasets,email:, \
   --long dataset:,dataset-dir:,variable:, \
@@ -140,7 +140,7 @@ parsedArguments=$( \
   --long time-scale:,lat-lims:,lon-lims:, \
   --long prefix:,cache:,ensemble:,model:, \
   --long scenario:,no-chunk,shape-file:, \
-  --long cluster: -- "$@" \
+  --long cluster:,account: -- "$@" \
 )
 validArguments=$?
 # check if there is no valid options
@@ -183,6 +183,7 @@ do
     -c | --cache)         cache="$2"           ; shift 2 ;; # optional
     -C | --cluster)       cluster="$2"         ; shift 2 ;; # required
     -a | --shape-file)    shapefile="$2"       ; shift 2 ;; # optional
+    -u | --account)       account="$2"         ; shift 2 ;; # optional
 
     # -- means the end of the arguments; drop this, and break out of the while loop
     --) shift; break ;;
@@ -197,6 +198,12 @@ done
 # =================
 # Base dependencies 
 # =================
+# if cluster is not provided, exit with an error 
+if [[ -z $cluster ]]; then
+  echo "$(basename $0): ERROR! --cluster missing"
+  exit 1
+fi
+
 # `gdal' and `jq' or the basics we need to run this file
 # initialize the cluster-dependent settings
 inits="$(jq -r '.modules.init | join("; ")' $cluster)"
@@ -253,16 +260,10 @@ else
   parsable=""
 fi
 
-# if cluster is not provided, exit with an error 
-if [[ -z $cluster ]]; then
-  echo "$(basename $0): ERROR! --cluster missing"
-  exit 1
-fi
-
 # depreciation message for --account
 if [[ -n $account ]]; then
   echo "$(basename $0): WARNING! --account is no longer a valid option."
-  echo "$(basename $0):          configure your cluster via --cluster"
+  echo "$(basename $0): configure your scheduler account via --cluster"
 fi
 
 # if shapefile is provided extract the extents from it
@@ -270,7 +271,7 @@ if [[ -n $shapefile ]]; then
   # extract the shapefile extent
   IFS=' ' read -ra shapefileExtents <<< "$(ogrinfo -so -al "$shapefile" | sed 's/[),(]//g' | grep Extent)"
   # transform the extents in case they are not in EPSG:4326
-  IFS=':' read -ra sourceProj4 <<< "$(gdalsrsinfo $shapefile | grep -e "PROJ.4")" >&2
+  IFS=':' read -ra sourceProj4 <<< "$(gdalsrsinfo $shapefile | grep -e "PROJ.4")" 1>&2
   # Assuming EPSG:4326 if no definition of the CRS is provided
   if [[ ${#sourceProj4[@]} -eq 0 ]]; then
     echo "$(basename $0): WARNING! Assuming EPSG:4326 for --shape-file as none provided"
