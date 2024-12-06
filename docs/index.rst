@@ -65,3 +65,20 @@ is as follows:
 Use the navigation menu on the left to explore the ``datatool``'s
 documentation!
 
+.. toctree::
+   :maxdepth: 2
+   :caption: User Manual
+
+   index
+   quick_start
+   json
+
+   :maxdepth: 3
+   :caption: Datasets
+
+   datasets
+
+   :maxdepth: 1
+   :caption: License
+
+   license

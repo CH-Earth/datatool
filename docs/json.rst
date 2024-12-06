@@ -91,12 +91,24 @@ Details
 - **specs**:
   Defines the job configuration to be submitted to the scheduler:
   
-  - ``cpus``: Number of CPUs to allocate,
-  - ``time``: Maximum runtime for the job in ``d-HH:MM:SS`` format,
-  - ``nodes``: Number of nodes to allocate,
-  - ``partition``: SLURM partition to use,
-  - ``account``: HPC account name, and
-  - ``mem``: Memory allocation for the job in megabytes.
+    .. list-table::
+       :header-rows: 1
+
+       * - Parameter
+         - Description
+       * - ``cpus``
+         - Number of CPUs to allocate
+       * - ``time``
+         - Maximum runtime for the job in ``d-HH:MM:SS`` format
+       * - ``nodes``
+         - Number of nodes to allocate
+       * - ``partition``
+         - SLURM partition to use
+       * - ``account``
+         - HPC account name
+       * - ``mem``
+         - Memory allocation for the job in megabytes
+
 
 **Modules**
 
@@ -105,14 +117,28 @@ Details
   Please note that all arguments are optional and should be entered at the
   discretion of the end-user:
   
-  - ``init``: List of initialization commands for the module system,
-  - ``stdenv``: Placeholder for standard environment modules,
-  - ``compiler``: Loads the compiler (e.g., ``module -q load gcc/14.2.0``),
-  - ``mpi``: Loads the MPI implementation (e.g., ``module -q load mpi-serial/2.5.0``),
-  - ``gdal``: Loads GDAL library for geospatial data processing (e.g., ``module -q load gdal/3.9.2``),
-  - ``cdo``: Loads CDO library for climate data operators (e.g., ``module -q load cdo/2.4.3``),
-  - ``nco``: Loads NCO library for netCDF operations (e.g., ``module -q load nco/5.2.4``),
-  - ``ncl``: Loads NCL library for data visualization and processing (e.g., ``module -q load ncl-mpi-serial/6.6.2``),
+    .. list-table::
+       :header-rows: 1
+       :widths: 15 85
+
+       * - Module
+         - Description
+       * - ``init``
+         - List of initialization commands for the module system
+       * - ``stdenv``
+         - Placeholder for standard environment modules
+       * - ``compiler``
+         - Loads the compiler (e.g., ``module -q load gcc/14.2.0``)
+       * - ``mpi``
+         - Loads the MPI implementation (e.g., ``module -q load mpi-serial/2.5.0``)
+       * - ``gdal``
+         - Loads GDAL library for geospatial data processing (e.g., ``module -q load gdal/3.9.2``)
+       * - ``cdo``
+         - Loads CDO library for climate data operators (e.g., ``module -q load cdo/2.4.3``)
+       * - ``nco``
+         - Loads NCO library for netCDF operations (e.g., ``module -q load nco/5.2.4``)
+       * - ``ncl``
+         - Loads NCL library for data visualization and processing (e.g., ``module -q load ncl-mpi-serial/6.6.2``)
 
 .. note::
 
@@ -132,11 +158,21 @@ Predefined HPC Configurations
 For ease of use, a few HPC systems have default configuration files included.
 Users can refer to these pre-configured files as needed:
 
-- **Digital Research Alliance of Canada - Graham HPC**: ``./etc/clusters/drac-graham.json``
-- **Perdue ACCESS Anvil HPC**: ``./etc/clusters/perdue-anvil.json``
-- **UCalgary ARC HPC**: ``./etc/clusters/ucalgary-arc.json``
-- **Environment and Climate Change Canada's (ECCC) Collab HPC**: ``./etc/clusters/eccc-collab.json``
-- **Environment and Climate Change Canada's (ECCC) Science HPC**: ``./etc/clusters/eccc-science.json``
+.. list-table:: Cluster Configuration Files
+   :header-rows: 1
+
+   * - **Cluster Name**
+     - **Configuration File Path**
+   * - Digital Research Alliance of Canada - Graham HPC
+     - ``./etc/clusters/drac-graham.json``
+   * - Perdue ACCESS Anvil HPC
+     - ``./etc/clusters/perdue-anvil.json``
+   * - UCalgary ARC HPC
+     - ``./etc/clusters/ucalgary-arc.json``
+   * - Environment and Climate Change Canada's (ECCC) Collab HPC
+     - ``./etc/clusters/eccc-collab.json``
+   * - Environment and Climate Change Canada's (ECCC) Science HPC
+     - ``./etc/clusters/eccc-science.json``
 
 Users may target these HPCs by using the ``--cluster`` option and specify
 the path to each. For instance by using
