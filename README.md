@@ -1,5 +1,5 @@
 # Documentation
-The relevant documentation is lcoated on [Readthedocs](https://datatool.readthedocs.io/en/latest/) website.
+The relevant documentation is located on [Readthedocs](https://datatool.readthedocs.io/en/latest/) website.
 
 # License
 Meteorological Data Processing Workflow - datatool <br>
