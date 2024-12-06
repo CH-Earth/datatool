@@ -232,8 +232,14 @@ fi
 
 # if cluster is not provided, exit with an error 
 if [[ -z $cluster ]]; then
-  echo "$(basename $0): ERROR! --cluster invalid "
+  echo "$(basename $0): ERROR! --cluster missing"
   exit 1
+fi
+
+# depreciation message for --account
+if [[ -n $account ]]; then
+  echo "$(basename $0): WARNING! --account is no longer a valid option."
+  echo "$(basename $0):          configure your cluster via --cluster"
 fi
 
 # if shapefile is provided extract the extents from it
