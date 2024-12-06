@@ -30,7 +30,7 @@ the following codes in your ``bash`` shell as a test case:
      --lat-lims="49,51"  \
      --lon-lims="-117,-115" \
      --variable="RDRS_v2.1_A_PR0_SFC,RDRS_v2.1_P_HU_09944" \
-     --cache="$HOME/.cache/"" \
+     --cache="$HOME/.cache/" \
      --cluster="./etc/clusters/drac-graham.json" \
      --prefix="testing_";
 
