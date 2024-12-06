@@ -194,6 +194,29 @@ do
   esac
 done
 
+# =================
+# Base dependencies 
+# =================
+# `gdal' and `jq' or the basics we need to run this file
+# initialize the cluster-dependent settings
+inits="$(jq -r '.modules.init | join("; ")' $cluster)"
+if [[ -n "$inits" ]]; then
+  eval $inits
+fi
+
+# assure `jq' and `gdal' are loaded
+gdal_init="$(jq -r '.modules.gdal' $cluster)"
+if [[ -n "$gdal_init" ]]; then
+  eval $gdal_init
+else
+  echo "$(basename $0): ERROR! GDAL missing"
+  exit 1;
+fi
+
+
+# ==============
+# Routine checks
+# ==============
 # default value for timeScale if not provided as an argument
 if [[ -z $timeScale ]]; then
   timeScale="M"
@@ -275,26 +298,6 @@ if [[ -z "${datasetDir}" ]] || \
    echo "$(basename $0): mandatory option(s) missing.";
    short_usage;
    exit 1;
-fi
-
-
-# =================
-# Base dependencies 
-# =================
-# `gdal' and `jq' or the basics we need to run this file
-# initialize the cluster-dependent settings
-inits="$(jq -r '.modules.init | join("; ")' $cluster)"
-if [[ -n "$inits" ]]; then
-  eval "$inits"
-fi
-
-# assure `jq' and `gdal' are loaded
-gdal_init="$(jq -r '.modules.gdal' $cluster)"
-if [[ -n "$gdal_init" ]]; then
-  eval "$gdal_init"
-else
-  echo "$(basename $0): ERROR! GDAL missing"
-  exit 1;
 fi
 
 
