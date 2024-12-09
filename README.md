@@ -50,7 +50,7 @@ Script options:
 |5 |CCRN CanRCM4-WFDEI-GEM-CaPA|3-Hourly (Jan 1951 - Dec 2100)  |10.5194/essd-12-629-2020  |[link](./scripts/ccrn-canrcm4_wfdei_gem_capa)|
 |6 |CCRN WFDEI-GEM-CaPA        |3-Hourly (Jan 1979 - Dec 2016)  |10.20383/101.0111         |[link](./scripts/ccrn-wfdei_gem_capa)|
 |7 |ORNL Daymet                |Daily (Jan 1980 - Dec 2022)[^3] |10.3334/ORNLDAAC/2129     |[link](./scripts/ornl-daymet)        |
-|8 |Alberta Gov Climate Dataset|Daily (Jan 1950 - Dec 2100)     |10.5194/hess-23-5151-201  |[link](./scripts/ab-gov)             |
+|8 |Alberta Gov Climate Dataset|Daily (Jan 1950 - Dec 2100)     |10.5194/hess-23-5151-2019 |[link](./scripts/ab-gov)             |
 |9 |Ouranos ESPO-G6-R2         |Daily (Jan 1950 - Dec 2100)     |10.1038/s41597-023-02855-z|[link](./scripts/ouranos-espo-g6-r2) |
 |10|Ouranos MRCC5-CMIP6        |hourly (Jan 1950 - Dec 2100)    |TBD                       |[link](./scripts/ouranos-mrcc5-cmip6)|
 |11|NASA NEX-GDDP-CMIP6        |Daily (Jan 1950 - Dec 2100)     |10.1038/s41597-022-01393-4|[link](./scripts/nasa-nex-gddp-cmip6)|
