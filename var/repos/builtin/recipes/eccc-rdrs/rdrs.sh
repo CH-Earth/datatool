@@ -307,7 +307,7 @@ for yr in $yearsRange; do
 
 done
 
-mkdir "$HOME/empty_dir"
+mkdir -p "$HOME/empty_dir"
 echo "$(logDate)$(basename $0): deleting temporary files from $cache"
 rsync -aP --delete "$HOME/empty_dir/" "$cache"
 rm -r "$cache"
