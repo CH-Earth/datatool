@@ -519,7 +519,7 @@ for yr in $yearsRange; do
   esac
 done
 
-mkdir "$HOME/empty_dir"
+mkdir -p "$HOME/empty_dir"
 echo "$(basename $0): deleting temporary files from $cacheDir"
 rsync -aP --delete "$HOME/empty_dir/" "$cacheDir"
 rm -r "$cacheDir"

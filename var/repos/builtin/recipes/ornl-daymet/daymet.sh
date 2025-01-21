@@ -322,7 +322,7 @@ done
 wait
 
 # finalizing the workflow
-mkdir "$HOME/empty_dir"
+mkdir -p "$HOME/empty_dir"
 echo "$(basename $0): deleting temporary files from $cache"
 rsync -aP --delete "$HOME/empty_dir/" "$cache"
 rm -r "$cache"
