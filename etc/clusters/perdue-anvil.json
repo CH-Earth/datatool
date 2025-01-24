@@ -2,11 +2,11 @@
     "scheduler": "slurm",
     "specs": {
         "cpus": 1,
-        "time": "04:00:00",
+        "time": "00:30:00",
         "nodes": 1,
         "partition": "",
         "account": "ees240082",
-        "mem": "8000M"
+        "mem": "2000M"
     },
     "modules": {
         "init": [
