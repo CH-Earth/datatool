@@ -1,0 +1,23 @@
+{
+    "scheduler": "slurm",
+    "specs": {
+        "cpus": 1,
+        "time": "00:30:00",
+        "nodes": 1,
+        "partition": "",
+        "account": "ees240082",
+        "mem": "2000M"
+    },
+    "modules": {
+        "init": [
+        ],
+        "stdenv": "",
+        "compiler": "module -q load gcc/11.2.0",
+        "mpi": "",
+        "cdo": "module -q load cdo/1.9.9",
+        "nco": "module -q load nco/4.9.3",
+        "ncl": "module -q load ncl/6.4.0",
+        "gdal": "module -q load gdal/3.2.0"
+    }
+
+}

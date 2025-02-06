@@ -1,0 +1,10 @@
+{
+    "specs": {
+        "cpus": 1,
+        "time": "04:00:00",
+        "nodes": 1,
+        "partition": "",
+        "account": "",
+        "mem": "8000M"
+    }
+}

@@ -79,8 +79,7 @@ Script options:
   -c, --cache=DIR                   Path of the cache directory; optional
   -E, --email=user@example.com      E-mail user when job starts, ends, or
                                     fails; optional
-  -u, --account=ACCOUNT             Digital Research Alliance of Canada's sponsor's
-                                    account name; optional, defaults to 'rpp-kshook'
+  -C, --cluster=JSON                JSON file detailing cluster-specific details
   -L, --list-datasets               List all the available datasets and the
                                     corresponding keywords for '--dataset' option
   -V, --version                     Show version
@@ -97,16 +96,18 @@ echo "Meteorological Data Processing Script - version $(cat $(dirname $0)/VERSIO
 
 Currently, the following meteorological datasets are
 available for processing:
-$(cat $(dirname $0)/DATASETS | sed 's/^\(.*\)$/\o033[34m\1\o033[0m/')" >&1;
+$(cat $(dirname $0)/etc/usages/DATASETS | sed 's/^\(.*\)$/\o033[34m\1\o033[0m/')" >&1;
 
   exit 0;
 }
 
 # useful log date format function
 logDate () { echo "($(date +"%Y-%m-%d %H:%M:%S")) "; }
+logDirDate () { echo "$(date +"%Y%m%d_%H%M%S")"; }
 
 # useful maximum function
 max () { printf "%s\n" "${@:2}" | sort "$1" | tail -n1; }
+count_values () { max -g $(echo $1 | tr ',' ' ' | wc -w) 1 ; }
 
 # =====================
 # Necessary Assumptions
@@ -117,17 +118,30 @@ alias date='TZ=UTC date'
 # expand aliases for the one stated above
 shopt -s expand_aliases
 
-# necessary local paths for the program
-scriptPath="$(dirname $0)/scripts" # scripts' path
-datatoolPath="$(dirname $0)" # datatool's path
-extract_submodel="${datatoolPath}/assets/bash_scripts/extract_subdir_level.sh" # script path
+# local paths
+schedulersPath="$(dirname $0)/etc/schedulers/"
+scriptPath="$(dirname $0)/etc/scripts" # core script path
+recipePath="$(realpath $(dirname $0)/var/repos/builtin/recipes/)"
+extract_submodel="$(dirname $0)/etc/scripts/extract_subdir_level.sh" # script path
 
 
 # =======================
 # Parsing input arguments
 # =======================
-# argument parsing using getopt - WORKS ONLY ON LINUX BY DEFAULT
-parsedArguments=$(getopt -a -n extract-dataset -o jhVbLE:d:i:v:o:s:e:t:l:n:p:c:m:M:S:ka:u: --long submit-job,help,version,parsable,list-datasets,email:,dataset:,dataset-dir:,variable:,output-dir:,start-date:,end-date:,time-scale:,lat-lims:,lon-lims:,prefix:,cache:,ensemble:,model:,scenario:,no-chunk,shape-file:,account: -- "$@")
+# argument parsing using GNU getopt
+parsedArguments=$( \
+  getopt --alternative \
+  --name "extract-dataset" \
+  -o jhVbLE:d:i:v:o:s:e:t:l:n:p:c:m:M:S:ka:C:u: \
+  --long submit-job,help,version, \
+  --long parsable,list-datasets,email:, \
+  --long dataset:,dataset-dir:,variable:, \
+  --long output-dir:,start-date:,end-date:, \
+  --long time-scale:,lat-lims:,lon-lims:, \
+  --long prefix:,cache:,ensemble:,model:, \
+  --long scenario:,no-chunk,shape-file:, \
+  --long cluster:,account: -- "$@" \
+)
 validArguments=$?
 # check if there is no valid options
 if [ "$validArguments" != "0" ]; then
@@ -153,7 +167,7 @@ do
     -E | --email)         email="$2"           ; shift 2 ;; # optional
     -i | --dataset-dir)   datasetDir="$2"      ; shift 2 ;; # required
     -d | --dataset)       dataset="$2"         ; shift 2 ;; # required
-    -v | --variable)	  variables="$2"       ; shift 2 ;; # required
+    -v | --variable)      variables="$2"       ; shift 2 ;; # required
     -o | --output-dir)    outputDir="$2"       ; shift 2 ;; # required
     -s | --start-date)    startDate="$2"       ; shift 2 ;; # required
     -e | --end-date)      endDate="$2"         ; shift 2 ;; # required
@@ -165,10 +179,11 @@ do
     -S | --scenario)      scenario="$2"        ; shift 2 ;; # optional
     -k | --no-chunk)      parallel=false       ; shift   ;; # optional
     -p | --prefix)        prefixStr="$2"       ; shift 2 ;; # required
-    -b | --parsable)	  parsable=true	       ; shift   ;; # optional
+    -b | --parsable)      parsable=true        ; shift   ;; # optional
     -c | --cache)         cache="$2"           ; shift 2 ;; # optional
-    -u | --account)       account="$2"         ; shift 2 ;; # optional
+    -C | --cluster)       cluster="$2"         ; shift 2 ;; # required
     -a | --shape-file)    shapefile="$2"       ; shift 2 ;; # optional
+    -u | --account)       account="$2"         ; shift 2 ;; # optional
 
     # -- means the end of the arguments; drop this, and break out of the while loop
     --) shift; break ;;
@@ -180,6 +195,35 @@ do
   esac
 done
 
+# =================
+# Base dependencies 
+# =================
+# if cluster is not provided, exit with an error 
+if [[ -z $cluster ]]; then
+  echo "$(basename $0): ERROR! --cluster missing"
+  exit 1
+fi
+
+# `gdal' and `jq' or the basics we need to run this file
+# initialize the cluster-dependent settings
+inits="$(jq -r '.modules.init | join("; ")' $cluster)"
+if [[ -n "$inits" ]]; then
+  eval $inits
+fi
+
+# assure `jq' and `gdal' are loaded
+gdal_init="$(jq -r '.modules.gdal' $cluster)"
+if [[ -n "$gdal_init" ]]; then
+  eval $gdal_init
+else
+  echo "$(basename $0): ERROR! GDAL missing"
+  exit 1;
+fi
+
+
+# ==============
+# Routine checks
+# ==============
 # default value for timeScale if not provided as an argument
 if [[ -z $timeScale ]]; then
   timeScale="M"
@@ -216,24 +260,18 @@ else
   parsable=""
 fi
 
-# if account is not provided, use `rpp-kshook` as default
-if [[ -z $account ]] && [[ $jobSubmission == "true" ]]; then
-  account="rpp-kshook"
-  if [[ -z $parsable ]]; then
-    echo "$(basename $0): WARNING! --account not provided, using \`rpp-kshook\` by default."
-  fi
+# depreciation message for --account
+if [[ -n $account ]]; then
+  echo "$(basename $0): WARNING! --account is no longer a valid option."
+  echo "$(basename $0): configure your scheduler account via --cluster"
 fi
 
 # if shapefile is provided extract the extents from it
 if [[ -n $shapefile ]]; then
-  # load GDAL module
-  module -q load StdEnv/2020;
-  module -q load gcc/9.3.0;
-  module -q load gdal/3.4.3;
   # extract the shapefile extent
   IFS=' ' read -ra shapefileExtents <<< "$(ogrinfo -so -al "$shapefile" | sed 's/[),(]//g' | grep Extent)"
   # transform the extents in case they are not in EPSG:4326
-  IFS=':' read -ra sourceProj4 <<< "$(gdalsrsinfo $shapefile | grep -e "PROJ.4")" >&2
+  IFS=':' read -ra sourceProj4 <<< "$(gdalsrsinfo $shapefile | grep -e "PROJ.4")" 1>&2
   # Assuming EPSG:4326 if no definition of the CRS is provided
   if [[ ${#sourceProj4[@]} -eq 0 ]]; then
     echo "$(basename $0): WARNING! Assuming EPSG:4326 for --shape-file as none provided"
@@ -245,7 +283,6 @@ if [[ -n $shapefile ]]; then
   # define $latLims and $lonLims from $shapefileExtents
   lonLims="${leftBottomLims[0]},${rightTopLims[0]}"
   latLims="${leftBottomLims[1]},${rightTopLims[1]}"
-  module -q unload gdal/3.4.3;
 fi
 
 # check mandatory arguments whether provided
@@ -277,7 +314,7 @@ unix_epoch () { date --date="$@" +"%s"; } # unix EPOCH date value
 format_date () { date --date="$1" +"$2"; } # format date
 
 # default date format
-dateFormat="%Y-%m-%d %H:%M:%S"
+dateFormat="%Y-%m-%dT%H:%M:%S"
 
 
 #######################################
@@ -343,26 +380,60 @@ function chunk_dates () {
   fi
 }
 
+#######################################
+# Create m4 variable definitions to be
+# used in m4 macro calls in CLI from 
+# JSON objects
+#
+# Globals:
+#   None
+#
+# Arguments:
+#   1: JSON object
+#
+# Outputs:
+#   A string in "-D__KEY__=$value"
+#   format of all the fields of a JSON
+#   object
+#######################################
+function json_to_m4_vars () {
+  # local variables
+  local json="$1"
+
+  # echo the string using jq>1.6
+  echo "$json" | jq -r \
+    'to_entries |
+     map(select(.value != null and .value != "")) |
+     map(
+         "-D" +
+         "__" +
+         (.key | tostring | ascii_upcase) +
+         "__" + "=" +
+         (.value | tostring)
+     ) |
+     join(" ")'
+}
+
 
 # ======================
 # Necessary preparations
 # ======================
 # put necessary arguments in an array - just for legibility
 declare -A funcArgs=([jobSubmission]="$jobSubmission" \
-             [datasetDir]="$datasetDir" \
-             [variables]="$variables" \
-             [outputDir]="$outputDir" \
-             [timeScale]="$timeScale" \
-             [startDate]="$startDate" \
-             [endDate]="$endDate" \
-             [latLims]="$latLims" \
-             [lonLims]="$lonLims" \
-             [prefixStr]="$prefixStr" \
-             [cache]="$cache" \
-             [ensemble]="$ensemble" \
-             [model]="$model" \
-             [scenario]="$scenario"
-             );
+  [datasetDir]="$datasetDir" \
+  [variables]="$variables" \
+  [outputDir]="$outputDir" \
+  [timeScale]="$timeScale" \
+  [startDate]="$startDate" \
+  [endDate]="$endDate" \
+  [latLims]="$latLims" \
+  [lonLims]="$lonLims" \
+  [prefixStr]="$prefixStr" \
+  [cache]="$cache" \
+  [ensemble]="$ensemble" \
+  [model]="$model" \
+  [scenario]="$scenario"
+);
 
 
 # ========================
@@ -374,10 +445,40 @@ function call_processing_func () {
   local chunkTStep="$2" # chunking time-frame periods
   local submodelFlag="$3" # flag for submodels' existence
 
-  # local variables
-  local scriptName=$(basename $scriptFile | cut -d '.' -f 1) # script/dataset name
-  local logDir="$HOME/.datatool/" # local directory for logs
+  # local script related variables
+  # script requirements
+  local scriptName=$(basename $scriptFile | cut -d '.' -f 1)
+  local script
+  # local directory for logs
+  local logDir="$HOME/.datatool/${scriptName}_$(logDirDate)/" 
+  # selected scheduler
+  local scheduler
+  # local length variables for chunking jobs
+  local startDateStr
+  local endDateStr
   local jobArrLen
+  local modelLen
+  local scenarioLen
+  local ensembleLen
+  local dateLen
+  local taskLen
+  # local iterator variables
+  local dateIter
+  local modelIter
+  local ensembleIter
+  # local JSON variables
+  local jobDirectiveJSON
+  local schedulerJSON
+  local jobChunkArrayJSON
+  local jobChunkJSON
+  local JSON
+  # local variables defining module information
+  local jobModules
+  local jobModulesInit
+  # local m4 variables
+  local jobDirectiveM4
+  local jobScriptM4
+
 
   # make the $logDir if haven't been created yet
   mkdir -p $logDir
@@ -389,7 +490,7 @@ function call_processing_func () {
   fi
 
   # typical script to run for all sub-modules
-  local script=$(cat <<- EOF 
+  script=$(cat <<- EOF 
 	bash ${scriptFile} \
 	--dataset-dir="${funcArgs[datasetDir]}" \
 	--variable="${funcArgs[variables]}" \
@@ -414,95 +515,188 @@ function call_processing_func () {
     # ==========================================
     # chunk dates
     chunk_dates "$chunkTStep"
+    # converting chunk date Bash arrays to comma-delimited strings
+    startDateStr="$(IFS=,; echo "${startDateArr[*]}")"
+    endDateStr="$(IFS=,; echo "${endDateArr[*]}")"
 
-    # chunking ensemble members
-    IFS=',' read -ra ensembleArr <<< $ensemble
-    # chunking models
-    IFS=',' read -ra modelArr <<< $model
-    # chunking scenarios
-    IFS=',' read -ra scenarioArr <<< $scenario
-
-    # ===========================
-    # Building job array iterator
-    # ===========================
-    let "ensembleLen = $(max -g ${#ensembleArr[@]} 1)"
-    let "modelLen = $(max -g ${#modelArr[@]} 1)"
-    let "scenarioLen = $(max -g ${#scenarioArr[@]} 1)"
+    # ========================
+    # Building job array specs
+    # ========================
+    # relevant array lengths
+    let "ensembleLen = $(count_values $ensemble)"
+    let "modelLen = $(count_values $model)"
+    let "scenarioLen = $(count_values $scenario)"
     let "dateLen = $(max -g ${#startDateArr[@]} 1)"
 
+    # relevant iterator variables
     let "dateIter = $ensembleLen * $modelLen * $scenarioLen"
     let "ensembleIter = $modelLen * $scenarioLen"
     let "modelIter = $scenarioLen"
-
-    # ==============================
-    # Length of processing job array
-    # ==============================
 
     # length of total number of tasks and indices
     let "taskLen = $dateLen * $ensembleLen * $modelLen * $scenarioLen"
     let "jobArrLen = $taskLen - 1"
 
+    # ==============================
+    # Building relevant JSON objects
+    # ==============================
+    # job chunk array information
+    jobChunkArrayJSON="$(
+      jq -n \
+        --arg "startDateArr" "${startDateStr}" \
+        --arg "endDateArr" "${endDateStr}" \
+        --arg "ensembleArr" "${ensemble}" \
+        --arg "modelArr" "${model}" \
+        --arg "scenarioArr" "${scenario}" \
+        '$ARGS.named | with_entries(.value |= split(","))' \
+      )"
+
+    # job chunk variable information
+    jobChunkJSON="$(
+      jq -n \
+        --arg "ensembleLen" "$ensembleLen" \
+        --arg "modelLen" "$modelLen" \
+        --arg "scenarioLen" "$scenarioLen" \
+        --arg "dateLen" "$dateLen" \
+        --arg "dateIter" "$dateIter" \
+        --arg "ensembleIter" "$ensembleIter" \
+        --arg "modelIter" "$modelIter" \
+        '$ARGS.named'
+      )"
+
+    # scheduler information
+    scheduler="$(
+      jq -r \
+        '.scheduler' $cluster \
+      )"
+    schedulerJSON="$(
+      jq -r \
+        '.environment_variables' ${schedulersPath}/${scheduler}.json \
+      )"
+
+    # job directives information
+    jobDirectiveJSON="$(
+      jq -n \
+        --arg "jobArrLen" "$jobArrLen" \
+        --arg "scriptName" "$scriptName" \
+        --arg "logDir" "$logDir" \
+        --arg "email" "$email" \
+        --arg "parsable" "$parsable" \
+        --argjson "specs" "$(jq -r '.specs' $cluster)" \
+        '$ARGS.named + $specs | del(.specs)' \
+      )"
+
+    # job script information
+    # arguments used for pallaleization, i.e.,
+    # startDate, endDate, ensemble, model, scenario,
+    # are removed, as they are processed elsewhere and fed
+    # as part of various other JSONs, namely
+    # `$jobChunkJSON` and `$jobChunkArrJSON`
+    jobScriptJSON="$(
+      jq -n \
+         --arg "scriptFile" "$scriptFile" \
+         --arg "datasetDir" "${funcArgs[datasetDir]}" \
+         --arg "variable" "${funcArgs[variables]}" \
+         --arg "outputDir" "${funcArgs[outputDir]}" \
+         --arg "timeScale" "${funcArgs[timeScale]}" \
+         --arg "latLims" "${funcArgs[latLims]}" \
+         --arg "lonLims" "${funcArgs[lonLims]}" \
+         --arg "prefix" "${funcArgs[prefixStr]}" \
+         --arg "cache" "${funcArgs[cache]}" \
+        '$ARGS.named' \
+      )"
+
+    # job module init information - not JSON as echoed as is
+    jobModulesInit="$(
+      jq -r \
+        '.modules.init[] | select(length > 0)' $cluster \
+      )"
+
+    # job module information - not JSON as echoed as is
+    jobModules="$(
+      jq -r \
+        '.modules[] | 
+         select(length > 0) | 
+         select(type != "array")' $cluster \
+      )"
+
+
     # ============
     # Parallel run
     # ============
-    # FIXME: This needs to be moved into a template scheduler
-    #        document, and various schedulers need to be supported
-    sbatch <<- EOF
-	#!/bin/bash
-	#SBATCH --array=0-$jobArrLen
-	#SBATCH --cpus-per-task=4
-	#SBATCH --nodes=1
-	#SBATCH --account=$account
-	#SBATCH --time=04:00:00
-	#SBATCH --mem=8000M
-	#SBATCH --job-name=DATA_${scriptName}
-	#SBATCH --error=$logDir/datatool_%A-%a_err.txt
-	#SBATCH --output=$logDir/datatool_%A-%a.txt
-	#SBATCH --mail-user=$email
-	#SBATCH --mail-type=BEGIN,END,FAIL
-	#SBATCH ${parsable}
-	
-	$(declare -p startDateArr)
-	$(declare -p endDateArr)
-	$(declare -p ensembleArr)
-	$(declare -p modelArr)
-	$(declare -p scenarioArr)
-	
-	idxDate="\$(( (\${SLURM_ARRAY_TASK_ID} / ${dateIter}) % ${dateLen} ))"
-	idxMember="\$(( (\${SLURM_ARRAY_TASK_ID} / ${ensembleIter}) % ${ensembleLen} ))"
-	idxModel="\$(( (\${SLURM_ARRAY_TASK_ID} / ${modelIter}) % ${modelLen} ))"
-	idxScenario="\$(( \${SLURM_ARRAY_TASK_ID} % ${scenarioLen} ))"
-	
-	tBegin="\${startDateArr[\$idxDate]}"
-	tEnd="\${endDateArr[\$idxDate]}"
-	memberChosen="\${ensembleArr[\$idxMember]}"
-	modelChosen="\${modelArr[\$idxModel]}"
-	scenarioChosen="\${scenarioArr[\$idxScenario]}"
-	
-	echo "$(logDate)$(basename $0): Calling ${scriptName}.sh..."
-	echo "$(logDate)$(basename $0): #\${SLURM_ARRAY_TASK_ID} chunk submitted."
-	echo "$(logDate)$(basename $0): Chunk start date is \$tBegin"
-	echo "$(logDate)$(basename $0): Chunk end date is   \$tEnd"
-	if [[ -n \${modelChosen} ]]; then
-	  echo "$(logDate)$(basename $0): Model is            \${modelChosen}"
-	fi
-	if [[ -n \${scenarioChosen} ]]; then
-	  echo "$(logDate)$(basename $0): Scenario is         \${scenarioChosen}"
-	fi
-	if [[ -n \${memberChosen} ]]; then
-	  echo "$(logDate)$(basename $0): Ensemble member is  \${memberChosen}"
-	fi
-	
-	srun ${script} --start-date="\$tBegin" --end-date="\$tEnd" --cache="${cache}/cache-\${SLURM_ARRAY_JOB_ID}-\${SLURM_ARRAY_TASK_ID}" --ensemble="\${memberChosen}" --model="\${modelChosen}" --scenario="\${scenarioChosen}"
-	EOF
+    # determining job script path
+    local jobScriptPath="$logDir/job.${scheduler}"
+    local jobConfPath="$logDir/job.json"
 
-    if [[ -z $parsable ]]; then
-      echo "$(basename $0): job submission details are printed under $logDir"
-    fi
+    # create JSON config file for final submission
+    JSON="$( 
+      jq -n \
+        --argjson "jobscript" "$jobScriptJSON" \
+        --argjson "jobdirective" "$jobDirectiveJSON" \
+        --argjson "scheduler" "$schedulerJSON" \
+        --argjson "jobchunks" "$jobChunkJSON" \
+        --argjson "jobchunksarrays" "$jobChunkArrayJSON" \
+        '$jobscript + 
+         $jobdirective + 
+         $scheduler + 
+         $jobchunks + 
+         $jobchunksarrays' \
+      )"
 
-  # serial run
+    # exporting job configurations as a JSON to the job $logDir
+    echo "$JSON" > "$jobConfPath"
+
+    # generating the submission script using m4 macros
+    # m4 variables defined
+    # m4 variables are in the following form: __VAR__
+    jobDirectiveM4="$(json_to_m4_vars "$jobDirectiveJSON")"
+    # append the main processing script using m4 macros
+    jobScriptM4="-D__CONF__=$jobConfPath "
+    jobScriptM4+="$(json_to_m4_vars "$schedulerJSON") "
+
+    # create scheduler-specific job submission script
+    # 1. job scheduler directives
+    m4 ${jobDirectiveM4} ${schedulersPath}/${scheduler}.m4 > \
+      ${jobScriptPath}
+
+    # 2. module inititation, if applicable
+    echo -e "\n${jobModulesInit}" >> "${jobScriptPath}"
+
+    # 3. loading core modules, if applicable
+    echo -e "\n${jobModules}" >> "${jobScriptPath}"
+
+    # 4. main body of script
+    m4 ${jobScriptM4} ${scriptPath}/main.m4 >> \
+      ${jobScriptPath}
+
+    # choose applicable scheduler and submit the job
+    case "${scheduler,,}" in 
+      "slurm")
+        sbatch --export=NONE ${jobScriptPath} ;;
+      "pbs")
+        qsub ${jobScriptPath} ;;
+      "lfs")
+        bsub --env=none ${jobScriptPath} ;;
+    esac
+
   else
-    eval "$script"
+    # serial mode
+    # load all the necessary modules
+    mods="$( \
+      jq -r \
+        '.modules | 
+        to_entries | 
+        map(
+          select(
+            .value | 
+            type != "array" and . != ""
+            )
+        ) | 
+        map(.value) | 
+        join(" && ")' \
+      $cluster)"
+    eval "$mods"
+    eval "${script}"
   fi
 }
 
@@ -510,11 +704,6 @@ function call_processing_func () {
 # ======================
 # Checking input dataset
 # ======================
-
-# FIXME: This list needs to become part of a configuration
-#        file in future releases
-# $scriptPath is defined at the top
-
 case "${dataset,,}" in
 
   # ============
@@ -523,12 +712,12 @@ case "${dataset,,}" in
 
   # NCAR-GWF CONUSI
   "conus1" | "conusi" | "conus_1" | "conus_i" | "conus 1" | "conus i" | "conus-1" | "conus-i")
-    call_processing_func "$scriptPath/gwf-ncar-conus_i/conus_i.sh" "3months"
+    call_processing_func "$recipePath/gwf-ncar-conus_i/conus_i.sh" "3months"
     ;;
 
   # NCAR-GWF CONUSII
   "conus2" | "conusii" | "conus_2" | "conus_ii" | "conus 2" | "conus ii" | "conus-2" | "conus-ii")
-    call_processing_func "$scriptPath/gwf-ncar-conus_ii/conus_ii.sh" "1month"
+    call_processing_func "$recipePath/gwf-ncar-conus_ii/conus_ii.sh" "1month"
     ;;
 
   # ==========
@@ -537,12 +726,12 @@ case "${dataset,,}" in
 
   # ECMWF ERA5
   "era_5" | "era5" | "era-5" | "era 5")
-    call_processing_func "$scriptPath/ecmwf-era5/era5_simplified.sh" "2years"
+    call_processing_func "$recipePath/ecmwf-era5/era5_simplified.sh" "2years"
     ;;
   
   # ECCC RDRS
   "rdrs" | "rdrsv2.1")
-    call_processing_func "$scriptPath/eccc-rdrs/rdrs.sh" "6months"
+    call_processing_func "$recipePath/eccc-rdrs/rdrs.sh" "6months"
     ;;
 
   # ====================
@@ -551,7 +740,7 @@ case "${dataset,,}" in
 
   # Daymet dataset
   "daymet" | "Daymet" )
-    call_processing_func "$scriptPath/ornl-daymet/daymet.sh" "5years"
+    call_processing_func "$recipePath/ornl-daymet/daymet.sh" "5years"
     ;;
 
   # ================
@@ -560,32 +749,32 @@ case "${dataset,,}" in
 
   # ESPO-G6-R2 dataset
   "espo" | "espo-g6-r2" | "espo_g6_r2" | "espo_g6-r2" | "espo-g6_r2" )
-    call_processing_func "$scriptPath/ouranos-espo-g6-r2/espo-g6-r2.sh" "151years" "1"
+    call_processing_func "$recipePath/ouranos-espo-g6-r2/espo-g6-r2.sh" "151years" "1"
     ;;
 
   # Ouranos-MRCC5-CMIP6 dataset
   "crcm5-cmip6" | "mrcc5-cmip6" | "crcm5" | "mrcc5" )
-    call_processing_func "$scriptPath/ouranos-mrcc5-cmip6/mrcc5-cmip6.sh" "5years"
+    call_processing_func "$recipePath/ouranos-mrcc5-cmip6/mrcc5-cmip6.sh" "5years"
     ;;
 
   # Alberta Government Downscaled Climate Dataset - CMIP6
   "alberta" | "ab-gov" | "ab" | "ab_gov" | "abgov" )
-    call_processing_func "$scriptPath/ab-gov/ab-gov.sh" "151years" "0"
+    call_processing_func "$recipePath/ab-gov/ab-gov.sh" "151years" "0"
     ;;
 
   # NASA GDDP-NEX-CMIP6
   "gddp" | "nex" | "gddp-nex" | "nex-gddp" | "gddp-nex-cmip6" | "nex-gddp-cmip6")
-    call_processing_func "$scriptPath/nasa-nex-gddp-cmip6/nex-gddp-cmip6.sh" "100years" "0"
+    call_processing_func "$recipePath/nasa-nex-gddp-cmip6/nex-gddp-cmip6.sh" "100years" "0"
     ;;
 
   # CanRCM4-WFDEI-GEM-CaPA
   "canrcm4_g" | "canrcm4-wfdei-gem-capa" | "canrcm4_wfdei_gem_capa")
-    call_processing_func "$scriptPath/ccrn-canrcm4_wfdei_gem_capa/canrcm4_wfdei_gem_capa.sh" "5years"
+    call_processing_func "$recipePath/ccrn-canrcm4_wfdei_gem_capa/canrcm4_wfdei_gem_capa.sh" "5years"
     ;;
   
   # WFDEI-GEM-CaPA
   "wfdei_g" | "wfdei-gem-capa" | "wfdei_gem_capa" | "wfdei-gem_capa" | "wfdei_gem-capa")
-    call_processing_func "$scriptPath/ccrn-wfdei_gem_capa/wfdei_gem_capa.sh" "5years"
+    call_processing_func "$recipePath/ccrn-wfdei_gem_capa/wfdei_gem_capa.sh" "5years"
     ;;
 
 
