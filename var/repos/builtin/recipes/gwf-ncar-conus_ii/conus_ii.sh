@@ -300,8 +300,25 @@ function concat_files () {
   shift 2               # shift arguments by 2 positions
   local filesArr=("$@") # array of file names
   
-  # concatenating $files and producing a single $fName.nc
-  ncrcat "${filesArr[@]}" "${fTempDir}/${fName}_cat.nc"
+  # Create temp directory for intermediate files
+  local ctmpdir="${fTempDir}/tmp_concat_$$"
+  mkdir -p "$ctmpdir"
+
+  # Process each file to add Time variable
+  for f in "${filesArr[@]}"; do
+      if [ -f "$f" ]; then
+          local basename_f=$(basename "$f")
+          ncap2 -s 'Time=XTIME' "$f" "${ctmpdir}/${basename_f}"
+      else
+          echo "Warning: File $f does not exist, skipping"
+      fi
+  done
+
+  # Concatenate processed files
+  ncrcat "${ctmpdir}"/* "${fTempDir}/${fName}_cat.nc"
+
+  # Clean up
+  rm -rf "$ctmpdir"
 }
 
 
@@ -457,7 +474,7 @@ for yr in $yearsRange; do
     for f in "${tarFiles[@]}"; do
       f2="$(echo $f | rev | cut -d '/' -f 1 | rev)"
 
-      until ncks -O -v "$variables" \
+      until ncks -O -v "$variables",XTIME \
            -d "$latVar","$latLimsIdx" \
            -d "$lonVar","$lonLimsIdx" \
            "$cacheDir/$yr/$f2" "$cacheDir/$yr/$f2"; do
