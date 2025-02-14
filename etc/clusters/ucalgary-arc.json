@@ -17,7 +17,7 @@
         ],
         "stdenv": "",
         "compiler": "module -q load gcc/14.2.0",
-        "mpi": "module -q load openmpi/4.1.6",
+        "mpi": "module -q load mpi-serial/2.5.0",
         "gdal": "module -q load gdal/3.9.2",
         "cdo": "module -q load cdo/2.4.3",
         "nco": "module -q load nco/5.2.4",
