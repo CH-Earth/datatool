@@ -137,10 +137,8 @@ shopt -s expand_aliases
 
 # paths
 root="$(echo $(dirname $0) | grep -Po '(.*)(?=((/.*?){5})$)')"
-# daymet index scripts works on RDRSv2.1 grids as well
-# and ESPO-G6-R2 has similar grid system as RDRSv2.1
-coordIdxScript="$root/etc/scripts/coord_daymet_idx.ncl"
-coordClosestIdxScript="$root/etc/scripts/coord_closest_daymet_idx.ncl"
+# Ouranos MRCC5-CMIP6 index script
+coordIdxScript="$root/etc/scripts/coord_mrcc5_idx.ncl"
 
 
 # ==========================
