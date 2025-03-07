@@ -236,7 +236,7 @@ range=$(seq $startYear $interval $endYear)
 
 # date formats
 subsetStartFormat="%Y-%m-%dT%H:00:00"
-subsetEndFormat="%Y-%m-%dT%H:30:00"
+subsetEndFormat="%Y-%m-%dT%H:45:00"
 
 # empty arrays
 startDateArray=()
@@ -263,7 +263,7 @@ for iter in $range; do
   endValueYear="$(date --date "${endValueSub}" +"%Y")"
   # double-check end-date
   if [[ "$endValueYear" -gt 2100 ]]; then
-    endValue="2100-12-31T23:30:00" # irregular last date for dataset files
+    endValue="2100-12-31T23:45:00" # irregular last date for dataset files
   fi
 
   # fill up arrays
@@ -353,7 +353,8 @@ for modelMember in "${modelArr[@]}"; do
           # statement for ncap2
           minute="$(date --date "$(ncks --dt_fmt=1 --cal -v time -C --jsn "${src}" | jq -r ".variables.time.data[0]")" +"%M")"
 
-          if [[ "$minute" == "30" ]]; then
+          if [[ "$minute" == "30" ]] ||
+             [[ "$minute" == "29" ]]; then
             ncap2Statement="where(lon>0) lon=lon-360; time=time-1.0/48.0" # shift for half an hour (1/48th of a day)
           else
             ncap2Statement="where(lon>0) lon=lon-360;" # no shift required
