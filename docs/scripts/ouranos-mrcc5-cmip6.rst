@@ -11,14 +11,17 @@ accessible on the following locations:
 
 .. code:: console
 
-   /project/rrg-mclark/data/meteorological-data/ouranos-mrcc5-cmip6 # rrg-mclark allocation with DRAC Graham
+   # DRAC Graham HPC locations
+   # only CanESM5 and MPI-ESM1-2-LR models
    /project/def-alpie-ab/data/meteorological-data/ouranos-mrcc5-cmip6 # def-alpie-ab allocation with DRAC Graham
+   # only CNRM-ESM2-1 model
+   /project/rpp-kshook/Climate_Forcing_Data/meteorological-data/ouranos-mrcc5-cmip6 # rpp-kshook allocation with DRAC Graham
 
 and the structure of the dataset hourly files is as following:
 
 .. code:: console
 
-   /project/rrg-mclark/data/meteorological-data/ouranos-espo-g6-r2
+   /path/to/dataset/directory/
    ├── MPI-ESM1-2-LR
    │   ├── ssp126
    |   |   └── r1i1p1f1
@@ -134,8 +137,8 @@ list of variables by browsing the dataset’s directory:
 
 .. code:: console
 
-   foo@bar:~$ ls /path/to/NEX-GDDP-CMIP6/ACCESS-CM2/ssp126/r1i1p1f1/
-   hurs  huss  pr  rlds  rsds  vas  uas  tas  ps
+   foo@bar:~$ ls /path/to/dataset/dir/CanESM5/ssp126/r1i1p2f1/CRCM5/v1-r1/1hr/
+   hurs  huss  pr  ps  rlds  rsds  tas  uas  vas
 
 Spatial Extent
 --------------
@@ -178,6 +181,29 @@ describes the temporal extent for senarios included in this dataset:
   Values of the ``Temporal extent`` column are the limits for
   ``--start-date`` and ``--end-date`` options with the main
   ``datatool`` script.
+
+.. note::
+   ``CanESM5`` model reports all variables at the beginning of
+   the hour ``(YYYY-mm-ddTHH:00:00)``.
+
+.. note::
+   ``MPI-ESM1-2-LR`` and ``CNRM-ESM2-1`` report ``pr``, ``rlds``,
+   ``rsds`` at the middle of the hour (YYYY-mm-ddTHH:30:00), while
+   all other variables are reported at the top of the hour.
+
+
+Calendar
+--------
++--------------------------+-------------------+
+| Model                    | Calendar Type     |
++==========================+===================+
+| ``MPI-ESM1-2-LR``        | standard          |
++--------------------------+-------------------+
+| ``CNRM-ESM2-1``          | standard          |
++--------------------------+-------------------+
+| ``CanESM5``              | 365_day           |
++--------------------------+-------------------+
+
 
 Short Description on ``MRCC5-CMIP6`` Variables
 ----------------------------------------------

@@ -7,11 +7,18 @@ Location of Dataset Files
 -------------------------
 
 The ``nex-gddp-cmip6`` dataset is located under the following
-directory(s) accessible from Compute Canada (CC) Graham Cluster:
+directory(s) accessible from multiple clusters:
 
 .. code:: console
 
-   /project/rrg-mclark/data/meteorological-data/nasa-nex-gddp-cmip6/NEX-GDDP-CMIP6 # rrg-mclark allocation
+   # DRAC Graham HPC location
+   /project/rpp-kshook/Climate_Forcing_Data/meteorological-data/nasa-nex-gddp-cmip6 # rpp-kshook allocation
+
+   # UCalgary ARC HPC location
+   /work/comphyd_lab/data/meteorological-data/nasa-nex-gddp-cmip6 # comphyd_lab location
+
+   # Perdue University Anvil HPC location
+   /anvil/datasets/meteorological/NASA_NEX-GDDP-CMIP6
 
 and the structure of the dataset’s yearly files (containing daily
 time-steps) is as following:

@@ -5,19 +5,22 @@ Location of Dataset Files
 -------------------------
 
 The ``ab-gov`` dataset is located under the following directories
-accessible from Compute Canada (CC) Graham Cluster:
+accessible from multiple clusters: 
 
 .. code:: console
 
+   # DRAC Graham HPC location
    /project/rpp-kshook/Climate_Forcing_Data/meteorological-data/ab-gov # rpp-kshook allocation
-   /project/rrg-mclark/data/meteorological-data/ab-gov # rrg-mclark allocation
+
+   # UCalgary ARC HPC location
+   /work/comphyd_lab/data/meteorological-data/ab-gov # comphyd_lab allocation
 
 and the structure of the dataset yearly files (containing daily
 time-steps) is as following:
 
 .. code:: console
 
-   /project/rpp-kshook/Climate_Forcing_Data/meteorological-data/ab-gov
+   /path/to/dataset/dir/
    ├── BCC-CSM2-MR
    │   ├── Downscaled_BCC-CSM2-MR_MBCDS_historical_pr_tmn_tmx_1950.nc 
    │   ├── .

@@ -16,9 +16,10 @@ Location of Dataset Files
 The ``WRF-CONUSI`` simulation outputs are located under the following
 directory accessible from Compute Canada (CC) Graham Cluster:
 
-::
+.. code:: console
 
-   /project/rpp-kshook/Model_Output/WRF/CONUS/CTRL/
+   # DRAC Graham HPC location
+   /project/rpp-kshook/Model_Output/WRF/CONUS/CTRL/ # rpp-kshook location
 
 and the structure of the dataset hourly files is as following:
 
