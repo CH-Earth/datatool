@@ -11,14 +11,20 @@ accessible from Compute Canada (CC) Graham Cluster:
 
 .. code:: console
 
+   # DRAC Graham HPC location
    /project/rpp-kshook/Climate_Forcing_Data/meteorological-data/rdrsv2.1 # rpp-kshook allocation
-   /project/rrg-mclark/data/meteorological-data/rdrsv2.1 # rrg-mclark allocation
+
+   # UCalgary ARC HPC location
+   /work/comphyd_lab/data/meteorological-data/rdrsv2.1 # comphyd_lab location
+
+   # Perdue University Anvil HPC location
+   /anvil/datasets/meteorological/ECCC_RDRSv2.1 # Anvil community storage
 
 and the structure of the dataset hourly files is as following:
 
 .. code:: console
 
-   /project/rpp-kshook/Model_Output/RDRSv2.1
+   /path/to/dataset/dir/
    ├── 1980
    │   ├── 1980010112.nc
    │   ├── 1980010212.nc
@@ -54,7 +60,7 @@ Coordinate Variables and Time-stamps
 Coordinate Variables
 ~~~~~~~~~~~~~~~~~~~~
 
-The coordinate variables of the ``ERA5`` simulations are ``lon`` and
+The coordinate variables of the ``RDRSv2.1`` simulations are ``lon`` and
 ``lat`` representing the longitude and latitude points, respectively.
 ### Time-stamps The time-stamps are included in the original files.
 

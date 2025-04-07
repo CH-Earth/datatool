@@ -13,18 +13,24 @@ Location of Dataset Files
 -------------------------
 
 The global ``Daymet`` dataset is located under the following directory
-accessible from Digital Research Alliance of Canada (DRA) Graham
-cluster:
+accessible from multiple clusters:
 
 .. code::
 
-   /project/rpp-kshook/Model_Output/Daymet_Daily_V4R1/data/
+   # DRAC Graham HPC locations
+   /project/rpp-kshook/Model_Output/Daymet_Daily_V4R1/data/ # rpp-kshook allocation
+
+   # UCalgary ARC HPC locations
+   /work/comphyd_lab/data/meteorological-data/daymet-v4r1-ornl # comphyd_lab allocation
+
+   # Perdue University Anvil HPC locations
+   /anvil/datasets/meteorological/ORNL_Daymet # community data storage
 
 and the structure of the dataset hourly files is as following:
 
 .. code:: console
 
-   /project/rpp-kshook/Model_Output/Daymet_Daily_V4R1/data/
+   /path/to/dataset/files/
    ├── daymet_v4_daily_hi_dayl_1980.nc
    ├── daymet_v4_daily_hi_dayl_1981.nc
    ├── .

@@ -11,14 +11,20 @@ accessible from Compute Canada (CC) Graham Cluster:
 
 .. code:: console
 
+   # DRAC Graham HPC location
    /project/rpp-kshook/CompHydCore/climateForcingData/ERA5/ERA5_for_SUMMA/2_merged_data # rpp-kshook allocation
-   /project/rrg-mclark/data/meteorological-data/era5 # rrg-mclark allocation
+
+   # UCalgary ARC HPC location
+   /work/comphyd_lab/data/meteorological-data/era5 # comphyd_lab location
+
+   # Perdue University Anvil HPC location
+   /anvil/datasets/meteorological/ERA5_small # Anvil community storage
 
 and the structure of the dataset hourly files is as following:
 
 .. code:: console
 
-   /project/rpp-kshook/CompHydCore/climateForcingData/ERA5/ERA5_for_SUMMA/2_merged_data
+   /path/to/dataset/dir/
    ├── ERA5_merged_195001.nc
    ├── ERA5_merged_%y%m.nc
    ├── .
