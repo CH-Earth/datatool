@@ -1,7 +1,7 @@
 #!/bin/bash
 # Meteorological Data Processing Workflow
 # Copyright (C) 2022-2023, University of Saskatchewan
-# Copyright (C) 2023-2024, University of Calgary
+# Copyright (C) 2023-2025, University of Calgary
 #
 # This file is part of Meteorological Data Processing Workflow
 #
@@ -732,6 +732,11 @@ case "${dataset,,}" in
   # ECCC RDRS
   "rdrs" | "rdrsv2.1")
     call_processing_func "$recipePath/eccc-rdrs/rdrs.sh" "6months"
+    ;;
+  
+  # ECCC RDRS
+  "casr" | "casrv2.1")
+    call_processing_func "$recipePath/eccc-casr/casr.sh" "6months"
     ;;
 
   # ====================
