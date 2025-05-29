@@ -1,7 +1,7 @@
 #!/bin/bash
 # Meteorological Data Processing Workflow
 # Copyright (C) 2022-2023, University of Saskatchewan
-# Copyright (C) 2023-2024, University of Calgary
+# Copyright (C) 2023-2025, University of Calgary
 #
 # This file is part of Meteorological Data Processing Workflow
 #
@@ -43,7 +43,17 @@ short_usage() {
 
 
 # argument parsing using getopt - WORKS ONLY ON LINUX BY DEFAULT
-parsedArguments=$(getopt -a -n rdrs -o i:v:o:s:e:t:l:n:p:c:m:S:M: --long dataset-dir:,variable:,output-dir:,start-date:,end-date:,time-scale:,lat-lims:,lon-lims:,prefix:,cache:,ensemble:,scenario:,model: -- "$@")
+parsedArguments=$( \
+  getopt --alternative \
+  --name "casr" \
+  -o i:v:o:s:e:t:l:n:p:c:m:S:M: \
+  --long dataset-dir:,variable:, \
+  --long output-dir:,start-date:, \
+  --long end-date:,time-scale:, \
+  --long lat-lims:,lon-lims:,prefix:, \
+  --long cache:,ensemble:,scenario:, \
+  --long model: -- "$@" \
+)
 validArguments=$?
 if [ "$validArguments" != "0" ]; then
   short_usage;
@@ -92,7 +102,7 @@ logDate () { echo "($(date +"%Y-%m-%d %H:%M:%S")) "; }
 if [[ -n "$ensemble" ]] || \
    [[ -n "$scenario" ]] || \
    [[ -n "$model" ]]; then
-  echo "$(logDate)$(basename $0): ERROR! redundant argument provided";
+  echo "$(logDate)$(basename $0): ERROR! redundant argument(s) provided";
   exit 1;
 fi
 
@@ -113,8 +123,7 @@ shopt -s expand_aliases
 
 # paths
 datatoolPath="$(dirname $0)/../../../../../" # datatool's path
-# daymet index scripts works on RDRSv2.1 grids as well
-# and ESPO-G6-R2 has similar grid system as RDRSv2.1
+# daymet index scripts works on CaSR3.1 grids as well
 coordIdxScript="$datatoolPath/etc/scripts/coord_daymet_idx.ncl"
 coordClosestIdxScript="$datatoolPath/etc/scripts/coord_closest_daymet_idx.ncl"
 
@@ -123,10 +132,6 @@ coordClosestIdxScript="$datatoolPath/etc/scripts/coord_closest_daymet_idx.ncl"
 # Necessary global variables
 # ==========================
 # the structure of file names is as follows: "YYYYMMDD12.nc"
-rdrsFormat="%Y%m%d" # rdrs file date format
-exportFormat="%Y%m%d" # exported file date format
-fileStruct="" # source dataset files' prefix constant
-
 latDim="rlat"
 lonDim="rlon"
 
@@ -154,7 +159,7 @@ lims_to_float () { IFS=',' read -ra l <<< $@; f_arr=(); for i in "${l[@]}"; do f
 # Data processing
 # ===============
 # display info
-echo "$(logDate)$(basename $0): processing ECCC RDRSv2.1..."
+echo "$(logDate)$(basename $0): processing ECCC CaSRv3.1..."
 
 # make the output directory
 echo "$(logDate)$(basename $0): creating output directory under $outputDir"
@@ -166,27 +171,20 @@ mkdir -p "$cache"
 # ======================
 # Extract domain extents
 # ======================
-
-# parse the upper and lower bounds of a given spatial limit
-minLat=$(echo $latLims | cut -d ',' -f 1)
-maxLat=$(echo $latLims | cut -d ',' -f 2)
-minLon=$(echo $lonLims | cut -d ',' -f 1)
-maxLon=$(echo $lonLims | cut -d ',' -f 2)
-
 # choose a sample file as all files share the same grid
 domainFile="$(find "${datasetDir}/" -type f -name "*.nc" | head -n 1)"
 
 # parse the upper and lower bounds of a given spatial limit
-minLat=$(echo $latLims | cut -d ',' -f 1)
-maxLat=$(echo $latLims | cut -d ',' -f 2)
-minLon=$(echo $lonLims | cut -d ',' -f 1)
-maxLon=$(echo $lonLims | cut -d ',' -f 2)
+minLat="$(echo $latLims | cut -d ',' -f 1)"
+maxLat="$(echo $latLims | cut -d ',' -f 2)"
+minLon="$(echo $lonLims | cut -d ',' -f 1)"
+maxLon="$(echo $lonLims | cut -d ',' -f 2)"
 
 # adding/subtracting 0.1 degree to/from max/min values
-minLat=$(bc <<< "$minLat - 0.1")
-maxLat=$(bc <<< "$maxLat + 0.1")
-minLon=$(bc <<< "$minLon - 0.1")
-maxLon=$(bc <<< "$maxLon + 0.1")
+minLat="$(bc <<< "$minLat - 0.1")"
+maxLat="$(bc <<< "$maxLat + 0.1")"
+minLon="$(bc <<< "$minLon - 0.1")"
+maxLon="$(bc <<< "$maxLon + 0.1")"
 
 # updating $latLims and $lonLims based on new values
 latLims="${minLat},${maxLat}"
@@ -209,108 +207,203 @@ latLimsIdx+="$(echo $coordIdx | cut -d ' ' -f 2)"
 # =====================
 # Extract dataset files
 # =====================
+#######################################
+# Calculate and format a date by applying
+# a time shift to a Unix EPOCH timestamp
+#
+# Globals:
+#   None
+#
+# Arguments:
+#   1: Time shift specification (e.g., "+1days", "-2weeks")
+#   2: Unix EPOCH timestamp
+#   3: (Optional) Date format string (default: "%Y-%m-%dT%H:%M:%S")
+#
+# Outputs:
+#   The resulting date in specified format after applying the time shift
+#   to the input timestamp. Defaults to ISO 8601 format if no format given.
+#
+# Examples:
+#   get_shifted_date "+1days" "1748626663"
+#   # Output: 2025-06-01T00:37:43
+#
+#   get_shifted_date "-2weeks" "1748626663" "%Y-%m-%d"
+#   # Output: 2025-05-18
+#
+#   get_shifted_date "+3hours" "1748626663" "%H:%M:%S"
+#   # Output: 03:37:43
+#######################################
+get_shifted_date() {
+    local time_shift="$1"
+    local epoch_time="$2"
+    local date_format="${3:-"%Y-%m-%dT%H:%M:%S"}"
+    
+    if [[ -z "$time_shift" || -z "$epoch_time" ]]; then
+        echo "Usage: get_shifted_date <time_shift> <unix_epoch> [date_format]"
+        return 1
+    fi
+    
+    date --date="$(date -d "@$epoch_time") $time_shift" +"$date_format"
+}
+
 # define necessary dates
-# Assure the end-date is not beyond 2018-12-30
-endDateInt=$(date --date="$endDate" +"%Y%m%d")
-if [[ $endDateInt -gt "20181230" ]]; then
-  endDate="2018-12-30T23:00:00"
-fi
 # Assure the start-date is not before 1980-01-01
-startDateInt=$(date --date="$startDate" +"%Y%m%d")
-if [[ $startDateInt -lt "19800101" ]]; then
-  startDate="1980-01-01T12:00:00"
+startDateInt=$(date --date="$startDate" +"%Y%m%d%H")
+if [[ $startDateInt -lt "1979123113" ]]; then
+  echo "$(logDate)$(basename $0): WARNING! The date range of the dataset is between 1979-12-31T13:00:00 and 2023-12-31T12:00:00"
+  echo "$(logDate)$(basename $0): WARNING! \`start-date\` is set to 1979-12-31 13:00:00"
+  startDate="1979-12-31T13:00:00"
 fi
 
-# assign proper variables for dates
-startYear=$(date --date="$startDate" +"%Y") # start year (first folder)
-endYear=$(date --date="$endDate" +"%Y") # end year (last folder)
-yearsRange=$(seq $startYear $endYear)
+# Assure the end-date is not beyond 2023-12-30
+endDateInt=$(date --date="$endDate" +"%Y%m%d%H")
+if [[ $endDateInt -gt "2023123112" ]]; then
+  echo "$(logDate)$(basename $0): WARNING! The date range of the dataset is between 1979-12-31T13:00:00 and 2023-12-31T12:00:00"
+  echo "$(logDate)$(basename $0): WARNING! \`end-date\` is set to 2023-12-31 12:00:00"
+  endDate="2023-12-31T12:00:00"
+fi
 
-toDate="$startDate"
-toDateUnix="$(unix_epoch "$toDate")"
+# Date values for iterations over dataset files
+toDate="${startDate}"
+toDateUnix="$(unix_epoch "$startDate")"
+
+endDateIter="$(date --date="$endDate +1days" +"%Y-%m-%dT%H:00:00")"
+endDateIterUnix="$(unix_epoch "$endDateIter")"
 endDateUnix="$(unix_epoch "$endDate")"
 
-# iterate over the years
-for yr in $yearsRange; do
-  # creating yearly directory
-  mkdir -p "$outputDir/$yr" # output directory
-  mkdir -p "$cache/$yr" # cache directory
+# Creating output and cache directories
+mkdir -p "$outputDir" # output directory
+mkdir -p "$cache" # cache directory
 
-  # setting the end point, either the end of current year, or the $endDate
-  # last time-step of the current year
-  endOfCurrentYearUnix=$(date --date="$yr-01-01 23:00:00 +1year -1day" "+%s")
-  if [[ $endOfCurrentYearUnix -le $endDateUnix ]]; then
-    endPointUnix=$endOfCurrentYearUnix
-  else
-    endPointUnix=$endDateUnix
+# First file counter
+firstFile=1
+
+# Extract variables from the forcing data files
+while [[ "$toDateUnix" -le "$endDateIterUnix" ]]; do
+  # Calculate the two boundary timestamps to determine the NetCDF to
+  # manipulate
+  yesterday_13="$(get_shifted_date "-1days" "${toDateUnix}" "%Y-%m-%dT13:00:00")"
+  today_12="$(get_shifted_date "+0days" "${toDateUnix}" "%Y-%m-%dT12:00:00")"
+  today_13="$(get_shifted_date "+0days" "${toDateUnix}" "%Y-%m-%dT13:00:00")"
+  tomorrow_12="$(get_shifted_date "+1days" "${toDateUnix}" "%Y-%m-%dT12:00:00")"
+
+  # UNIX EPOCH equivalents
+  yesterday_13_Unix="$(unix_epoch "${yesterday_13}")"
+  today_12_Unix="$(unix_epoch "${today_12}")"
+  today_13_Unix="$(unix_epoch "${today_13}")"
+  tomorrow_12_Unix="$(unix_epoch "${tomorrow_12}")"
+
+  # change the range
+  if [[ "${toDateUnix}" -ge "${today_13_Unix}" ]] && \
+     [[ "${toDateUnix}" -le "${tomorrow_12_Unix}" ]]; then
+    shiftDate="+0days"
+  elif [[ "${toDateUnix}" -ge "${yesterday_13_Unix}" ]] && \
+       [[ "${toDateUnix}" -le "${today_12_Unix}" ]]; then
+    shiftDate="-1days"
   fi
 
-  # extract variables from the forcing data files
-  while [[ "$toDateUnix" -le "$endPointUnix" ]]; do
-    # date manipulations
-    # current timestamp formatted to conform to RDRS naming convention
-    toDateFormatted=$(date --date "$toDate" +"$rdrsFormat")
+  # fileDate in the CaSR file format
+  fileDate="$(get_shifted_date "$shiftDate" "$toDateUnix")"
+  fileDateFormatted="$(date --date="$fileDate" +"%Y%m%d12")"
 
-    # creating file name
-    file="${toDateFormatted}12.nc" # current file name
+  # # file name
+  file="${fileDateFormatted}.nc"
 
-    # extracting spatial extents and variables
-    until cdo -z zip \
-        -s -L \
-        -sellonlatbox,"$lonLims","$latLims" \
-        -selvar,"$variables" \
-        "${datasetDir}/${yr}/${file}" \
-        "${cache}/${yr}/${file}"; do
-      echo "$(logDate)$(basename $0): Process killed: restarting process in 10 sec" >&2
-      echo "CDO [...] failed" >&2
-      sleep 10;
-    done # until ncks
-
-    # remove any left-over .tmp file
-    if [[ -e ${cache}/${yr}/${file}*.tmp ]]; then
-      rm -r "${cache}/${yr}/${file}*.tmp"
-    fi
-
-    # wait for any left-over processes to finish
-    # note to self: not sure this even does anything, but anyways
-    wait
-
-    # change lon values so the extents are from ~-180 to 0
-    # assuring the process finished using an `until` loop
-    until ncap2 -O -s 'where(lon>0) lon=lon-360' \
-            "${cache}/${yr}/${file}" \
-            "${outputDir}/${yr}/${prefix}${file}"; do
-      rm "${outputDir}/${yr}/${prefix}${file}"
-      echo "$(logDate)$(basename $0): Process killed: restarting process in 10 sec" >&2
-      echo "$(logDate)$(basename $0): NCAP2 -s [...] failed" >&2
-      sleep 10;
-    done
-
-    # remove any left-over .tmp file
-    if [[ -e ${cache}/${yr}/${file}*.tmp ]]; then
-      rm -r "${cache}/${yr}/${file}*.tmp"
-    fi
-
-    # wait for any left-over processes to finish
-    # note to self: not sure this even does anything, but anyways
-    wait
-
-    # increment time-step by one unit
-    toDate="$(date --date "$toDate 1day")" # current time-step
-    toDateUnix="$(unix_epoch "$toDate")" # current timestamp in unix EPOCH time
-  done
-
-  # go to the next year if necessary
-  if [[ "$toDateUnix" == "$endOfCurrentYearUnix" ]]; then
-    toDate=$(date --date "$toDate 1day")
+  # Specify file's start and end dates
+  if [[ "$shiftDate" == "+0days" ]]; then
+    fileStartDate="$(date --date="@${today_13_Unix}" +"%Y-%m-%dT%H:00:00")"
+  elif [[ "$shiftDate" == "-1days" ]]; then
+    fileStartDate="$(date --date="@${yesterday_13_Unix}" +"%Y-%m-%dT%H:00:00")"
   fi
 
+  # If $endDateUnix is greater than $toDate at 12 o'clock, assign 
+  # $endDateUnix as $fileEndDate, otherwise, $toDateUnix at 12 o'clock
+  if [[ "$shiftDate" == "+0days" ]]; then
+    fileEndDate="$(date --date="@${tomorrow_12_Unix}" +"%Y-%m-%dT%H:00:00")"
+  elif [[ "$shiftDate" == "-1days" ]]; then
+    fileEndDate="$(date --date="@${today_12_Unix}" +"%Y-%m-%dT%H:00:00")"
+  fi
+
+  # If $fileStartDate is earlier tha the input $startDate, assign that
+  # instead
+  fileStartDateUnix="$(unix_epoch "$fileStartDate")"
+  if [[ "$firstFile" == 1 ]]; then
+    firstFile=0
+    startDateUnix="$(unix_epoch "$startDate")"
+    if [[ "$fileStartDateUnix" -lt "$startDateUnix" ]]; then
+      fileStartDate="$(date --date="@${startDateUnix}" +"%Y-%m-%dT%H:00:00")"
+      fileStartDateUnix="$(unix_epoch "$fileStartDate")"
+    fi
+  fi
+
+  # If $fileEndDate is beyond the input $endDate, assign that instead
+  fileEndDateUnix="$(unix_epoch "$fileEndDate")"
+  if [[ "$fileEndDateUnix" -gt "$endDateUnix" ]]; then
+    fileEndDate="$(date --date="@${endDateUnix}" +"%Y-%m-%dT%H:00:00")"
+  fi
+
+  echo "fileEndDateUnix: $fileEndDateUnix"
+  echo "fileStartDateUnix: $fileStartDateUnix"
+  # Why the date is generated her?
+  # If fileEndDate goes beyond fileStartDate; continue
+  if [[ "$fileEndDateUnix" -lt "$fileStartDateUnix" ]]; then
+    break 2;
+  fi
+
+  echo "fileDateFormatted: $fileDateFormatted, startDate: $fileStartDate, endDate: $fileEndDate"
+  # echo "toDate: "$(date --date="$toDate" +"%Y-%m-%d %H:%M:%S")""
+  # # Extracting spatial extents and variables
+  # until cdo -z zip \
+  #     -s -L \
+  #     -sellonlatbox,"$lonLims","$latLims" \
+  #     -selvar,"$variables" \
+  #     -seldate,"${fileStartDate}","${fileEndDate}" \
+  #     "${datasetDir}/${file}" \
+  #     "${cache}/${file}"; do
+  #   echo "$(logDate)$(basename $0): Process killed: restarting process in 10 sec" >&2
+  #   echo "CDO [...] failed" >&2
+  #   sleep 10;
+  # done # until ncks
+
+  # # Remove any left-over .tmp file
+  # if [[ -e ${cache}/${file}*.tmp ]]; then
+  #   rm -r "${cache}/${file}*.tmp"
+  # fi
+
+  # # Wait for any left-over processes to finish
+  # wait
+
+  # # Change lon values so the extents are from ~-180 to 0
+  # # assuring the process finished using an `until` loop
+  # until ncap2 -O -s 'where(lon>0) lon=lon-360' \
+  #         "${cache}/${file}" \
+  #         "${outputDir}/${prefix}${file}"; do
+  #   rm "${outputDir}/${prefix}${file}"
+  #   echo "$(logDate)$(basename $0): Process killed: restarting process in 10 sec" >&2
+  #   echo "$(logDate)$(basename $0): NCAP2 -s [...] failed" >&2
+  #   sleep 10;
+  # done
+
+  # # Remove any left-over .tmp file
+  # if [[ -e ${cache}/${file}*.tmp ]]; then
+  #   rm -r "${cache}/${file}*.tmp"
+  # fi
+
+  # # Wait for any left-over processes to finish
+  # wait
+
+  # Increment time-step by one unit
+  toDate="$(date --date "$toDate +1days" +"%Y-%m-%dT%H:00:00")"
+  toDateUnix="$(unix_epoch "$toDate")" # current timestamp in unix EPOCH time
 done
 
-mkdir -p "$HOME/empty_dir"
-echo "$(logDate)$(basename $0): deleting temporary files from $cache"
-rsync -aP --delete "$HOME/empty_dir/" "$cache"
-rm -r "$cache"
+# Take care of intermediary files, etc.
+# mkdir -p "$HOME/empty_dir"
+# echo "$(logDate)$(basename $0): deleting temporary files from $cache"
+# rsync -aP --delete "$HOME/empty_dir/" "$cache"
+# rm -r "$cache"
+
+# End notices
 echo "$(logDate)$(basename $0): temporary files from $cache are removed"
-echo "$(logDate)$(basename $0): results are produced under $outputDir"
+echo "$(logDate)$(basename $0): results are extracted under $outputDir"
 

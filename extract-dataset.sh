@@ -735,7 +735,7 @@ case "${dataset,,}" in
     ;;
   
   # ECCC RDRS
-  "casr" | "casrv2.1")
+  "casr" | "casrv3.1")
     call_processing_func "$recipePath/eccc-casr/casr.sh" "6months"
     ;;
 

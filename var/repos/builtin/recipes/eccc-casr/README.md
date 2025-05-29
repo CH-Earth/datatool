@@ -2,7 +2,7 @@
 In this file, the details of the dataset is explained.
 
 ## Location of Dataset Files
-The `CaSR` v3.1 dataset is located under the following directory accessible
+The `CaSR` v3.1 dataset is located under the following directories accessible
 from multiple clusters listed below:
 ```console
 # DRAC Graham cluster
@@ -16,6 +16,7 @@ and the structure of the dataset hourly files is as following:
 
 ```console
 /project/rpp-kshook/Model_Output/CaSRv3.1
+├── 1979123112.nc
 ├── 1980010112.nc
 ├── 1980010212.nc
 ├── 1980010312.nc
@@ -40,20 +41,20 @@ and the structure of the dataset hourly files is as following:
 
 ### Coordinate Variables
 The coordinate variables of the `CaSRv3.1` simulations are
-`lon` and `lat` representing the longitude and latitude points, respectively.
+`lon` and `lat` representing the longitude and latitude data, respectively.
 ### Time-stamps
 The time-stamps are included in the original files.
 
 ## Dataset Variables
-The NetCDF files of the dataset contain 28 variables. You may see a list
+The NetCDF files of the dataset contain 38 variables. You may see a list
 of variables by using the `ncdump -h`  command on one of the files:
 ```console
 foo@bar:~$ ncdump -h /path/to/dataset/files/casrv3.1/2018010112.nc
 ```
 
 ## Spatial Extent
-The spatial extent of the `CaSR` v3.1 is on latitutes from `+5.75`
-to `+64.75` and longitudes from `-179.9925` to `179.9728` covering
+The spatial extent of the `CaSR` v3.1 is on latitutes from `+7.75`
+to `+84.75` and longitudes from `-179.9925` to `179.9728` covering
 North America. The resolution is 0.09 degrees (~10km). 
 
 ## Temporal Extent
