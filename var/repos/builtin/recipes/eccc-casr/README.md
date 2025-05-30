@@ -53,7 +53,7 @@ foo@bar:~$ ncdump -h /path/to/dataset/files/casrv3.1/2018010112.nc
 ```
 
 ## Spatial Extent
-The spatial extent of the `CaSR` v3.1 is on latitutes from `+7.75`
+The spatial extent of the `CaSR` v3.1 is on latitudes from `+7.75`
 to `+84.75` and longitudes from `-179.9925` to `179.9728` covering
 North America. The resolution is 0.09 degrees (~10km). 
 
