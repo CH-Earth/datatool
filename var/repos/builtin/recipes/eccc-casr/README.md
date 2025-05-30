@@ -34,7 +34,7 @@ and the structure of the dataset hourly files is as following:
 ├── .
 ├── .
 ├── .
-└── 2023123112.nc
+└── 2023123012.nc
 ```
 
 ## Coordinate Variables and Time-stamps
