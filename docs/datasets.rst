@@ -40,6 +40,8 @@ The following table lists available datasets, their DOI, and provides links to s
 +----+------------------------------+--------------------------------------------------------------------------------------+
 | 11 | NASA NEX-GDDP-CMIP6          | 10.1038/s41597-022-01393-4                                                           |
 +----+------------------------------+--------------------------------------------------------------------------------------+
+| 12 | ECCC CaSRv3.1 (aka RDRS)     | 10.1038/s41597-022-01393-4 (Same as RDRS)                                            |
++----+------------------------------+--------------------------------------------------------------------------------------+
 
 .. [#f1] For access to the files on the Graham cluster, please contact `Stephen O'Hearn <mailto:sdo124@mail.usask.ca>`_.
 .. [#f2] ERA5 data from 1950-1979 are based on `ERA5 preliminary extension <https://cds.climate.copernicus.eu/cdsapp#!/dataset/reanalysis-era5-single-levels-preliminary-back-extension?tab=overview>`_ and 1979 onwards are based on `ERA5 1979-present <https://doi.org/10.24381/cds.adbb2d47>`_.
@@ -58,6 +60,7 @@ Detailed Descriptions
    scripts/ccrn-canrcm4_wfdei_gem_capa.rst
    scripts/ccrn-wfdei_gem_capa.rst
    scripts/eccc-rdrs.rst
+   scripts/eccc-casr.rst
    scripts/ecmwf-era5.rst
    scripts/gwf-ncar-conus_i.rst
    scripts/gwf-ncar-conus_ii.rst
