@@ -70,8 +70,8 @@ long wave radiation (surface level). These variables are available through
 |Variable Name             |CaSRv3.1 Variable    |Unit   |Comments                                                 |
 |--------------------------|---------------------|-------|---------------------------------------------------------|
 |surface pressure          |CaSR_v3.1_P_P0_SFC   |`mb`   |                                                         |
-|air tempreature @20m      |CaSR_v3.1_P_TT_09975 |`°C`   |                                                         |
-|air tempreature @1.5m     |CaSR_v3.1_P_TT_1.5m  |`°C`   |                                                         |
+|air temperature @20m      |CaSR_v3.1_P_TT_09975 |`°C`   |                                                         |
+|air temperature @1.5m     |CaSR_v3.1_P_TT_1.5m  |`°C`   |                                                         |
 |wind speed U-component@20m|CaSR_v3.1_P_UUC_09975|`kts`  |Corrected U-component along West-East direction at ~20m  |
 |wind speed U-component@10m|CaSR_v3.1_P_UUC_10m  |`kts`  |Corrected U-component along West-East direction at ~10m  |
 |wind speed V-component@20m|CaSR_v3.1_P_VVC_09975|`kts`  |Corrected V-component along South-North direction at ~20m|
