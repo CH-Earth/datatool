@@ -324,7 +324,7 @@ while [[ "$toDateUnix" -le "$endDateIterUnix" ]]; do
     fileEndDate="$(date --date="@${today_12_Unix}" +"%Y-%m-%dT%H:00:00")"
   fi
 
-  # If $fileStartDate is earlier tha the input $startDate, assign that
+  # If $fileStartDate is earlier than the input $startDate, assign that
   # instead
   fileStartDateUnix="$(unix_epoch "$fileStartDate")"
   if [[ "$firstFile" == 1 ]]; then
@@ -340,57 +340,54 @@ while [[ "$toDateUnix" -le "$endDateIterUnix" ]]; do
   fileEndDateUnix="$(unix_epoch "$fileEndDate")"
   if [[ "$fileEndDateUnix" -gt "$endDateUnix" ]]; then
     fileEndDate="$(date --date="@${endDateUnix}" +"%Y-%m-%dT%H:00:00")"
+    fileEndDateUnix="$(unix_epoch "$fileEndDate")"
   fi
 
-  echo "fileEndDateUnix: $fileEndDateUnix"
-  echo "fileStartDateUnix: $fileStartDateUnix"
   # Why the date is generated her?
   # If fileEndDate goes beyond fileStartDate; continue
   if [[ "$fileEndDateUnix" -lt "$fileStartDateUnix" ]]; then
-    break 2;
+    break 1
   fi
 
-  echo "fileDateFormatted: $fileDateFormatted, startDate: $fileStartDate, endDate: $fileEndDate"
-  # echo "toDate: "$(date --date="$toDate" +"%Y-%m-%d %H:%M:%S")""
-  # # Extracting spatial extents and variables
-  # until cdo -z zip \
-  #     -s -L \
-  #     -sellonlatbox,"$lonLims","$latLims" \
-  #     -selvar,"$variables" \
-  #     -seldate,"${fileStartDate}","${fileEndDate}" \
-  #     "${datasetDir}/${file}" \
-  #     "${cache}/${file}"; do
-  #   echo "$(logDate)$(basename $0): Process killed: restarting process in 10 sec" >&2
-  #   echo "CDO [...] failed" >&2
-  #   sleep 10;
-  # done # until ncks
+  # Extracting spatial extents and variables
+  until cdo -z zip \
+      -s -L \
+      -sellonlatbox,"$lonLims","$latLims" \
+      -selvar,"$variables" \
+      -seldate,"${fileStartDate}","${fileEndDate}" \
+      "${datasetDir}/${file}" \
+      "${cache}/${file}"; do
+    echo "$(logDate)$(basename $0): Process killed: restarting process in 10 sec" >&2
+    echo "CDO [...] failed" >&2
+    sleep 10;
+  done # until ncks
 
-  # # Remove any left-over .tmp file
-  # if [[ -e ${cache}/${file}*.tmp ]]; then
-  #   rm -r "${cache}/${file}*.tmp"
-  # fi
+  # Remove any left-over .tmp file
+  if [[ -e ${cache}/${file}*.tmp ]]; then
+    rm -r "${cache}/${file}*.tmp"
+  fi
 
-  # # Wait for any left-over processes to finish
-  # wait
+  # Wait for any left-over processes to finish
+  wait
 
-  # # Change lon values so the extents are from ~-180 to 0
-  # # assuring the process finished using an `until` loop
-  # until ncap2 -O -s 'where(lon>0) lon=lon-360' \
-  #         "${cache}/${file}" \
-  #         "${outputDir}/${prefix}${file}"; do
-  #   rm "${outputDir}/${prefix}${file}"
-  #   echo "$(logDate)$(basename $0): Process killed: restarting process in 10 sec" >&2
-  #   echo "$(logDate)$(basename $0): NCAP2 -s [...] failed" >&2
-  #   sleep 10;
-  # done
+  # Change lon values so the extents are from ~-180 to 0
+  # assuring the process finished using an `until` loop
+  until ncap2 -O -s 'where(lon>0) lon=lon-360' \
+          "${cache}/${file}" \
+          "${outputDir}/${prefix}${file}"; do
+    rm "${outputDir}/${prefix}${file}"
+    echo "$(logDate)$(basename $0): Process killed: restarting process in 10 sec" >&2
+    echo "$(logDate)$(basename $0): NCAP2 -s [...] failed" >&2
+    sleep 10;
+  done
 
-  # # Remove any left-over .tmp file
-  # if [[ -e ${cache}/${file}*.tmp ]]; then
-  #   rm -r "${cache}/${file}*.tmp"
-  # fi
+  # Remove any left-over .tmp file
+  if [[ -e ${cache}/${file}*.tmp ]]; then
+    rm -r "${cache}/${file}*.tmp"
+  fi
 
-  # # Wait for any left-over processes to finish
-  # wait
+  # Wait for any left-over processes to finish
+  wait
 
   # Increment time-step by one unit
   toDate="$(date --date "$toDate +1days" +"%Y-%m-%dT%H:00:00")"
@@ -398,10 +395,10 @@ while [[ "$toDateUnix" -le "$endDateIterUnix" ]]; do
 done
 
 # Take care of intermediary files, etc.
-# mkdir -p "$HOME/empty_dir"
-# echo "$(logDate)$(basename $0): deleting temporary files from $cache"
-# rsync -aP --delete "$HOME/empty_dir/" "$cache"
-# rm -r "$cache"
+mkdir -p "$HOME/empty_dir"
+echo "$(logDate)$(basename $0): deleting temporary files from $cache"
+rsync -aP --delete "$HOME/empty_dir/" "$cache"
+rm -r "$cache"
 
 # End notices
 echo "$(logDate)$(basename $0): temporary files from $cache are removed"
