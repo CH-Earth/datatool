@@ -343,24 +343,39 @@ while [[ "$toDateUnix" -le "$endDateIterUnix" ]]; do
     fileEndDateUnix="$(unix_epoch "$fileEndDate")"
   fi
 
-  # Why the date is generated her?
   # If fileEndDate goes beyond fileStartDate; continue
   if [[ "$fileEndDateUnix" -lt "$fileStartDateUnix" ]]; then
     break 1
   fi
 
-  # Extracting spatial extents and variables
-  until cdo -z zip \
-      -s -L \
-      -sellonlatbox,"$lonLims","$latLims" \
-      -selvar,"$variables" \
-      -seldate,"${fileStartDate}","${fileEndDate}" \
-      "${datasetDir}/${file}" \
-      "${cache}/${file}"; do
-    echo "$(logDate)$(basename $0): Process killed: restarting process in 10 sec" >&2
-    echo "CDO [...] failed" >&2
-    sleep 10;
-  done # until ncks
+  # If the filestartDate equals startDate, or if fileEndDate equals
+  # endDate then subset time as well, otherwise, no need for time
+  # subsetting (to save computational time)
+  if [[ ${fileStartDateUnix} == ${startDateUnix} ]] ||
+     [[ ${fileEndDateUnix} == ${endDateUnix} ]]; then
+    until cdo -z zip \
+        -s -L \
+        -sellonlatbox,"$lonLims","$latLims" \
+        -selvar,"$variables" \
+        -seldate,"${fileStartDate}","${fileEndDate}" \
+        "${datasetDir}/${file}" \
+        "${cache}/${file}"; do
+      echo "$(logDate)$(basename $0): Process killed: restarting process in 10 sec" >&2
+      echo "CDO [...] failed" >&2
+      sleep 10;
+    done # until ncks
+  else
+    until cdo -z zip \
+        -s -L \
+        -sellonlatbox,"$lonLims","$latLims" \
+        -selvar,"$variables" \
+        "${datasetDir}/${file}" \
+        "${cache}/${file}"; do
+      echo "$(logDate)$(basename $0): Process killed: restarting process in 10 sec" >&2
+      echo "CDO [...] failed" >&2
+      sleep 10;
+    done # until ncks
+  fi
 
   # Remove any left-over .tmp file
   if [[ -e ${cache}/${file}*.tmp ]]; then
@@ -372,14 +387,22 @@ while [[ "$toDateUnix" -le "$endDateIterUnix" ]]; do
 
   # Change lon values so the extents are from ~-180 to 0
   # assuring the process finished using an `until` loop
-  until ncap2 -O -s 'where(lon>0) lon=lon-360' \
+  until ncap2 -A -s 'where(lon>0) lon=lon-360' \
           "${cache}/${file}" \
-          "${outputDir}/${prefix}${file}"; do
+          "${cache}/${prefix}${file}"; do
     rm "${outputDir}/${prefix}${file}"
     echo "$(logDate)$(basename $0): Process killed: restarting process in 10 sec" >&2
     echo "$(logDate)$(basename $0): NCAP2 -s [...] failed" >&2
     sleep 10;
   done
+
+  # Check to see if the final file exists in the $outputDir
+  if [[ -f "${outputDir}/${prefix}${file}" ]]; then
+    ncrcat -O "${cache}/${prefix}${file}" "${outputDir}/${prefix}${file}" \
+      "${outputDir}/${prefix}${file}";
+  else
+    cp "${cache}/${prefix}${file}" "${outputDir}/${prefix}${file}"
+  fi
 
   # Remove any left-over .tmp file
   if [[ -e ${cache}/${file}*.tmp ]]; then

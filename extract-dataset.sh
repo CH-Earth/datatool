@@ -728,15 +728,15 @@ case "${dataset,,}" in
   "era_5" | "era5" | "era-5" | "era 5")
     call_processing_func "$recipePath/ecmwf-era5/era5_simplified.sh" "2years"
     ;;
-  
+
   # ECCC RDRS
   "rdrs" | "rdrsv2.1")
     call_processing_func "$recipePath/eccc-rdrs/rdrs.sh" "6months"
     ;;
-  
+
   # ECCC RDRS
   "casr" | "casrv3.1")
-    call_processing_func "$recipePath/eccc-casr/casr.sh" "6months"
+    call_processing_func "$recipePath/eccc-casr/casr.sh" "3months"
     ;;
 
   # ====================
