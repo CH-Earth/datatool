@@ -378,8 +378,8 @@ while [[ "$toDateUnix" -le "$endDateIterUnix" ]]; do
   fi
 
   # Remove any left-over .tmp file
-  if [[ -e ${cache}/${file}*.tmp ]]; then
-    rm -r "${cache}/${file}*.tmp"
+  if [[ -e ${cache}/*${file}*.tmp ]]; then
+    rm -r "${cache}/*${file}*.tmp"
   fi
 
   # Wait for any left-over processes to finish
@@ -387,10 +387,10 @@ while [[ "$toDateUnix" -le "$endDateIterUnix" ]]; do
 
   # Change lon values so the extents are from ~-180 to 0
   # assuring the process finished using an `until` loop
-  until ncap2 -A -s 'where(lon>0) lon=lon-360' \
+  until ncap2 -O -s 'where(lon>0) lon=lon-360' \
           "${cache}/${file}" \
-          "${cache}/${prefix}${file}"; do
-    rm "${outputDir}/${prefix}${file}"
+          "${cache}/lon_${file}"; do
+    rm "${cache}/lon_${file}*"
     echo "$(logDate)$(basename $0): Process killed: restarting process in 10 sec" >&2
     echo "$(logDate)$(basename $0): NCAP2 -s [...] failed" >&2
     sleep 10;
@@ -398,15 +398,37 @@ while [[ "$toDateUnix" -le "$endDateIterUnix" ]]; do
 
   # Check to see if the final file exists in the $outputDir
   if [[ -f "${outputDir}/${prefix}${file}" ]]; then
-    ncrcat -O "${cache}/${prefix}${file}" "${outputDir}/${prefix}${file}" \
-      "${outputDir}/${prefix}${file}";
+    # If it already has 24 time-steps (complete file), skip it
+    tSteps="$(cdo ntime "${outputDir}/${prefix}${file}" | head -n 1)"
+
+    if [[ $tSteps != 24 ]]; then
+      # Copying the existing file to cache for further merging
+      cp "${outputDir}/${prefix}${file}" "${cache}/temp_${file}"
+
+      # Enable skipping duplicate time-steps
+      export SKIP_SAME_TIME=1
+
+      # Merging existing time-steps (temp_) with the extracted ones (lon_)
+      echo "$(logDate)$(basename $0): WARNING! File ${prefix}${file} already exists in ${outputDir}" >&2;
+      echo "$(logDate)$(basename $0): Merging missing time-steps" >&2;
+      cdo -O mergetime "${cache}/lon_${file}" "${cache}/temp_${file}" \
+        "${cache}/merged_${file}" >&2;
+
+      # Copy the merged_ file to the $outputDir
+      cp "${cache}/merged_${file}" "${outputDir}/${prefix}${file}"
+
+    else
+      echo "$(logDate)$(basename $0): ${prefix}${file} and all time-steps already exist, skipping" >&2;
+    fi
+
   else
-    cp "${cache}/${prefix}${file}" "${outputDir}/${prefix}${file}"
+    # Otherwise, copy whatever has been extracted
+    cp "${cache}/lon_${file}" "${outputDir}/${prefix}${file}"
   fi
 
   # Remove any left-over .tmp file
-  if [[ -e ${cache}/${file}*.tmp ]]; then
-    rm -r "${cache}/${file}*.tmp"
+  if [[ -e ${cache}/*${file}*.tmp ]]; then
+    rm -r "${cache}/*${file}*.tmp"
   fi
 
   # Wait for any left-over processes to finish
