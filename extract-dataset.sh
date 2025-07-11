@@ -76,6 +76,7 @@ Script options:
   -p, --prefix=STR                  Prefix  prepended to the output files
   -b, --parsable                    Parsable SLURM message mainly used
                                     for chained job submissions
+  -D, --dependency                  Executation dependency submission ID, optional
   -c, --cache=DIR                   Path of the cache directory; optional
   -E, --email=user@example.com      E-mail user when job starts, ends, or
                                     fails; optional
@@ -132,7 +133,7 @@ extract_submodel="$(dirname $0)/etc/scripts/extract_subdir_level.sh" # script pa
 parsedArguments=$( \
   getopt --alternative \
   --name "extract-dataset" \
-  -o jhVbLE:d:i:v:o:s:e:t:l:n:p:c:m:M:S:ka:C:u: \
+  -o jhVbLE:d:i:v:o:s:e:t:l:n:p:c:m:M:S:ka:C:u:D: \
   --long submit-job,help,version, \
   --long parsable,list-datasets,email:, \
   --long dataset:,dataset-dir:,variable:, \
@@ -140,7 +141,7 @@ parsedArguments=$( \
   --long time-scale:,lat-lims:,lon-lims:, \
   --long prefix:,cache:,ensemble:,model:, \
   --long scenario:,no-chunk,shape-file:, \
-  --long cluster:,account: -- "$@" \
+  --long cluster:,account:,dependency: -- "$@" \
 )
 validArguments=$?
 # check if there is no valid options
@@ -184,6 +185,7 @@ do
     -C | --cluster)       cluster="$2"         ; shift 2 ;; # required
     -a | --shape-file)    shapefile="$2"       ; shift 2 ;; # optional
     -u | --account)       account="$2"         ; shift 2 ;; # optional
+    -D | --dependency)    dependency="$2"      ; shift 2 ;; # optional
 
     # -- means the end of the arguments; drop this, and break out of the while loop
     --) shift; break ;;
@@ -582,6 +584,7 @@ function call_processing_func () {
         --arg "logDir" "$logDir" \
         --arg "email" "$email" \
         --arg "parsable" "$parsable" \
+        --arg "dependency" "$dependency" \
         --argjson "specs" "$(jq -r '.specs' $cluster)" \
         '$ARGS.named + $specs | del(.specs)' \
       )"

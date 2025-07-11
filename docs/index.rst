@@ -52,6 +52,7 @@ is as follows:
      -p, --prefix=STR                  Prefix prepended to the output files
      -b, --parsable                    Parsable SLURM message mainly used
                                        for chained job submissions
+     -D, --dependency                  Executation dependency submission ID, optional
      -c, --cache=DIR                   Path of the cache directory; optional
                                        defaults to $HOME/scratch
      -E, --email=user@example.com      E-mail user when job starts, ends, or
