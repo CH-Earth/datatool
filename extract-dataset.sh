@@ -245,13 +245,13 @@ fi
 
 # email withought job submission not allowed
 if [[ -n $email ]] && [[ -z $jobSubmission ]]; then
-  echo "$(basename $0): ERROR! Email is not supported wihtout job submission;"
+  echo "$(basename $0): ERROR! Email is not supported wihtout job submission;" >&2
   exit 1;
 fi
 
 # parsable without job submission not allowed
 if [[ -n $parsable ]] && [[ -z $jobSubmission ]]; then
-  echo "$(basename $0): ERROR! --parsable argument cannot be used without job submission"
+  echo "$(basename $0): ERROR! --parsable argument cannot be used without job submission" >&2
   exit 1;
 fi
 
@@ -264,8 +264,8 @@ fi
 
 # depreciation message for --account
 if [[ -n $account ]]; then
-  echo "$(basename $0): WARNING! --account is no longer a valid option."
-  echo "$(basename $0): configure your scheduler account via --cluster"
+  echo "$(basename $0): WARNING! --account is no longer a valid option." >&2
+  echo "$(basename $0): configure your scheduler account via --cluster" >&2
 fi
 
 # if shapefile is provided extract the extents from it
@@ -276,7 +276,7 @@ if [[ -n $shapefile ]]; then
   IFS=':' read -ra sourceProj4 <<< "$(gdalsrsinfo $shapefile | grep -e "PROJ.4")" 1>&2
   # Assuming EPSG:4326 if no definition of the CRS is provided
   if [[ ${#sourceProj4[@]} -eq 0 ]]; then
-    echo "$(basename $0): WARNING! Assuming EPSG:4326 for --shape-file as none provided"
+    echo "$(basename $0): WARNING! Assuming EPSG:4326 for --shape-file as none provided" >&2
     sourceProj4=('PROJ4.J' '+proj=longlat +datum=WGS84 +no_defs')
   fi
   # transform limits and assign to variables
@@ -298,9 +298,9 @@ if [[ -z "${datasetDir}" ]] || \
    [[ -z "${lonLims}"    ]] || \
    [[ -z "${prefixStr}"  ]]; then
 
-   echo "$(basename $0): mandatory option(s) missing.";
-   short_usage;
-   exit 1;
+   echo "$(basename $0): ERROR! mandatory option(s) missing." >&2
+   short_usage
+   exit 1
 fi
 
 
@@ -584,7 +584,6 @@ function call_processing_func () {
         --arg "logDir" "$logDir" \
         --arg "email" "$email" \
         --arg "parsable" "$parsable" \
-        --arg "dependency" "$dependency" \
         --argjson "specs" "$(jq -r '.specs' $cluster)" \
         '$ARGS.named + $specs | del(.specs)' \
       )"
@@ -655,12 +654,19 @@ function call_processing_func () {
     jobDirectiveM4="$(json_to_m4_vars "$jobDirectiveJSON")"
     # append the main processing script using m4 macros
     jobScriptM4="-D__CONF__=$jobConfPath "
-    jobScriptM4+="$(json_to_m4_vars "$schedulerJSON") "
+    jobScriptM4+=("$(json_to_m4_vars "$schedulerJSON") ")
 
     # create scheduler-specific job submission script
     # 1. job scheduler directives
     m4 ${jobDirectiveM4} ${schedulersPath}/${scheduler}.m4 > \
       ${jobScriptPath}
+
+    # 1.5 Due to M4's limitation in processing comma-separated values,
+    #     adjust dependencies manually
+    if [[ -n "$dependency" ]]; then
+      dependencyLine="#SBATCH --dependency=afterok:$dependency"
+      sed -i "2i\\${dependencyLine}" "${jobScriptPath}"
+    fi
 
     # 2. module inititation, if applicable
     echo -e "\n${jobModulesInit}" >> "${jobScriptPath}"
