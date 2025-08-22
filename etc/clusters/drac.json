@@ -5,7 +5,7 @@
         "time": "04:00:00",
         "nodes": 1,
         "partition": "",
-        "account": "rpp-kshook",
+        "account": "rrg-mclark",
         "mem": "8000M"
     },
     "modules": {
