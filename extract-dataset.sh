@@ -654,7 +654,7 @@ function call_processing_func () {
     jobDirectiveM4="$(json_to_m4_vars "$jobDirectiveJSON")"
     # append the main processing script using m4 macros
     jobScriptM4="-D__CONF__=$jobConfPath "
-    jobScriptM4+=("$(json_to_m4_vars "$schedulerJSON") ")
+    jobScriptM4+="$(json_to_m4_vars "$schedulerJSON") "
 
     # create scheduler-specific job submission script
     # 1. job scheduler directives
