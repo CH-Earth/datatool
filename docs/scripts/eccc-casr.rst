@@ -11,7 +11,7 @@ accessible from multiple clusters listed below:
 
 .. code:: console
 
-   # DRAC Graham cluster
+   # DRAC Nibi (formerly Graham) cluster
    /project/def-kshook/Climate_Forcing_Data/meteorological-data/casrv3.1 # def-kshook allocation
 
    # UCalgary ARC cluster
@@ -21,7 +21,7 @@ and the structure of the dataset hourly files is as following:
 
 .. code:: console
 
-   /project/rpp-kshook/Model_Output/CaSRv3.1
+   /project/def-kshook/Climate_Forcing_Data/meteorological-data/casrv3.1
    ├── 1979123112.nc
    ├── 1980010112.nc
    ├── 1980010212.nc
@@ -36,11 +36,11 @@ and the structure of the dataset hourly files is as following:
    ├── .
    ├── .
    ├── %Y123112.nc
-   ├── 2023010112.nc
+   ├── 2024010112.nc
    ├── .
    ├── .
    ├── .
-   └── 2023123012.nc
+   └── 2024123012.nc
 
 Coordinate Variables and Time-stamps
 ------------------------------------
@@ -77,7 +77,7 @@ Temporal Extent
 ---------------
 
 The time-steps are hourly covering from ``January 1980`` to
-``December 2023``.
+``December 2024``.
 
 Short Description on ``CaSR`` v3.1 Variables
 --------------------------------------------
@@ -197,3 +197,17 @@ Other useful variables in hydrological modelling evaluations are:
      - CaSR_v3.1_P_WDC_10m
      - ``degree``
      - Forecast: Meteorological wind direction (derived using UU and VV) at ~10m
+
+.. note::
+
+   A bug has been identified in the precipitation analysis for the years 
+   2005 to 2010 (variables: ``A_PR0_SFC``, ``A_PR24_SFC``, ``A_CFIA_SFC``),
+   mainly affecting Quebec (and very slightly and sporadically elsewhere
+   in Canada). We are actively working to resolve this issue. The upcoming
+   corrected release, **CaSRv3.2**, is expected within the next few weeks.
+   In addition to fixing this bug, it will also include further improvements
+   to precipitation analyses for the year 2024 as well as a number of
+   technical changes.
+
+
+Last updated: September 8, 2025
