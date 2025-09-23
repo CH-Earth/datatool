@@ -14,6 +14,9 @@ accessible from Compute Canada (CC) Graham Cluster:
    # DRAC Graham HPC location
    /project/rpp-kshook/Climate_Forcing_Data/meteorological-data/rdrsv2.1 # rpp-kshook allocation
 
+   # DRAC Fir HPC location
+   /project/rrg-alpie/data/meteorological-data/rdrsv2.1 # rrg-alpie allocation
+
    # UCalgary ARC HPC location
    /work/comphyd_lab/data/meteorological-data/rdrsv2.1 # comphyd_lab location
 

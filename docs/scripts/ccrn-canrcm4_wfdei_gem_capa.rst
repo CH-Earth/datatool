@@ -10,7 +10,11 @@ Canada) Graham cluster:
 
 .. code:: console
 
-   /project/rpp-kshook/Model_Output/280_CanRCM4_Cor_WFDEI-GEM-CaPA
+   # Graham DRAC HPC Location
+   /project/rpp-kshook/Model_Output/280_CanRCM4_Cor_WFDEI-GEM-CaPA # rpp-kshook allocation
+
+   # Fir DRAC HPC Location
+   /project/rrg-alpie/data/meteorological-data/280_CanRCM4_Cor_WFDEI-GEM-CaPA # rrg-alpie allocation
 
 and the structure of the dataset hourly files is as following:
 

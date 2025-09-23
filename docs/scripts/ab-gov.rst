@@ -12,6 +12,9 @@ accessible from multiple clusters:
    # DRAC Graham HPC location
    /project/rpp-kshook/Climate_Forcing_Data/meteorological-data/ab-gov # rpp-kshook allocation
 
+   # DRAC Graham HPC location
+   /project/rrg-alpie/data/meteorological-data/ab-gov # rrg-alpie allocation
+
    # UCalgary ARC HPC location
    /work/comphyd_lab/data/meteorological-data/ab-gov # comphyd_lab allocation
 

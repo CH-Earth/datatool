@@ -10,9 +10,13 @@ The ``WFDEI-GEM-CaPA`` dataset is located under the following directory
 accessible from Digital Alliance of Canada (formerly Compute Canada)
 Graham cluster:
 
-::
+.. code:: console
 
-   /project/rpp-kshook/Model_Output/181_WFDEI-GEM-CaPA_1979-2016
+   # Graham DRAC HPC Location 
+   /project/rpp-kshook/Model_Output/181_WFDEI-GEM-CaPA_1979-2016 # rpp-kshook allocation
+
+   # Fir DRAC HPC Location
+   /project/rrg-alpie/data/meteorological-data/181_WFDEI-GEM-CaPA_1979-2016 # rrg-alpie allocation
 
 and the structure of the dataset hourly files is as following:
 

@@ -14,6 +14,9 @@ accessible from Compute Canada (CC) Graham Cluster:
    # DRAC Graham HPC location
    /project/rpp-kshook/CompHydCore/climateForcingData/ERA5/ERA5_for_SUMMA/2_merged_data # rpp-kshook allocation
 
+   # DRAC Fir HPC location
+   /project/rrg-alpie/data/meteorological-data/era5/ # rrg-alpie allocation
+
    # UCalgary ARC HPC location
    /work/comphyd_lab/data/meteorological-data/era5 # comphyd_lab location
 

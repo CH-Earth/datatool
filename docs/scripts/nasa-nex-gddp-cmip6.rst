@@ -14,6 +14,9 @@ directory(s) accessible from multiple clusters:
    # DRAC Graham HPC location
    /project/rpp-kshook/Climate_Forcing_Data/meteorological-data/nasa-nex-gddp-cmip6 # rpp-kshook allocation
 
+   # DRAC Fir HPC location
+   /project/rrg-alpie/data/meteorological-data/nasa-nex-gddp-cmip6 # rrg-alpie allocation
+
    # UCalgary ARC HPC location
    /work/comphyd_lab/data/meteorological-data/nasa-nex-gddp-cmip6 # comphyd_lab location
 

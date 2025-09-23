@@ -17,6 +17,9 @@ accessible on the following locations:
    # only CNRM-ESM2-1 model
    /project/rpp-kshook/Climate_Forcing_Data/meteorological-data/ouranos-mrcc5-cmip6 # rpp-kshook allocation with DRAC Graham
 
+   # DRAC Fir HPC locations
+   /project/rrg-alpie/data/meteorological-data/ouranos-mrcc5-cmip6 # rrg-alpie allocation
+
 and the structure of the dataset hourly files is as following:
 
 .. code:: console

@@ -14,6 +14,9 @@ accessible from multiple clusters listed below:
    # DRAC Nibi (formerly Graham) cluster
    /project/def-kshook/Climate_Forcing_Data/meteorological-data/casrv3.1 # def-kshook allocation
 
+   # DRAC Fir cluster
+   /project/rrg-alpie/data/meteorological-data/casrv3.1 # rrg-alpie allocation
+
    # UCalgary ARC cluster
    /work/comphyd_lab/data/meteorological-data/casrv3.1 # comphyd_lab allocation
 

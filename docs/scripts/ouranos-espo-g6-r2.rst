@@ -14,6 +14,9 @@ directory accessible from Compute Canada (CC) Graham Cluster:
    # DRAC Graham HPC locations
    /project/rpp-kshook/Climate_Forcing_Data/meteorological-data/ouranos-espo-g6-r2 # rpp-kshook allocation
 
+   # DRAC Fir HPC locations
+   /project/rrg-alpie/data/meteorological-data/ouranos-espo-g6-r2 # rrg-alpie allocation
+
    # UCalgary ARC HPC locations
    /work/comphyd_lab/data/meteorological-data/ouranos-espo-g6-r2 #comphyd_lab allocation
 

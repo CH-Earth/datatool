@@ -20,6 +20,9 @@ accessible from multiple clusters:
    # DRAC Graham HPC locations
    /project/rpp-kshook/Model_Output/Daymet_Daily_V4R1/data/ # rpp-kshook allocation
 
+   # DRAC Fir HPC locations
+   /project/rrg-alpie/data/meteorological-data/daymet-v4r1-ornl # rrg-alpie allocation
+
    # UCalgary ARC HPC locations
    /work/comphyd_lab/data/meteorological-data/daymet-v4r1-ornl # comphyd_lab allocation
 
