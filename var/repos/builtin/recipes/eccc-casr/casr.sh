@@ -191,12 +191,12 @@ latLims="${minLat},${maxLat}"
 lonLims="${minLon},${maxLon}"
 
 # extract the associated indices corresponding to $latLims and $lonLims
-coordIdx="$(ncl -nQ 'coord_file='\"$domainFile\" 'minlat='"$minLat" 'maxlat='"$maxLat" 'minlon='"$minLon" 'maxlon='"$maxLon" "$coordIdxScript")"
+coordIdx="$(singularity exec $NCL_SINGULARITY_IMAGE ncl -nQ 'coord_file='\"$domainFile\" 'minlat='"$minLat" 'maxlat='"$maxLat" 'minlon='"$minLon" 'maxlon='"$maxLon" "$coordIdxScript")"
 
 # if spatial index out-of-bound, i.e., 'ERROR' is return
 if [[ "${coordIdx}" == "ERROR" ]]; then
   # extract the closest index values
-  coordIdx="$(ncl -nQ 'coord_file='\"$domainFile\" 'minlat='"$minLat" 'maxlat='"$maxLat" 'minlon='"$minLon" 'maxlon='"$maxLon" "$coordClosestIdxScript")"
+  coordIdx="$(singularity exec $NCL_SINGULARITY_IMAGE ncl -nQ 'coord_file='\"$domainFile\" 'minlat='"$minLat" 'maxlat='"$maxLat" 'minlon='"$minLon" 'maxlon='"$maxLon" "$coordClosestIdxScript")"
 fi
 
 # parse the output index for latitude and longitude

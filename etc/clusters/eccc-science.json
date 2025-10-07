@@ -1,26 +1,21 @@
 {
     "scheduler": "pbs",
     "specs": {
-        "cpus": 1,
-        "time": "04:00:00",
+        "cpus": 8,
+        "time": "01:00:00",
         "nodes": 1,
-        "partition": "",
-        "account": "",
-        "mem": "8000M"
+        "mem": "16000M"
     },
     "modules": {
         "preload": [
-            "module -q purge",
-            "module -q load StdEnv/2023",
-            "module -q load gcc/12.3"
-        ],
-        "gdal": "module -q load gdal/3.9.1",
-        "cdo": "module -q load cdo/2.2.2",
-        "ncks": "module -q load nco/5.1.7"
-    },
-    "executables": {
-        "gdal": "",
-        "nco": "",
-        "cdo": ""
+		"module -q purge",
+		". ssmuse-sh -x /fs/ssm/main/opt/gcc/gcc-4.9.1"
+	],
+        "compiler": ". ssmuse-sh -x /fs/ssm/main/opt/gcc/gcc-4.9.1", 
+	"mpi": ". ssmuse-sh -x /fs/ssm/main/opt/openmpi/openmpi-2.1.1/gcc--hpcx-1.8",
+	"gdal": ". ssmuse-sh -x /fs/ssm/main/opt/gdal/gdal-3.1.3",
+        "cdo": ". r.load.dot crd/ccrm/main/opt/cdo/cdo_2.1.1_rhel-8-amd64-64",
+        "ncl": ". r.load.dot comm/eccc/all/opt/ncl-ncarg/6.4.0/ncl_6.4.0_all",
+	"nco": " . r.load.dot cmd/cmds/ext/master/nco_5.0.5-3_rhel-8-amd64-64"
     }
 }
