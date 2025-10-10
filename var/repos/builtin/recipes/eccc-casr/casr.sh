@@ -250,17 +250,17 @@ get_shifted_date() {
 # Assure the start-date is not before 1980-01-01
 startDateInt=$(date --date="$startDate" +"%Y%m%d%H")
 if [[ $startDateInt -lt "1979123113" ]]; then
-  echo "$(logDate)$(basename $0): WARNING! The date range of the dataset is between 1979-12-31T13:00:00 and 2023-12-31T12:00:00"
+  echo "$(logDate)$(basename $0): WARNING! The date range of the dataset is between 1979-12-31T13:00:00 and 2024-12-31T12:00:00"
   echo "$(logDate)$(basename $0): WARNING! \`start-date\` is set to 1979-12-31 13:00:00"
   startDate="1979-12-31T13:00:00"
 fi
 
-# Assure the end-date is not beyond 2023-12-30
+# Assure the end-date is not beyond 2024-12-31
 endDateInt=$(date --date="$endDate" +"%Y%m%d%H")
-if [[ $endDateInt -gt "2023123112" ]]; then
-  echo "$(logDate)$(basename $0): WARNING! The date range of the dataset is between 1979-12-31T13:00:00 and 2023-12-31T12:00:00"
-  echo "$(logDate)$(basename $0): WARNING! \`end-date\` is set to 2023-12-31 12:00:00"
-  endDate="2023-12-31T12:00:00"
+if [[ $endDateInt -gt "2024123112" ]]; then
+  echo "$(logDate)$(basename $0): WARNING! The date range of the dataset is between 1979-12-31T13:00:00 and 2024-12-31T12:00:00"
+  echo "$(logDate)$(basename $0): WARNING! \`end-date\` is set to 2024-12-31 12:00:00"
+  endDate="2024-12-31T12:00:00"
 fi
 
 # Date values for iterations over dataset files
