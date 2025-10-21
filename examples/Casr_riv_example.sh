@@ -18,9 +18,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# This is a simple example to extract ECCC CasrV3.1 data for the 
-# South Saskatchewan River Basin (SSRB) approximate extents
-# from Jan 2015 to Dec 2018.
+# This is a simple example to extract ECCC Casr Rivers (2.1) data near the 
+# South Sask River Gauge (WSC 05HG001)
+# from Jan 2015 to Dec 2017.
 
 # As is mentioned on the main webpage of the repository, it is
 # recommended to submit annual jobs for this dataset.
@@ -30,15 +30,15 @@ cd datatool
 echo "The current directory is: $(pwd)"
 
 # chunking done on an 'annual' basis
-./extract-dataset.sh  --dataset="casr" \
-  --dataset-dir="/home/scar700/data/ppp6/CaSRv3.1/postproc_casr4caspar_20250416/link2out4pilot_netcdf/" \
-  --output-dir="$HOME/scratch/casr31_output/" \
-  --start-date="2018-01-01" \
-  --end-date="2018-12-30" \
-  --lat-lims=49,54  \
-  --lon-lims=-120,-98 \
-  --variable="CaSR_v3.1_P_TT_1.5m,CaSR_v3.1_A_PR0_SFC" \
-  --prefix="casrv3.1_" \
+./extract-dataset.sh  --dataset="casrriv" \
+  --dataset-dir="/home/shyd500/data/ppp6/casr_rivers_v2p1_postproc/full_domain/" \
+  --output-dir="$HOME/scratch/casr_riv/" \
+  --start-date="2015-01-01" \
+  --end-date="2017-12-30" \
+  --lat-lims=52,52.5  \
+  --lon-lims=-107,-106.5 \
+  --variable="disc" \
+  --prefix="casrriv_21_" \
   --cluster="./etc/clusters/eccc-science.json" \
   --email="joel.trubilowicz@ec.gc.ca" \
   -j;

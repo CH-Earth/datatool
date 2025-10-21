@@ -125,7 +125,7 @@ coordClosestIdxScript="$datatoolPath/etc/scripts/coord_closest_daymet_idx.ncl"
 # the structure of file names is as follows: "YYYYMMDD12.nc"
 rdrsFormat="%Y%m%d" # rdrs file date format
 exportFormat="%Y%m%d" # exported file date format
-fileStruct="" # source dataset files' prefix constant
+fileStruct="_MSC_CaSR-Rivers-Analysis_RiverDischarge_Sfc_LatLon0.00833_PT0H" # source dataset files' suffix constant
 
 latDim="rlat"
 lonDim="rlon"
@@ -193,12 +193,12 @@ latLims="${minLat},${maxLat}"
 lonLims="${minLon},${maxLon}"
 
 # extract the associated indices corresponding to $latLims and $lonLims
-coordIdx="$(ncl -nQ 'coord_file='\"$domainFile\" 'minlat='"$minLat" 'maxlat='"$maxLat" 'minlon='"$minLon" 'maxlon='"$maxLon" "$coordIdxScript")"
+coordIdx="$(singularity exec $NCL_SINGULARITY_IMAGE ncl -nQ 'coord_file='\"$domainFile\" 'minlat='"$minLat" 'maxlat='"$maxLat" 'minlon='"$minLon" 'maxlon='"$maxLon" "$coordIdxScript")"
 
 # if spatial index out-of-bound, i.e., 'ERROR' is return
 if [[ "${coordIdx}" == "ERROR" ]]; then
   # extract the closest index values
-  coordIdx="$(ncl -nQ 'coord_file='\"$domainFile\" 'minlat='"$minLat" 'maxlat='"$maxLat" 'minlon='"$minLon" 'maxlon='"$maxLon" "$coordClosestIdxScript")"
+  coordIdx="$(singularity exec $NCL_SINGULARITY_IMAGE ncl -nQ 'coord_file='\"$domainFile\" 'minlat='"$minLat" 'maxlat='"$maxLat" 'minlon='"$minLon" 'maxlon='"$maxLon" "$coordClosestIdxScript")"
 fi
 
 # parse the output index for latitude and longitude
@@ -223,7 +223,9 @@ fi
 
 # assign proper variables for dates
 startYear=$(date --date="$startDate" +"%Y") # start year (first folder)
+startMonth=$(date --date="$startDate" +"%m") # start month (first folder)
 endYear=$(date --date="$endDate" +"%Y") # end year (last folder)
+endMonth=$(date --date="$endDate" +"%m") # end month (last folder)
 yearsRange=$(seq $startYear $endYear)
 
 toDate="$startDate"
@@ -232,79 +234,99 @@ endDateUnix="$(unix_epoch "$endDate")"
 
 # iterate over the years
 for yr in $yearsRange; do
-  # creating yearly directory
-  mkdir -p "$outputDir/$yr" # output directory
-  mkdir -p "$cache/$yr" # cache directory
+  	
+    seqstart=1
+    seqend=12
 
-  # setting the end point, either the end of current year, or the $endDate
-  # last time-step of the current year
-  endOfCurrentYearUnix=$(date --date="$yr-01-01 23:00:00 +1year -1day" "+%s")
-  if [[ $endOfCurrentYearUnix -le $endDateUnix ]]; then
-    endPointUnix=$endOfCurrentYearUnix
-  else
-    endPointUnix=$endDateUnix
-  fi
-
-  # extract variables from the forcing data files
-  while [[ "$toDateUnix" -le "$endPointUnix" ]]; do
-    # date manipulations
-    # current timestamp formatted to conform to RDRS naming convention
-    toDateFormatted=$(date --date "$toDate" +"$rdrsFormat")
-
-    # creating file name
-    file="${toDateFormatted}12.nc" # current file name
-
-    # extracting spatial extents and variables
-    until cdo -z zip \
-        -s -L \
-        -sellonlatbox,"$lonLims","$latLims" \
-        -selvar,"$variables" \
-        "${datasetDir}/${yr}/${file}" \
-        "${cache}/${yr}/${file}"; do
-      echo "$(logDate)$(basename $0): Process killed: restarting process in 10 sec" >&2
-      echo "CDO [...] failed" >&2
-      sleep 10;
-    done # until ncks
-
-    # remove any left-over .tmp file
-    if [[ -e ${cache}/${yr}/${file}*.tmp ]]; then
-      rm -r "${cache}/${yr}/${file}*.tmp"
+    if  [[ $yr == $startYear ]]; then
+	    seqstart=$startMonth
     fi
 
-    # wait for any left-over processes to finish
-    # note to self: not sure this even does anything, but anyways
-    wait
-
-    # change lon values so the extents are from ~-180 to 0
-    # assuring the process finished using an `until` loop
-    until ncap2 -O -s 'where(lon>0) lon=lon-360' \
-            "${cache}/${yr}/${file}" \
-            "${outputDir}/${yr}/${prefix}${file}"; do
-      rm "${outputDir}/${yr}/${prefix}${file}"
-      echo "$(logDate)$(basename $0): Process killed: restarting process in 10 sec" >&2
-      echo "$(logDate)$(basename $0): NCAP2 -s [...] failed" >&2
-      sleep 10;
-    done
-
-    # remove any left-over .tmp file
-    if [[ -e ${cache}/${yr}/${file}*.tmp ]]; then
-      rm -r "${cache}/${yr}/${file}*.tmp"
+        
+    if  [[ $yr == $endYear ]]; then
+	    seqend=$endMonth
     fi
 
-    # wait for any left-over processes to finish
-    # note to self: not sure this even does anything, but anyways
-    wait
+    monthseq=$(seq -w $seqstart $seqend)
 
-    # increment time-step by one unit
-    toDate="$(date --date "$toDate 1day")" # current time-step
-    toDateUnix="$(unix_epoch "$toDate")" # current timestamp in unix EPOCH time
-  done
 
-  # go to the next year if necessary
-  if [[ "$toDateUnix" == "$endOfCurrentYearUnix" ]]; then
-    toDate=$(date --date "$toDate 1day")
-  fi
+    for month in $monthseq; do
+          
+	  ym=$yr$month
 
+	  # creating yearly directory
+	  #mkdir -p "$outputDir/$ym" # output directory
+          mkdir -p "$cache/$ym" # cache directory
+
+	  # setting the end point, either the end of current year/mont, or the $endDate
+	  # last time-step of the current year/mont
+	  endOfCurrentYMonthUnix=$(date --date="$yr-$month-01 23:00:00 +1month -1day" "+%s")
+	  if [[ $endOfCurrentYMonthUnix -le $endDateUnix ]]; then
+	    endPointUnix=$endOfCurrentYMonthUnix
+	  else
+	    endPointUnix=$endDateUnix
+	  fi
+
+	  # extract variables from the forcing data files
+	  while [[ "$toDateUnix" -le "$endPointUnix" ]]; do
+	    # date manipulations
+	    # current timestamp formatted to conform to RDRS naming convention
+	    toDateFormatted=$(date --date "$toDate" +"$rdrsFormat")
+
+	    # creating file name
+	    file="${toDateFormatted}${fileStruct}.nc" # current file name
+
+	    # extracting spatial extents and variables
+	    until cdo -z zip \
+		-s -L \
+		-sellonlatbox,"$lonLims","$latLims" \
+		-selvar,"$variables" \
+		"${datasetDir}/${ym}/${file}" \
+		"${cache}/${ym}/${file}"; do
+	      echo "$(logDate)$(basename $0): Process killed: restarting process in 10 sec" >&2
+	      echo "CDO [...] failed" >&2
+	      sleep 10;
+	    done # until ncks
+
+	    # remove any left-over .tmp file
+	    if [[ -e ${cache}/${ym}/${file}*.tmp ]]; then
+	      rm -r "${cache}/${ym}/${file}*.tmp"
+	    fi
+
+	    # wait for any left-over processes to finish
+	    # note to self: not sure this even does anything, but anyways
+	    wait
+
+	    # change lon values so the extents are from ~-180 to 0
+	    # assuring the process finished using an `until` loop
+	    until ncap2 -O -s 'where(lon>0) lon=lon-360' \
+		    "${cache}/${ym}/${file}" \
+		    "${outputDir}/${prefix}${file}"; do
+	      rm "${outputDir}/${prefix}${file}"
+	      echo "$(logDate)$(basename $0): Process killed: restarting process in 10 sec" >&2
+	      echo "$(logDate)$(basename $0): NCAP2 -s [...] failed" >&2
+	      sleep 10;
+	    done
+
+	    # remove any left-over .tmp file
+	    if [[ -e ${cache}/${ym}/${file}*.tmp ]]; then
+	      rm -r "${cache}/${ym}/${file}*.tmp"
+	    fi
+
+	    # wait for any left-over processes to finish
+	    # note to self: not sure this even does anything, but anyways
+	    wait
+
+	    # increment time-step by one unit
+	    toDate="$(date --date "$toDate 1day")" # current time-step
+	    toDateUnix="$(unix_epoch "$toDate")" # current timestamp in unix EPOCH time
+	  done
+
+	  # go to the next year if necessary
+	  if [[ "$toDateUnix" == "$endOfCurrentYMonthUnix" ]]; then
+	    toDate=$(date --date "$toDate 1day")
+	  fi
+     done
 done
 
 mkdir -p "$HOME/empty_dir"

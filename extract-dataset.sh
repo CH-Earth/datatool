@@ -773,11 +773,15 @@ case "${dataset,,}" in
     call_processing_func "$recipePath/eccc-rdrs/rdrs.sh" "6months"
     ;;
 
-  # ECCC RDRS
+  # ECCC CaSR
   "casr" | "casrv3.1")
     call_processing_func "$recipePath/eccc-casr/casr.sh" "3months"
     ;;
 
+  # ECCC Casr Rivers
+  "casrriv" | "casr_riv_v2.1")
+    call_processing_func "$recipePath/eccc-casrriv/casrriv.sh" "3months"
+    ;;
   # ====================
   # Observation datasets
   # ====================
