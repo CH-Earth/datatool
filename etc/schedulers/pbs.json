@@ -1,0 +1,6 @@
+{
+	"environment_variables": {
+		"array_task_id": "$PBS_ARRAY_INDEX",
+		"array_job_id": "$PBS_JOBID"
+	}
+}

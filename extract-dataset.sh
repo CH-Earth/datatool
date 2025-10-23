@@ -550,7 +550,13 @@ function call_processing_func () {
         --arg "ensembleArr" "${ensemble}" \
         --arg "modelArr" "${model}" \
         --arg "scenarioArr" "${scenario}" \
-        '$ARGS.named | with_entries(.value |= split(","))' \
+	'{
+      	  startDateArr: ($startDateArr | split(",")),
+	  endDateArr: ($endDateArr | split(",")),
+          ensembleArr: ($ensembleArr | split(",")),
+          modelArr: ($modelArr | split(",")),
+          scenarioArr: ($scenarioArr | split(","))
+ 	 }'  
       )"
 
     # job chunk variable information
@@ -563,7 +569,15 @@ function call_processing_func () {
         --arg "dateIter" "$dateIter" \
         --arg "ensembleIter" "$ensembleIter" \
         --arg "modelIter" "$modelIter" \
-        '$ARGS.named'
+	'{
+      	  ensembleLen: $ensembleLen,
+	  modelLen: $modelLen,
+	  scenarioLen: $scenarioLen,
+	  dateLen: $dateLen,
+	  dateIter: $dateIter,
+	  ensembleIter: $ensembleIter,
+	  modelIter: $modelIter
+	}'
       )"
 
     # scheduler information
@@ -584,8 +598,14 @@ function call_processing_func () {
         --arg "logDir" "$logDir" \
         --arg "email" "$email" \
         --arg "parsable" "$parsable" \
-        --argjson "specs" "$(jq -r '.specs' $cluster)" \
-        '$ARGS.named + $specs | del(.specs)' \
+	--argjson specs "$(jq '.specs' "$cluster")" \
+	'{
+      	  jobArrlen: $jobArrLen,
+	  scriptName: $scriptName,
+	  logDir: $logDir,
+	  email: $email,
+	  parsable: $parsable
+	} + $specs'
       )"
 
     # job script information
@@ -604,8 +624,18 @@ function call_processing_func () {
          --arg "latLims" "${funcArgs[latLims]}" \
          --arg "lonLims" "${funcArgs[lonLims]}" \
          --arg "prefix" "${funcArgs[prefixStr]}" \
-         --arg "cache" "${funcArgs[cache]}" \
-        '$ARGS.named' \
+	 --arg "cache" "${funcArgs[cache]}" \
+	 '{
+      	   scriptFile: $scriptFile,
+	   datasetDir: $datasetDir,
+	   variable: $variable,
+	   outputDir: $outputDir,
+	   timeScale: $timeScale,
+	   latLims: $latLims,
+	   lonLims: $lonLims,
+	   prefix: $prefix,
+	   cache: $cache
+	 }'
       )"
 
     # job module init information - not JSON as echoed as is
@@ -743,11 +773,15 @@ case "${dataset,,}" in
     call_processing_func "$recipePath/eccc-rdrs/rdrs.sh" "6months"
     ;;
 
-  # ECCC RDRS
+  # ECCC CaSR
   "casr" | "casrv3.1")
     call_processing_func "$recipePath/eccc-casr/casr.sh" "3months"
     ;;
 
+  # ECCC Casr Rivers
+  "casrriv" | "casr_riv_v2.1")
+    call_processing_func "$recipePath/eccc-casrriv/casrriv.sh" "3months"
+    ;;
   # ====================
   # Observation datasets
   # ====================
