@@ -30,11 +30,11 @@ and the structure of the dataset hourly files is as following:
 ├── .
 ├── .
 ├── %Y123112.nc
-├── 2023010112.nc
+├── 2024010112.nc
 ├── .
 ├── .
 ├── .
-└── 2023123012.nc
+└── 2024123012.nc
 ```
 
 ## Coordinate Variables and Time-stamps
@@ -58,7 +58,7 @@ to `+84.75` and longitudes from `-179.9925` to `179.9728` covering
 North America. The resolution is 0.09 degrees (~10km). 
 
 ## Temporal Extent
-The time-steps are hourly covering from `January 1980` to `December 2023`.
+The time-steps are hourly covering from `January 1980` to `December 2024`.
 
 ## Short Description on `CaSR` v3.1 Variables
 In most hydrological modelling applications, usually 7 variables are needed
