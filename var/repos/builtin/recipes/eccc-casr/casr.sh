@@ -79,7 +79,7 @@ do
     -t | --time-scale)    timeScale="$2"       ; shift 2 ;; # redundant - added for compatibility
     -l | --lat-lims)      latLims="$2"         ; shift 2 ;; # required
     -n | --lon-lims)      lonLims="$2"         ; shift 2 ;; # required
-    -p | --prefix)	      prefix="$2"          ; shift 2 ;; # optional
+    -p | --prefix)        prefix="$2"          ; shift 2 ;; # optional
     -c | --cache)         cache="$2"           ; shift 2 ;; # required
     -m | --ensemble)      ensemble="$2"        ; shift 2 ;; # redundant - added for compatibility
     -S | --scenario)      scenario="$2"        ; shift 2 ;; # redundant - added for compatibility
