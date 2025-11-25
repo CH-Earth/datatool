@@ -40,7 +40,9 @@ The following table lists available datasets, their DOI, and provides links to s
 +----+------------------------------+--------------------------------------------------------------------------------------+
 | 11 | NASA NEX-GDDP-CMIP6          | 10.1038/s41597-022-01393-4                                                           |
 +----+------------------------------+--------------------------------------------------------------------------------------+
-| 12 | ECCC CaSRv3.1 (aka RDRS)     | 10.1038/s41597-022-01393-4 (Same as RDRS)                                            |
+| 12 | ECCC CaSRv3.1 (aka RDRS)     | TBD                                                                                  |
++----+------------------------------+--------------------------------------------------------------------------------------+
+| 13 | ECCC CaSRv3.2 (aka RDRS)     | TBD                                                                                  |
 +----+------------------------------+--------------------------------------------------------------------------------------+
 
 .. [#f1] For access to the files on the Graham cluster, please contact `Stephen O'Hearn <mailto:sdo124@mail.usask.ca>`_.
@@ -60,7 +62,8 @@ Detailed Descriptions
    scripts/ccrn-canrcm4_wfdei_gem_capa.rst
    scripts/ccrn-wfdei_gem_capa.rst
    scripts/eccc-rdrs.rst
-   scripts/eccc-casr.rst
+   scripts/eccc-casr31.rst
+   scripts/eccc-casr32.rst
    scripts/ecmwf-era5.rst
    scripts/gwf-ncar-conus_i.rst
    scripts/gwf-ncar-conus_ii.rst
