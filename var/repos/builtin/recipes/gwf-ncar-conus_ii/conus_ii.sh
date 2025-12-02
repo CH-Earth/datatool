@@ -102,9 +102,9 @@ fi
 # hard-coding the address of the co-ordinate NetCDF files
 # containing XLAT and XLONG variables each having dimensions
 # of "south_north" and "west_east".
-datatoolPath="$(dirname $0)/../../" # datatool's path
+datatoolPath="$(dirname $0)/../../../../../" # datatool's path
 coordMainFile="/project/rpp-kshook/Model_Output/wrf-conus/CONUSII/hist/wrf04km_coord.nc"
-coordEssFile="${datatoolPath}/assets/nc_coords/coord_XLAT_XLONG_conus_ii.nc"
+coordEssFile="${datatoolPath}/etc/scripts/nc_coords/coord_XLAT_XLONG_conus_ii.nc"
 latVar="south_north"
 lonVar="west_east"
 
@@ -113,7 +113,7 @@ format="%Y-%m-%d_%H:%M:%S"
 tarFormat="%Y%m%d"
 fileStruct="wrf2d_d01"
 tarFileStruct="wrf2d_conusii"
-coordIdxScript="${datatoolPath}/assets/ncl_scripts/coord_wrf_idx.ncl"
+coordIdxScript="${datatoolPath}/etc/scripts/coord_wrf_idx.ncl"
 
 # TZ to be set to UTC to avoid invalid dates due to Daylight Saving
 alias date='TZ=UTC date'
