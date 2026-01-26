@@ -5,7 +5,7 @@
         "time": "04:00:00",
         "nodes": 1,
         "partition": "",
-        "account": "rrg-mclark",
+        "account": "rrg-alpie_cpu",
         "mem": "8000M"
     },
     "modules": {
