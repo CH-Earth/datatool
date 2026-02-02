@@ -3,6 +3,21 @@ ECCC ``CaSR`` v3.2
 
 In this file, the details of the dataset is explained.
 
+.. note::
+    The CaSR website has been updated to include CaSR v3.2 links
+    (v3.1 remains available on request), provide documentation
+    describing the different CaSR versions, and introduce general
+    usability improvements. CaSR v3.2 corrects a major issue in the precipitation analysis
+    affecting 2005–2010 (variables: A_PR0_SFC, A_PR24_SFC, A_CFIA_SFC),
+    mainly over Quebec, with limited effects elsewhere. This release
+    also includes minor data improvements (see this presentation
+    for more information): Improved of the a priori monthly precipitation
+    quality control for 2024 (variables: A_PR0_SFC, A_PR24_SFC, A_CFIA_SFC),
+    Masking snow depth (P_SD_LAND) and snow water equivalent (P_SWE_LAND)
+    over non-land grid cells, and Technical update in NetCDF files with
+    no impact on variable values.
+
+
 Location of Dataset Files
 -------------------------
 
@@ -201,4 +216,4 @@ Other useful variables in hydrological modelling evaluations are:
      - ``degree``
      - Forecast: Meteorological wind direction (derived using UU and VV) at ~10m
 
-Last updated: November 25, 2025
+Last updated: February 2, 2025

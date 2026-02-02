@@ -212,5 +212,9 @@ Other useful variables in hydrological modelling evaluations are:
    to precipitation analyses for the year 2024 as well as a number of
    technical changes.
 
+.. note::
+   The new **CaSRv3.2** is officially released on February 2, 2026, and
+   is available via this tool. Please refer to the updated documentation
+   for details on this new dataset.
 
-Last updated: September 8, 2025
+Last updated: February 2, 2026
