@@ -1,7 +1,10 @@
 Ouranos ``MRCC5-CMIP6`` dataset
 ===============================
 
-**Important:** Some driving datasets / model members have documented missing periods and/or missing variables; see the ``Known missing data (CRCM5-CMIP6 ensemble)`` section at the end for details.
+**Important:** Some driving datasets / model members have documented
+missing periods and/or missing variables; see the
+``Known missing data (CRCM5-CMIP6 ensemble)`` section at the end
+for details.
 
 In this file, the details of the dataset is explained.
 
@@ -120,6 +123,9 @@ with the main ``datatool`` script:
 | 3 | ``CNRM-ESM2-1``        | ``historical``, ``ssp126``, ``ssp245``,  |
 |   |                        | ``ssp370``                               |
 +---+------------------------+------------------------------------------+
+| 4 | ``NorESM2-MM``         | ``historical``, ``ssp126``, ``ssp245``,  |
+|   |                        | ``ssp370``                               |
++---+------------------------+------------------------------------------+
 
 ``MRCC5-CMIP6`` Climate Models’ Ensemble Members
 ------------------------------------------------
@@ -136,6 +142,8 @@ below summarizes the dataset ensemble members for each climate model:
 | 2 | ``MPI-ESM1-2-LR``      | ``r1i1p1f1`` and ``r1i1p2f1``            |
 +---+------------------------+------------------------------------------+
 | 3 | ``CNRM-ESM2-1``        | ``r1i1p1f2``                             |
++---+------------------------+------------------------------------------+
+| 4 | ``NorESM2-MM``         | ``r1i1p1f1``                             |
 +---+------------------------+------------------------------------------+
 
 Dataset Variables
@@ -195,9 +203,10 @@ describes the temporal extent for scenarios included in this dataset:
    the hour ``(YYYY-mm-ddTHH:00:00)``.
 
 .. note::
-   ``MPI-ESM1-2-LR`` and ``CNRM-ESM2-1`` report ``pr``, ``rlds``,
-   ``rsds`` at the middle of the hour ``(YYYY-mm-ddTHH:30:00)``, while
-   all other variables are reported at the top of the hour.
+   ``MPI-ESM1-2-LR``, ``CNRM-ESM2-1``, and ``NorESM2-MM`` report
+   ``pr``, ``rlds``, and ``rsds`` at the middle of the hour
+   ``(YYYY-mm-ddTHH:30:00)``, while all other variables are
+   reported at the top of the hour.
 
 Calendar
 --------
@@ -209,6 +218,8 @@ Calendar
 | ``CNRM-ESM2-1``          | standard          |
 +--------------------------+-------------------+
 | ``CanESM5``              | 365_day           |
++--------------------------+-------------------+
+| ``NorESM2-MM``           | 365_day           |
 +--------------------------+-------------------+
 
 
