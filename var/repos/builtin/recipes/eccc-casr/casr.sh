@@ -159,7 +159,7 @@ lims_to_float () { IFS=',' read -ra l <<< $@; f_arr=(); for i in "${l[@]}"; do f
 # Data processing
 # ===============
 # display info
-echo "$(logDate)$(basename $0): processing ECCC CaSRv3.1..."
+echo "$(logDate)$(basename $0): processing ECCC CaSR..."
 
 # make the output directory
 echo "$(logDate)$(basename $0): creating output directory under $outputDir"
@@ -247,18 +247,18 @@ get_shifted_date() {
 }
 
 # define necessary dates
-# Assure the start-date is not before 1980-01-01
+# Assure the start-date is not before 1968-01-01
 startDateInt=$(date --date="$startDate" +"%Y%m%d%H")
-if [[ $startDateInt -lt "1979123113" ]]; then
-  echo "$(logDate)$(basename $0): WARNING! The date range of the dataset is between 1979-12-31T13:00:00 and 2024-12-31T12:00:00"
-  echo "$(logDate)$(basename $0): WARNING! \`start-date\` is set to 1979-12-31 13:00:00"
-  startDate="1979-12-31T13:00:00"
+if [[ $startDateInt -lt "1967123113" ]]; then
+  echo "$(logDate)$(basename $0): WARNING! The date range of the dataset is between 1967-12-31T13:00:00 and 2024-12-31T12:00:00"
+  echo "$(logDate)$(basename $0): WARNING! \`start-date\` is set to 1967-12-31 13:00:00"
+  startDate="1967-12-31T13:00:00"
 fi
 
 # Assure the end-date is not beyond 2024-12-31
 endDateInt=$(date --date="$endDate" +"%Y%m%d%H")
 if [[ $endDateInt -gt "2024123112" ]]; then
-  echo "$(logDate)$(basename $0): WARNING! The date range of the dataset is between 1979-12-31T13:00:00 and 2024-12-31T12:00:00"
+  echo "$(logDate)$(basename $0): WARNING! The date range of the dataset is between 1967-12-31T13:00:00 and 2024-12-31T12:00:00"
   echo "$(logDate)$(basename $0): WARNING! \`end-date\` is set to 2024-12-31 12:00:00"
   endDate="2024-12-31T12:00:00"
 fi

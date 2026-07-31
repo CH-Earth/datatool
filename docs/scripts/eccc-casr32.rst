@@ -39,11 +39,11 @@ and the structure of the dataset hourly files is as following:
 
 .. code:: console
 
-   /project/def-kshook/Climate_Forcing_Data/meteorological-data/casrv3.2
-   ├── 1979123112.nc
-   ├── 1980010112.nc
-   ├── 1980010212.nc
-   ├── 1980010312.nc
+   /project/rrg-alpie/data/meteorological-data/casrv3.2
+   ├── 1967123112.nc
+   ├── 1968010112.nc
+   ├── 1968010212.nc
+   ├── 1968010312.nc
    ├── .
    ├── .
    ├── .
@@ -94,8 +94,20 @@ North America. The resolution is 0.09 degrees (~10km).
 Temporal Extent
 ---------------
 
-The time-steps are hourly covering from ``January 1980`` to
+The time-steps are hourly covering from ``January 1968`` to
 ``December 2024``.
+
+.. note::
+
+   This recipe is shared between the ``CaSR`` v3.1 and v3.2 datasets,
+   which differ in their temporal coverage: ``CaSR`` v3.2 covers
+   ``January 1968`` to ``December 2024`` (first file: ``1967123112.nc``),
+   while ``CaSR`` v3.1 covers ``January 1980`` to ``December 2024``
+   (first file: ``1979123112.nc``).
+
+   The requested date range must lie within the temporal coverage of the
+   dataset being processed; otherwise, the recipe attempts to process
+   non-existent files and will not proceed.
 
 Short Description on ``CaSR`` v3.2 Variables
 --------------------------------------------
@@ -216,4 +228,4 @@ Other useful variables in hydrological modelling evaluations are:
      - ``degree``
      - Forecast: Meteorological wind direction (derived using UU and VV) at ~10m
 
-Last updated: February 2, 2025
+Last updated: July 31, 2026

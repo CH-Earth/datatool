@@ -8,6 +8,10 @@ from multiple clusters listed below:
 # DRAC Graham cluster
 /project/def-kshook/Climate_Forcing_Data/meteorological-data/casrv3.1 # def-kshook allocation
 
+# DRAC Fir cluster
+/project/rrg-alpie/data/meteorological-data/casrv3.1 # rrg-alpie allocation
+/project/rrg-alpie/data/meteorological-data/casrv3.2 # rrg-alpie allocation
+
 # UCalgary ARC cluster
 /work/comphyd_lab/data/meteorological-data/casrv3.1 # comphyd_lab allocation
 ```
@@ -15,11 +19,11 @@ from multiple clusters listed below:
 and the structure of the dataset hourly files is as following:
 
 ```console
-/project/rpp-kshook/Model_Output/CaSRv3.1
-├── 1979123112.nc
-├── 1980010112.nc
-├── 1980010212.nc
-├── 1980010312.nc
+/project/rrg-alpie/data/meteorological-data/casrv3.1
+├── 1967123112.nc
+├── 1968010112.nc
+├── 1968010212.nc
+├── 1968010312.nc
 ├── .
 ├── .
 ├── .
@@ -58,7 +62,19 @@ to `+84.75` and longitudes from `-179.9925` to `179.9728` covering
 North America. The resolution is 0.09 degrees (~10km). 
 
 ## Temporal Extent
-The time-steps are hourly covering from `January 1980` to `December 2024`.
+The time-steps are hourly, covering from `January 1968` to `December 2024`
+for `CaSR` v3.2, and from `January 1980` to `December 2024` for `CaSR` v3.1.
+
+> **Note on `CaSR` versions**: This recipe is used for processing both
+> `CaSR` v3.1 and v3.2 datasets. Besides the temporal coverage difference
+> described above, the variable names differ between the two versions:
+> v3.2 variables use the `CaSR_v3.2_` prefix (e.g.,
+> `CaSR_v3.2_P_TT_09975`), while v3.1 variables use the `CaSR_v3.1_`
+> prefix (e.g., `CaSR_v3.1_P_TT_09975`).
+>
+> The requested date range must lie within the temporal coverage of the
+> dataset being processed; otherwise, the recipe attempts to process
+> non-existent files and will not proceed.
 
 ## Short Description on `CaSR` v3.1 Variables
 In most hydrological modelling applications, usually 7 variables are needed

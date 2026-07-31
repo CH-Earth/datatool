@@ -17,14 +17,11 @@ accessible from multiple clusters listed below:
    # DRAC Fir cluster
    /project/rrg-alpie/data/meteorological-data/casrv3.1 # rrg-alpie allocation
 
-   # UCalgary ARC cluster
-   /work/comphyd_lab/data/meteorological-data/casrv3.1 # comphyd_lab allocation
-
 and the structure of the dataset hourly files is as following:
 
 .. code:: console
 
-   /project/def-kshook/Climate_Forcing_Data/meteorological-data/casrv3.1
+   /project/rrg-alpie/data/meteorological-data/casrv3.1
    ├── 1979123112.nc
    ├── 1980010112.nc
    ├── 1980010212.nc
@@ -81,6 +78,19 @@ Temporal Extent
 
 The time-steps are hourly covering from ``January 1980`` to
 ``December 2024``.
+
+.. note::
+
+   This recipe is shared between the ``CaSR`` v3.1 and v3.2 datasets,
+   which differ in their temporal coverage: ``CaSR`` v3.1 covers
+   ``January 1980`` to ``December 2024`` (first file: ``1979123112.nc``),
+   while ``CaSR`` v3.2 covers ``January 1968`` to ``December 2024``
+   (first file: ``1967123112.nc``). Users who need the 1968--1979 period
+   should use the v3.2 dataset.
+
+   The requested date range must lie within the temporal coverage of the
+   dataset being processed; otherwise, the recipe attempts to process
+   non-existent files and will not proceed.
 
 Short Description on ``CaSR`` v3.1 Variables
 --------------------------------------------
@@ -217,4 +227,4 @@ Other useful variables in hydrological modelling evaluations are:
    is available via this tool. Please refer to the updated documentation
    for details on this new dataset.
 
-Last updated: February 2, 2026
+Last updated: July 31, 2026
